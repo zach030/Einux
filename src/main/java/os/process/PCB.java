@@ -1,0 +1,295 @@
+package os.process;
+
+import hardware.CPU;
+import hardware.Clock;
+import hardware.Page;
+import os.job.JCB;
+import os.storage.StorageManage;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+
+public class PCB {
+    //----------进程基本信息--------------------------
+    private int ID;         //进程ID
+    private int status;     //进程状态
+    private int priority;   //进程优先级
+    private int policy;     //进程的调度策略
+    private int IR;         //正在执行的指令编号
+    private int PC;         //下一条执行的指令编号
+    private int instructionsNum;//指令数
+    private int timeSlice;  //当前时间片
+    private int InTimes, EndTimes, RunTimes, TurnTimes; // 进程创建时间,进程结束时间,进程运行时间,进程周转时间
+    static final int TIME_SLICE = 2;            //时间片
+    //---------------进程段信息-------------------------------
+    private DataSeg dataSeg;                    //数据段
+    private CodeSeg codeSeg;                    //代码段
+    private StackSeg stackSeg;                  //堆栈段
+    //--------------进程页信息--------------------------------
+    private PageTableEntry[] internalPageTable;      //内页表
+    private PageTableEntry[] externalPageTable;      //外页表
+    private int pageNums;                    //总页表数
+    private int pcbPageIndex;                // pcb信息在内存中的页框号
+    private int pageTableBaseAddr;           //页基址
+
+    //-------进程分页：pcb基础页 + 数据段所占页 + 代码段所占页
+    ArrayList<Page> pages = new ArrayList<>();
+
+
+    //-------- 进程调度策略--------------------------
+    public static final int SCHED_NORMAL = 0; // 按照优先级进行调度
+    public static final int SCHED_FIFO = 1;   // 先进先出的调度算法
+    public static final int SCHED_RR = 2;     // 时间片轮转的调度算法
+    //-------进程状态--------------------------------
+    public static final int TASK_READY = 0;   // 就绪态
+    public static final int TASK_RUNNING = 1; // 运行态
+    public static final int TASK_BLOCK = 2;   // 阻塞态
+    public static final int TASK_SUSPEND = 3; // 挂起态
+    public static final int TASK_END = 4;     // 结束态
+    static final int NOT_END = -1;     // 进程未运行完
+    static final int NOT_RUN = 0;      // 未运行
+    //--------进程段号-------------------------------
+    static final int DATA_SEG_NO = 1;  //数据段段号
+    static final int CODE_SEG_NO = 2;  //代码段段号
+    static final int STACK_SEG_NO = 3; //栈段段号
+
+    public PCB() {
+        this.timeSlice = TIME_SLICE;
+    }
+
+    // 创建进程原语
+    public void createProcess(JCB jcb) {
+        this.setID(jcb.getJobID());
+        this.setPriority(jcb.getJobPriority());
+        this.setInTimes(Clock.clock.getCurrentTime());
+        this.setEndTimes(NOT_END);
+        this.setRunTimes(NOT_RUN);
+        this.setStatus(TASK_READY);
+        this.setPolicy(SCHED_RR);
+        this.setPC(0);
+        this.instructionsNum = jcb.getJobInstructionNum();
+        dataSeg = new DataSeg(jcb.getData());
+        codeSeg = new CodeSeg(jcb.getInstructions(), dataSeg.getPageNums() + dataSeg.getLogicalPageNo());
+        stackSeg = new StackSeg(codeSeg.getLogicalPageNo() + codeSeg.getPageNums());
+        pageNums = dataSeg.pageNums + codeSeg.pageNums + stackSeg.pageNums + 1;
+        initPageTable();
+    }
+
+    // 撤销进程
+    public void cancelProcess(){
+        setStatus(PCB.TASK_END);
+        setEndTimes(CPU.cpu.clock.getCurrentTime());
+        //StorageManage.sm.RecyclePageFrame(this); // 回收该进程占有的所有页框
+        //StorageManage.sm.ClearPageTable(this); // 清空页表
+        //StorageManage.sm.DeletePCBFromPool(this); // 将该PCB从PCB池中删除
+        //Deadlock.l.ReleaseAllResource(this); // 释放所有资源
+    }
+
+    // 阻塞进程
+    public void blockProcess(){
+        setStatus(PCB.TASK_BLOCK);
+    }
+
+    // 唤醒进程
+    public void wakeUpProcess(){
+        setStatus(PCB.TASK_READY);
+    }
+
+    // 挂起进程
+    public void suspendProcess(){
+        setStatus(PCB.TASK_SUSPEND);
+    }
+
+    static class PageTableEntry {
+        int virtualPageNo;       //逻辑页号
+        int physicPageNo;        //页框号
+        int diskBlockNo;         //外存块号
+        boolean isValid;         //是否有效
+        boolean isModify;        //是否修改
+    }
+
+    // 初始化进程内页表
+    void initPageTable() {
+        internalPageTable = new PageTableEntry[pageNums];
+        Arrays.fill(internalPageTable, new PageTableEntry());
+        for (int i = 0; i < pageNums; i++) {
+            internalPageTable[i].virtualPageNo = -1;
+            internalPageTable[i].physicPageNo = -1;
+            internalPageTable[i].isValid = false;
+            internalPageTable[i].isModify = false;
+            internalPageTable[i].diskBlockNo = -1;
+        }
+    }
+
+    // 写进程的页表项
+    public void writePageTableEntry(int virtualNo, Page page) {
+        internalPageTable[virtualNo].virtualPageNo = page.getNo();
+        internalPageTable[virtualNo].isValid = true;
+        internalPageTable[virtualNo].diskBlockNo = page.getBlockNo();
+        internalPageTable[virtualNo].isModify = page.isModify();
+        internalPageTable[virtualNo].physicPageNo = page.getFrameNo();
+    }
+
+    // 写入pcb页
+    public void writePCBPage() {
+        Page page = new Page();
+
+    }
+
+    public int getInstructionsNum() {
+        return instructionsNum;
+    }
+
+    public void setInstructionsNum(int instructionsNum) {
+        this.instructionsNum = instructionsNum;
+    }
+
+    public int getPcbPageIndex() {
+        return pcbPageIndex;
+    }
+
+    public void setPcbPageIndex(int pcbPageIndex) {
+        this.pcbPageIndex = pcbPageIndex;
+    }
+
+    public int getPageTableBaseAddr() {
+        return pageTableBaseAddr;
+    }
+
+    public void setPageTableBaseAddr(int pageTableBaseAddr) {
+        this.pageTableBaseAddr = pageTableBaseAddr;
+    }
+
+    public int getPageNums() {
+        return pageNums;
+    }
+
+    public void setPageNums(int pageNums) {
+        this.pageNums = pageNums;
+    }
+
+    public int getIR() {
+        return IR;
+    }
+
+    public void setIR(int IR) {
+        this.IR = IR;
+    }
+
+    public int getPC() {
+        return PC;
+    }
+
+    public void setPC(int PC) {
+        this.PC = PC;
+    }
+
+    public int getID() {
+        return ID;
+    }
+
+    public void setID(int ID) {
+        this.ID = ID;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
+    public int getPriority() {
+        return priority;
+    }
+
+    public void setPriority(int priority) {
+        this.priority = priority;
+    }
+
+    public int getPolicy() {
+        return policy;
+    }
+
+    public void setPolicy(int policy) {
+        this.policy = policy;
+    }
+
+    public int getInTimes() {
+        return InTimes;
+    }
+
+    public void setInTimes(int inTimes) {
+        InTimes = inTimes;
+    }
+
+    public int getEndTimes() {
+        return EndTimes;
+    }
+
+    public void setEndTimes(int endTimes) {
+        EndTimes = endTimes;
+    }
+
+    public int getRunTimes() {
+        return RunTimes;
+    }
+
+    public void setRunTimes(int runTimes) {
+        RunTimes = runTimes;
+    }
+
+    public int getTurnTimes() {
+        return TurnTimes;
+    }
+
+    public void setTurnTimes(int turnTimes) {
+        TurnTimes = turnTimes;
+    }
+
+    public DataSeg getData() {
+        return dataSeg;
+    }
+
+    public void setData(DataSeg data) {
+        this.dataSeg = data;
+    }
+
+    public CodeSeg getCode() {
+        return codeSeg;
+    }
+
+    public void setCode(CodeSeg code) {
+        this.codeSeg = code;
+    }
+
+    public StackSeg getStack() {
+        return stackSeg;
+    }
+
+    public void setStack(StackSeg stack) {
+        this.stackSeg = stack;
+    }
+
+    public static int getDataSegNo() {
+        return DATA_SEG_NO;
+    }
+
+    public static int getCodeSegNo() {
+        return CODE_SEG_NO;
+    }
+
+    public static int getStackSegNo() {
+        return STACK_SEG_NO;
+    }
+
+    public int getTimeSlice() {
+        return timeSlice;
+    }
+
+    public void setTimeSlice() {
+        this.timeSlice = TIME_SLICE;
+    }
+    // TODO 进程打开文件表：filename + FCB
+}
