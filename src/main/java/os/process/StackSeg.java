@@ -2,10 +2,11 @@ package os.process;
 
 import hardware.Page;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 public class StackSeg {
-    Page[] pages;
+    ArrayList<Page> pages;
     int pageNums;
     int logicalPageNo;
     int segNo;
@@ -13,9 +14,16 @@ public class StackSeg {
     StackSeg(int pageStart) {
         this.pageNums = 1;
         this.segNo = PCB.STACK_SEG_NO;
-        pages = new Page[pageNums];
-        Arrays.fill(pages,new Page());
+        pages = new ArrayList<>(pageNums);
         this.logicalPageNo = pageStart;
+    }
+
+    public ArrayList<Page> getPages() {
+        return pages;
+    }
+
+    public void setPages(ArrayList<Page> pages) {
+        this.pages = pages;
     }
 
     public int getPageNums() {

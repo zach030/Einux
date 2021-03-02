@@ -24,6 +24,11 @@ public class KernalZone implements MemoryZone {
     }
 
     @Override
+    public void replacePage(Page page) {
+        this.page = page;
+    }
+
+    @Override
     public int getRelativePageNo(int pageNo) {
         return pageNo - index;
     }

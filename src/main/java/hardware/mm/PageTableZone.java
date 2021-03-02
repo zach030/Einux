@@ -27,6 +27,11 @@ public class PageTableZone implements MemoryZone {
     }
 
     @Override
+    public void replacePage(Page page) {
+        this.pages[getRelativePageNo(page.getFrameNo())] = page;
+    }
+
+    @Override
     public int getRelativePageNo(int pageNo) {
         return pageNo - index;
     }

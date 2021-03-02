@@ -1,5 +1,6 @@
 package hardware.mm;
 
+import hardware.Page;
 import utils.SysConst;
 
 public class Memory {
@@ -48,6 +49,13 @@ public class Memory {
         pcbPoolZone.clearZone();
         pcbZone.clearZone();
         bufferPool.clearZone();
+    }
+
+    public void writePage(Page page){
+        // 根据页框号，对内存中的页进行替换
+        int pageFrameNo = page.getFrameNo();
+        MemoryZone memoryZone = switchZone(pageFrameNo);
+        memoryZone.replacePage(page);
     }
 
     // 入参是物理地址：页框号(6 bit)+页内偏移(9 bit)

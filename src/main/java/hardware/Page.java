@@ -1,10 +1,11 @@
 package hardware;
 
+import hardware.mm.Memory;
 import utils.SysConst;
 
 // page : base operation for nno matter memory or disk
 public class Page {
-    private int no;             //逻辑页号
+    private int logicalNo;     //逻辑页号
     private int frameNo;        //物理页框号
     private int blockNo;        //物理块号
     private boolean stay;       //驻留内存(状态位)
@@ -13,6 +14,13 @@ public class Page {
 
     public Page() {
         this.stay = true;
+    }
+
+    public Page(int logicalNo, int frameNo, int blockNo, boolean stay) {
+        this.logicalNo = logicalNo;
+        this.frameNo = frameNo;
+        this.blockNo = blockNo;
+        this.stay = stay;
     }
 
     int R; //引用位，被访问则置1
@@ -37,26 +45,36 @@ public class Page {
 
     //read page
     public short read(int offset) {
-        return (short) ((pageData[offset] & 0xFF)| (pageData[offset+1] << 8));
+        return (short) ((pageData[offset] & 0xFF) | (pageData[offset + 1] << 8));
     }
 
-    public void clearPage(){
+    public void clearPage() {
         this.pageData = new byte[SysConst.PAGE_FRAME_SIZE];
     }
 
-    // synchronization to disk ( virtual address + data)
-    public void syncPageData(int addr, short data) {
-        // TODO 将逻辑地址转为物理地址
-        //    判读页在磁盘or内存
-        //    根据情况进行修改页数据
+    // 将页的数据同步到内存或磁盘
+    public void syncPage() {
+        if (stay) {
+            syncMemory();
+        } else {
+            syncDisk();
+        }
     }
 
-    public int getNo() {
-        return no;
+    void syncMemory() {
+        Memory.memory.writePage(this);
     }
 
-    public void setNo(int no) {
-        this.no = no;
+    void syncDisk() {
+        //TODO sync page data to disk
+    }
+
+    public int getLogicalNo() {
+        return logicalNo;
+    }
+
+    public void setLogicalNo(int logicalNo) {
+        this.logicalNo = logicalNo;
     }
 
     public int getFrameNo() {

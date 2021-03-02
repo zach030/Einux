@@ -70,7 +70,7 @@ public class ProcessManage {
         //1、向内存的pcb池请求分配页
         int pageFrame = StorageManage.sm.applyPageFromPCBPool();
         //2、设置pcb在内存中的页号
-        pcb.setPcbPageIndex(pageFrame);
+        pcb.setPcbFramePageNo(pageFrame);
         //2、将pcb的数据写入该页
         pcb.writePCBPage();
         //3、修改内存中页框位示图

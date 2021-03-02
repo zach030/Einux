@@ -3,11 +3,12 @@ package os.process;
 import hardware.Page;
 import utils.SysConst;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 // 数据段
 public class DataSeg {
-    Page[] pages;
+    ArrayList<Page> pages;
     int pageNums;
     int logicalPageNo;
     int segNo;
@@ -22,8 +23,15 @@ public class DataSeg {
             dataLength = data.length;
         }
         this.pageNums = dataLength / SysConst.PAGE_FRAME_SIZE + 1;
-        pages = new Page[pageNums];
-        Arrays.fill(pages,new Page());
+        pages = new ArrayList<>(pageNums);
+    }
+
+    public ArrayList<Page> getPages() {
+        return pages;
+    }
+
+    public void setPages(ArrayList<Page> pages) {
+        this.pages = pages;
     }
 
     public int getPageNums() {

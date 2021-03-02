@@ -1,7 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="c0bfff17-3919-431a-87e2-290f6591f1c4" name="Default Changelist" comment="" />
+    <list default="true" id="c0bfff17-3919-431a-87e2-290f6591f1c4" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/os/process/PageTableEntry.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/hardware/Page.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hardware/Page.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/hardware/mm/BufferPool.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hardware/mm/BufferPool.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/hardware/mm/KernalZone.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hardware/mm/KernalZone.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/hardware/mm/Memory.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hardware/mm/Memory.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/hardware/mm/MemoryZone.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hardware/mm/MemoryZone.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/hardware/mm/PCBPoolZone.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hardware/mm/PCBPoolZone.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/hardware/mm/PCBZone.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hardware/mm/PCBZone.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/hardware/mm/PageTableZone.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hardware/mm/PageTableZone.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/process/CodeSeg.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/process/CodeSeg.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/process/DataSeg.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/process/DataSeg.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/process/PCB.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/process/PCB.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/process/ProcessManage.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/process/ProcessManage.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/process/StackSeg.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/process/StackSeg.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/storage/StorageManage.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/storage/StorageManage.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -24,10 +42,13 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Class" />
         <option value="JUnit5 Test Class" />
+        <option value="Class" />
       </list>
     </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="MavenImportPreferences">
     <option name="importingSettings">
@@ -37,6 +58,9 @@
     </option>
   </component>
   <component name="ProjectId" id="1p9vReblSfj6mAzBpIPQCSJyQzb" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showExcludedFiles" value="true" />
@@ -44,6 +68,7 @@
   </component>
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
     <property name="com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary" value="JUnit5" />
@@ -177,7 +202,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1614608113195</updated>
-      <workItem from="1614608116231" duration="38311000" />
+      <workItem from="1614608116231" duration="43094000" />
     </task>
     <servers />
   </component>
@@ -193,11 +218,11 @@
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state x="96" y="0" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1280.689@0.0.1280.689" timestamp="1614608262359" />
-    <state x="402" y="0" key="#com.intellij.ide.util.MemberChooser" timestamp="1614672880842">
+    <state x="402" y="0" key="#com.intellij.ide.util.MemberChooser" timestamp="1614695807132">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state x="402" y="0" key="#com.intellij.ide.util.MemberChooser/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614672880842" />
-    <state x="402" y="0" key="#com.intellij.ide.util.MemberChooser/0.0.1280.689@0.0.1280.689" timestamp="1614618127299" />
+    <state x="402" y="0" key="#com.intellij.ide.util.MemberChooser/0.0.1280.689@0.0.1280.689" timestamp="1614695807132" />
     <state x="339" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog" timestamp="1614613365747">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
