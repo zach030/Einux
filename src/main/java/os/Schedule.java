@@ -13,7 +13,7 @@ public class Schedule {
     public static boolean needHighLevelScheduling = true;
     public static boolean needMediumLevelScheduling = true;
 
-    // 高级调度，即作业调度，从后备队列选作业进入内存并创建进程
+    // 高级调度，从后备队列选作业进入内存并创建进程
     public void HighLevelScheduling() {
         if (!JobManage.jm.isBackJobsEmpty() && !ProcessManage.pm.isPCBPoolFull()) // 后备队列不为空并且系统可加入更多进程
         {
@@ -90,16 +90,14 @@ public class Schedule {
         ProcessManage.pm.DisplayAllPCBQueue();
 
         // 高级调度
-        if (needHighLevelScheduling) // 由后备队列检测线程设置是否需要高级调度
-        {
+        if (needHighLevelScheduling){ // 由后备队列检测线程设置是否需要高级调度
             System.out.println("[SCHEDULE]------正在进行高级调度.......");
             HighLevelScheduling();// 进行高级调度
             needHighLevelScheduling = false;
         }
 
         // 中级调度
-        if (needMediumLevelScheduling) // 是否需要中级调度
-        {
+        if (needMediumLevelScheduling){ // 是否需要中级调度
             System.out.println("[SCHEDULE]------正在进行中级调度.......");
             MediumLevelScheduling(); // 进行中级调度
             needMediumLevelScheduling = false;

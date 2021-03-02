@@ -171,8 +171,6 @@ public class PCB {
         this.pcbHasPages.add(page);
     }
 
-
-
     public int getInstructionsNum() {
         return instructionsNum;
     }

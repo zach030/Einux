@@ -84,7 +84,7 @@ public class Memory {
         if (page >= 1 && page <= 2) {
             return pageTableZone;
         }
-        if (page >= 13 && page <= 15) {
+        if (page >= 3 && page <= 15) {
             return pcbPoolZone;
         }
         if (page >= 16 && page <= 47) {

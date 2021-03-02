@@ -72,13 +72,23 @@ public class DiskHelper {
         }
 
         @Override
-        public short readBlock(int offset) {
-            return 0;
+        public byte[] getAllData() {
+            return data;
         }
 
         @Override
-        public void writeBlock(int offset, short content) {
+        public short read(int offset) {
+            return (short) ((data[offset] & 0xFF) | (data[offset + 1] << 8));
+        }
+
+        @Override
+        public void write(int offset, short content) {
             updateBlock(this.no, offset, content);
+        }
+
+        @Override
+        public void writeBlock(byte[] data) {
+            this.data = data;
         }
 
         @Override
@@ -206,6 +216,10 @@ public class DiskHelper {
         }
     }
 
+    void updateFullBlock() {
+        //TODO 用更新后的byte[]填充磁盘
+    }
+
     void updateBlock(int index, int offset, short data) {
         int row = offset / 15;
         int column = offset % 15;
@@ -221,7 +235,7 @@ public class DiskHelper {
         }
     }
 
-    short readBlock(int index, int offset){
+    short readBlock(int index, int offset) {
         int row = offset / 15;
         int column = offset % 15;
         int rowStart = row * 49;
@@ -231,12 +245,12 @@ public class DiskHelper {
         try {
             RandomAccessFile raf = new RandomAccessFile(block.getAbsoluteFile(), "rw");
             raf.seek(rowStart + columnStart);
-            raf.seek(rowStart+columnStart);
-            raf.read(data,0,2);
+            raf.seek(rowStart + columnStart);
+            raf.read(data, 0, 2);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return Short.parseShort( new String(data));
+        return Short.parseShort(new String(data));
     }
 
     public static byte[] short2byte(short s) {

@@ -1,8 +1,11 @@
 package disk;
 
+import hardware.Page;
+
 //硬盘:外存
 public class Disk implements BootDisk {
     public static BootDisk disk = new Disk();
+
     DiskHelper diskHelper;      // 驱动读写
 
     static final int OTHER_BLOCK_NUM = 20479;
@@ -55,6 +58,11 @@ public class Disk implements BootDisk {
     @Override
     public void writeData(int addr, short data) {
         diskHelper.updateBlock(addr >> 9, addr & 0X01FF, data);
+    }
+
+    @Override
+    public void writeBlock(Page page) {
+
     }
 
 }

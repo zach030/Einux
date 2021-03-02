@@ -1,5 +1,7 @@
 package disk;
 
+import hardware.Page;
+
 // 通用磁盘接口
 public interface BootDisk {
     // 设置磁盘helper
@@ -25,4 +27,7 @@ public interface BootDisk {
 
     // 根据物理地址向磁盘写数据
     void writeData(int addr, short data);
+
+    // 写整块的数据
+    void writeBlock(Page page);
 }

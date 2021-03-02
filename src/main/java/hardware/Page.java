@@ -1,5 +1,6 @@
 package hardware;
 
+import disk.Disk;
 import hardware.mm.Memory;
 import utils.SysConst;
 
@@ -66,6 +67,7 @@ public class Page {
     }
 
     void syncDisk() {
+
         //TODO sync page data to disk
     }
 
