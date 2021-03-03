@@ -1,5 +1,7 @@
 package os.process;
 
+import disk.DevConfig;
+import os.filesystem.FileSystem;
 import os.job.JCB;
 import os.storage.StorageManage;
 
@@ -65,6 +67,7 @@ public class ProcessManage {
 
     }
 
+    //-----------------------------内存操作-----------------------
     // 将pcb加入内存的pcb池
     public void addPCBToPCBPool(PCB pcb) {
         //1、向内存的pcb池请求分配页
@@ -75,6 +78,31 @@ public class ProcessManage {
         pcb.writePCBPage();
         //3、修改内存中页框位示图
         StorageManage.sm.modifyMemoryPageBitMap(pageFrame);
+    }
+
+    //----------------------------磁盘操作--------------------
+    public void writePCBExternalPageTableToDisk(PCB pcb) {
+        // 0=>进程号 2=>逻辑页号 4=>物理块号 一个页表项6个字节
+//        int startAddress = FileSystem.EXTERNAL_PAGE_TABLE_INDEX * DevConfig.BLOCK_SIZE;
+//        int i = startAddress;
+//        for (; i < startAddress + FileSystem.EXTERNAL_PAGE_TABLE_SIZE; i += 6) {
+//            if (ExternalMemory.mem.ReadData(i) == 0) {
+//                int count = 0, k = i;
+//                for (int j = 0; j < pcb.GetPageFramesNum(); j++, k += 6) {
+//                    if (ExternalMemory.mem.ReadData(k) == 0)
+//                        count++;
+//                }
+//                if (count == pcb.GetPageFramesNum())
+//                    break;
+//                i = k;
+//            }
+//        }
+//        pcb.SetExternalPageTableBaseAddress(i);
+//        for (int j = 0; j < pcb.GetPageFramesNum(); j++, i += 6) {
+//            ExternalMemory.mem.WriteData(i, pcb.GetProID());
+//            ExternalMemory.mem.WriteData(i + 2, (short) externalPageTable[j, 0]);
+//            ExternalMemory.mem.WriteData(i + 4, (short) externalPageTable[j, 1]);
+//        }
     }
 
     //--------------展示进程队列信息----------------------

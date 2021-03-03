@@ -58,6 +58,7 @@ public class Page {
         if (stay) {
             syncMemory();
         } else {
+            // 将页转为块，写入磁盘
             syncDisk();
         }
     }
@@ -67,7 +68,6 @@ public class Page {
     }
 
     void syncDisk() {
-
         //TODO sync page data to disk
     }
 

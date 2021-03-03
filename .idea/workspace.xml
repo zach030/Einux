@@ -2,27 +2,33 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="c0bfff17-3919-431a-87e2-290f6591f1c4" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/Block.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/BlockZone.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/DataMapZone.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/DataZone.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/InodeMapZone.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/InodeZone.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/JCBZone.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/SuperBlock.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/SwapZone.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/VFS.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/java/os/process/PCBTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/os/schedule/Execute.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/os/filesystem/FileSystemTest.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/disk/BootDisk.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/disk/BootDisk.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/disk/Disk.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/disk/Disk.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/disk/DiskHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/disk/DiskHelper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/disk/RealBlock.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/disk/RealBlock.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/hardware/Page.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hardware/Page.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/hardware/mm/Memory.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hardware/mm/Memory.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/os/Schedule.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/Schedule.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/hardware/mm/MemoryZone.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hardware/mm/MemoryZone.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/Schedule.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/schedule/Schedule.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/filesystem/Block.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/Block.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/filesystem/BlockZone.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/BlockZone.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/filesystem/DataMapZone.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/DataMapZone.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/filesystem/DataZone.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/DataZone.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/os/filesystem/FileSystem.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/FileSystem.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/filesystem/InodeMapZone.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/InodeMapZone.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/filesystem/InodeZone.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/InodeZone.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/filesystem/JCBZone.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/JCBZone.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/filesystem/SuperBlock.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/SuperBlock.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/filesystem/SwapZone.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/SwapZone.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/job/JCB.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/job/JCB.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/job/JobManage.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/job/JobManage.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/os/process/PCB.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/process/PCB.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/process/ProcessManage.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/process/ProcessManage.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/storage/StorageManage.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/storage/StorageManage.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/os/ScheduleTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/os/ScheduleTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -46,8 +52,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="JUnit5 Test Class" />
         <option value="Interface" />
+        <option value="JUnit5 Test Class" />
         <option value="Class" />
       </list>
     </option>
@@ -72,6 +78,7 @@
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="DatabaseDriversLRU" value="mysql" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
@@ -86,11 +93,11 @@
   </component>
   <component name="RecentsManager">
     <key name="CreateTestDialog.RecentsKey">
+      <recent name="os.filesystem" />
       <recent name="os.process" />
       <recent name="os" />
       <recent name="os.storage" />
       <recent name="hardware" />
-      <recent name="os.job" />
     </key>
     <key name="CopyClassDialog.RECENTS_KEY">
       <recent name="hardware" />
@@ -106,7 +113,23 @@
       <recent name="D:\AllProjects\Java\Einux\src\main\java\disk" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.PCBTest.writePCBPage">
+  <component name="RunManager" selected="JUnit.FileSystemTest.writeBlock">
+    <configuration name="FileSystemTest.writeBlock" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="Einux" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="os.filesystem.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="os.filesystem" />
+      <option name="MAIN_CLASS_NAME" value="os.filesystem.FileSystemTest" />
+      <option name="METHOD_NAME" value="writeBlock" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="MemoryTest.writeData" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="Einux" />
       <extension name="coverage">
@@ -143,7 +166,7 @@
       <module name="Einux" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="os.*" />
+          <option name="PATTERN" value="os.schedule.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -171,29 +194,13 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="StorageManageTest.getFreePageNumsInSwapArea" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="Einux" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="os.storage.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <option name="PACKAGE_NAME" value="os.storage" />
-      <option name="MAIN_CLASS_NAME" value="os.storage.StorageManageTest" />
-      <option name="METHOD_NAME" value="getFreePageNumsInSwapArea" />
-      <option name="TEST_OBJECT" value="method" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="JUnit.FileSystemTest.writeBlock" />
         <item itemvalue="JUnit.PCBTest.writePCBPage" />
         <item itemvalue="JUnit.ScheduleTest.run" />
         <item itemvalue="JUnit.MemoryTest.writeData" />
         <item itemvalue="JUnit.StorageManageTest.distributedPCBPageTable" />
-        <item itemvalue="JUnit.StorageManageTest.getFreePageNumsInSwapArea" />
       </list>
     </recent_temporary>
   </component>
@@ -207,7 +214,8 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1614608113195</updated>
-      <workItem from="1614608116231" duration="50515000" />
+      <workItem from="1614608116231" duration="53277000" />
+      <workItem from="1614742883438" duration="13218000" />
     </task>
     <servers />
   </component>
@@ -219,15 +227,16 @@
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state x="133" y="0" key="#Project_Structure/0.0.1280.689@0.0.1280.689" timestamp="1614609911739" />
-    <state x="96" y="0" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1614608262359">
+    <state x="96" y="0" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1614742997962">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
+    <state x="96" y="0" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614742997962" />
     <state x="96" y="0" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1280.689@0.0.1280.689" timestamp="1614608262359" />
-    <state x="402" y="0" key="#com.intellij.ide.util.MemberChooser" timestamp="1614708669438">
+    <state x="402" y="0" key="#com.intellij.ide.util.MemberChooser" timestamp="1614761494681">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
-    <state x="402" y="0" key="#com.intellij.ide.util.MemberChooser/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614672880842" />
-    <state x="402" y="0" key="#com.intellij.ide.util.MemberChooser/0.0.1280.689@0.0.1280.689" timestamp="1614708669438" />
+    <state x="402" y="0" key="#com.intellij.ide.util.MemberChooser/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614740356365" />
+    <state x="402" y="0" key="#com.intellij.ide.util.MemberChooser/0.0.1280.689@0.0.1280.689" timestamp="1614761494681" />
     <state x="235" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog" timestamp="1614707065114">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
@@ -236,66 +245,71 @@
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state x="309" y="34" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/0.0.1280.689@0.0.1280.689" timestamp="1614612168883" />
-    <state x="341" y="0" key="#xdebugger.evaluate" timestamp="1614702586516">
+    <state x="341" y="0" key="#xdebugger.evaluate" timestamp="1614752379957">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
-    <state x="341" y="0" key="#xdebugger.evaluate/0.0.1280.689@0.0.1280.689" timestamp="1614702586516" />
-    <state width="1227" height="372" key="GridCell.Tab.0.bottom" timestamp="1614702632190">
+    <state x="341" y="0" key="#xdebugger.evaluate/0.0.1280.689@0.0.1280.689" timestamp="1614752379957" />
+    <state width="1227" height="269" key="GridCell.Tab.0.bottom" timestamp="1614752591752">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
-    <state width="1227" height="226" key="GridCell.Tab.0.bottom/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614654466162" />
-    <state width="1227" height="372" key="GridCell.Tab.0.bottom/0.0.1280.689@0.0.1280.689" timestamp="1614702632190" />
-    <state width="1227" height="372" key="GridCell.Tab.0.center" timestamp="1614702632190">
+    <state width="1227" height="289" key="GridCell.Tab.0.bottom/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614742863665" />
+    <state width="1227" height="269" key="GridCell.Tab.0.bottom/0.0.1280.689@0.0.1280.689" timestamp="1614752591752" />
+    <state width="1227" height="269" key="GridCell.Tab.0.center" timestamp="1614752591752">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
-    <state width="1227" height="226" key="GridCell.Tab.0.center/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614654466161" />
-    <state width="1227" height="372" key="GridCell.Tab.0.center/0.0.1280.689@0.0.1280.689" timestamp="1614702632190" />
-    <state width="1227" height="372" key="GridCell.Tab.0.left" timestamp="1614702632189">
+    <state width="1227" height="289" key="GridCell.Tab.0.center/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614742863665" />
+    <state width="1227" height="269" key="GridCell.Tab.0.center/0.0.1280.689@0.0.1280.689" timestamp="1614752591752" />
+    <state width="1227" height="269" key="GridCell.Tab.0.left" timestamp="1614752591751">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
-    <state width="1227" height="226" key="GridCell.Tab.0.left/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614654466161" />
-    <state width="1227" height="372" key="GridCell.Tab.0.left/0.0.1280.689@0.0.1280.689" timestamp="1614702632189" />
-    <state width="1227" height="372" key="GridCell.Tab.0.right" timestamp="1614702632190">
+    <state width="1227" height="289" key="GridCell.Tab.0.left/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614742863665" />
+    <state width="1227" height="269" key="GridCell.Tab.0.left/0.0.1280.689@0.0.1280.689" timestamp="1614752591751" />
+    <state width="1227" height="269" key="GridCell.Tab.0.right" timestamp="1614752591752">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
-    <state width="1227" height="226" key="GridCell.Tab.0.right/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614654466162" />
-    <state width="1227" height="372" key="GridCell.Tab.0.right/0.0.1280.689@0.0.1280.689" timestamp="1614702632190" />
-    <state width="1227" height="372" key="GridCell.Tab.1.bottom" timestamp="1614702632190">
+    <state width="1227" height="289" key="GridCell.Tab.0.right/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614742863665" />
+    <state width="1227" height="269" key="GridCell.Tab.0.right/0.0.1280.689@0.0.1280.689" timestamp="1614752591752" />
+    <state width="1227" height="269" key="GridCell.Tab.1.bottom" timestamp="1614752591752">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
-    <state width="1227" height="267" key="GridCell.Tab.1.bottom/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614654449478" />
-    <state width="1227" height="372" key="GridCell.Tab.1.bottom/0.0.1280.689@0.0.1280.689" timestamp="1614702632190" />
-    <state width="1227" height="372" key="GridCell.Tab.1.center" timestamp="1614702632190">
+    <state width="1227" height="289" key="GridCell.Tab.1.bottom/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614742863665" />
+    <state width="1227" height="269" key="GridCell.Tab.1.bottom/0.0.1280.689@0.0.1280.689" timestamp="1614752591752" />
+    <state width="1227" height="269" key="GridCell.Tab.1.center" timestamp="1614752591752">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
-    <state width="1227" height="267" key="GridCell.Tab.1.center/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614654449478" />
-    <state width="1227" height="372" key="GridCell.Tab.1.center/0.0.1280.689@0.0.1280.689" timestamp="1614702632190" />
-    <state width="1227" height="372" key="GridCell.Tab.1.left" timestamp="1614702632190">
+    <state width="1227" height="289" key="GridCell.Tab.1.center/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614742863665" />
+    <state width="1227" height="269" key="GridCell.Tab.1.center/0.0.1280.689@0.0.1280.689" timestamp="1614752591752" />
+    <state width="1227" height="269" key="GridCell.Tab.1.left" timestamp="1614752591752">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
-    <state width="1227" height="267" key="GridCell.Tab.1.left/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614654449478" />
-    <state width="1227" height="372" key="GridCell.Tab.1.left/0.0.1280.689@0.0.1280.689" timestamp="1614702632190" />
-    <state width="1227" height="372" key="GridCell.Tab.1.right" timestamp="1614702632190">
+    <state width="1227" height="289" key="GridCell.Tab.1.left/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614742863665" />
+    <state width="1227" height="269" key="GridCell.Tab.1.left/0.0.1280.689@0.0.1280.689" timestamp="1614752591752" />
+    <state width="1227" height="269" key="GridCell.Tab.1.right" timestamp="1614752591752">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
-    <state width="1227" height="267" key="GridCell.Tab.1.right/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614654449478" />
-    <state width="1227" height="372" key="GridCell.Tab.1.right/0.0.1280.689@0.0.1280.689" timestamp="1614702632190" />
+    <state width="1227" height="289" key="GridCell.Tab.1.right/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614742863665" />
+    <state width="1227" height="269" key="GridCell.Tab.1.right/0.0.1280.689@0.0.1280.689" timestamp="1614752591752" />
     <state x="0" y="0" key="SettingsEditor" timestamp="1614610064881">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state x="0" y="0" key="SettingsEditor/0.0.1280.689@0.0.1280.689" timestamp="1614610064881" />
-    <state x="410" y="0" key="com.intellij.testIntegration.createTest.CreateTestDialog" timestamp="1614702263956">
+    <state x="410" y="0" key="com.intellij.testIntegration.createTest.CreateTestDialog" timestamp="1614740821601">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
-    <state x="410" y="0" key="com.intellij.testIntegration.createTest.CreateTestDialog/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614650413827" />
+    <state x="410" y="0" key="com.intellij.testIntegration.createTest.CreateTestDialog/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614740821601" />
     <state x="410" y="0" key="com.intellij.testIntegration.createTest.CreateTestDialog/0.0.1280.689@0.0.1280.689" timestamp="1614702263956" />
     <state x="309" y="62" key="extract.method.dialog" timestamp="1614687778337">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state x="309" y="62" key="extract.method.dialog/0.0.1280.689@0.0.1280.689" timestamp="1614687778337" />
-    <state x="213" y="150" key="run.anything.popup" timestamp="1614655740820">
+    <state x="213" y="150" key="run.anything.popup" timestamp="1614762080962">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state x="213" y="150" key="run.anything.popup/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614655740820" />
+    <state x="213" y="150" key="run.anything.popup/0.0.1280.689@0.0.1280.689" timestamp="1614762080962" />
+    <state x="219" y="-1" width="840" height="1034" key="search.everywhere.popup" timestamp="1614739931710">
+      <screen x="0" y="0" width="1280" height="689" />
+    </state>
+    <state x="219" y="-1" width="840" height="1034" key="search.everywhere.popup/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614739931710" />
   </component>
 </project>

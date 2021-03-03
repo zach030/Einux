@@ -9,7 +9,8 @@ public class Block {
     boolean modify; //是否已修改
     byte[] data = new byte[DevConfig.BLOCK_SIZE];
 
-    public Block() {
+    public Block(int blockNo) {
+        this.blockNo = blockNo;
         this.modify = false;
         loadBlockData();
     }
@@ -25,7 +26,7 @@ public class Block {
         // 高八位
         this.data[offset + 1] = (byte) (data >> 8);
         // 同步写到磁盘
-        syncBlock();
+        // syncBlock();
     }
 
     public short read(int offset) {
@@ -34,6 +35,31 @@ public class Block {
 
     // 同步到磁盘real block
     public void syncBlock() {
+        this.modify = true;
         Disk.disk.getBlock(this.blockNo).writeBlock(this.data);
+    }
+
+    public int getBlockNo() {
+        return blockNo;
+    }
+
+    public void setBlockNo(int blockNo) {
+        this.blockNo = blockNo;
+    }
+
+    public boolean isModify() {
+        return modify;
+    }
+
+    public void setModify(boolean modify) {
+        this.modify = modify;
+    }
+
+    public byte[] getData() {
+        return data;
+    }
+
+    public void setData(byte[] data) {
+        this.data = data;
     }
 }

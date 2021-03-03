@@ -1,6 +1,7 @@
 package os.filesystem;
 
-import hardware.mm.MemoryZone;
+import disk.DevConfig;
+import utils.SysConst;
 
 public class FileSystem implements VFS {
     public static FileSystem fs = new FileSystem();
@@ -9,10 +10,12 @@ public class FileSystem implements VFS {
     public static final int BLOCK_NUM = 19898;                  // 数据块总块数
     public static final int SUPER_BLOCK_INDEX = 1;              // 超级块在磁盘中的下标
     public static final int INODE_MAP_INDEX = 2;                // Inode map在磁盘中的下标
-    public static final int DATA_MAP_INDEX = 3;                // block map在磁盘中的下标
-    public static final int INODE_ZONE_INDEX = 4;              // inode区在磁盘的下标
-    public static final int INODE_ZONE_SIZE = 64;                // inode节点数
+    public static final int DATA_MAP_INDEX = 3;                 // block map在磁盘中的下标
+    public static final int INODE_ZONE_INDEX = 4;               // inode区在磁盘的下标
+    public static final int INODE_ZONE_SIZE = 64;               // inode节点数
     public static final int DATA_ZONE_INDEX = 68;               // 数据区起始下标
+    public static final int EXTERNAL_PAGE_TABLE_INDEX = 68;     //外页表起始下标
+    public static final int EXTERNAL_PAGE_TABLE_SIZE = 2* DevConfig.BLOCK_SIZE;//外页表大小
     public static final int DATA_ZONE_SIZE = 19898;             // 数据区大小
     public static final int JCB_ZONE_INDEX = 19966;             // jcb区下标
     public static final int JCB_ZONE_SIZE = 256;                // jcb区大小
@@ -80,6 +83,12 @@ public class FileSystem implements VFS {
         int offset = (addr & 0X01FF);
         BlockZone blockZone = switchZone(block);
         return blockZone.read(block, offset);
+    }
+
+    public void writeBlock(Block block) {
+        int blockNo = block.getBlockNo();
+        BlockZone blockZone = switchZone(blockNo);
+        blockZone.writeBlock(block);
     }
 
     BlockZone switchZone(int block) {

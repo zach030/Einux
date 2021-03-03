@@ -6,16 +6,19 @@ public class InodeMapZone implements BlockZone {
 
     InodeMapZone(int blockNo) {
         this.blockNo = blockNo;
+        initZoneBlocks();
     }
 
     @Override
     public void writeBlock(Block block) {
-
+        this.block = block;
+        this.block.syncBlock();
     }
 
     @Override
     public void write(int blockNo, int offset, short data) {
-        block.write(offset,data);
+        block.write(offset, data);
+        block.syncBlock();
     }
 
     @Override
@@ -28,4 +31,7 @@ public class InodeMapZone implements BlockZone {
         return blockNo - this.blockNo;
     }
 
+    public void initZoneBlocks() {
+        this.block = new Block(blockNo);
+    }
 }

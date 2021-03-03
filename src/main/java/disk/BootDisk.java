@@ -27,7 +27,4 @@ public interface BootDisk {
 
     // 根据物理地址向磁盘写数据
     void writeData(int addr, short data);
-
-    // 写整块的数据
-    void writeBlock(Page page);
 }

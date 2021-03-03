@@ -2,6 +2,7 @@ package os.storage;
 
 import hardware.CPU;
 import hardware.mm.Memory;
+import os.filesystem.Block;
 import os.filesystem.FileSystem;
 import os.process.PCB;
 import utils.SysConst;
@@ -12,39 +13,42 @@ public class StorageManage {
     public static StorageManage sm = new StorageManage();
 
     public StorageManage() {
-        Arrays.fill(sysPageTableUsed, false);
-        Arrays.fill(memoryUsageBitmap, false);
-        Arrays.fill(swapAreaUsageBitmap, false);
+        Arrays.fill(sysPageTableBitMap, false);
+        Arrays.fill(memoryAllPageBitmap, false);
+        Arrays.fill(jcbZoneBitMap, false);
+        Arrays.fill(swapZoneBitmap, false);
     }
 
     //-------------------------存储位示图管理------------------------
     // 系统页表使用情况
-    boolean[] sysPageTableUsed = new boolean[SysConst.PAGE_FRAME_SIZE * Memory.PAGE_TABLE_SIZE / Memory.PAGE_TABLE_ENTRY_SIZE];
+    boolean[] sysPageTableBitMap = new boolean[SysConst.PAGE_FRAME_SIZE * Memory.PAGE_TABLE_SIZE / Memory.PAGE_TABLE_ENTRY_SIZE];
     // 内存页框位示图
-    boolean[] memoryUsageBitmap = new boolean[SysConst.PAGE_NUM];
+    boolean[] memoryAllPageBitmap = new boolean[SysConst.PAGE_NUM];
     // 交换区使用情况位示图
-    boolean[] swapAreaUsageBitmap = new boolean[FileSystem.SWAP_BLOCK_RANGE[1] - FileSystem.SWAP_BLOCK_RANGE[0] + 1];
+    boolean[] swapZoneBitmap = new boolean[FileSystem.SWAP_ZONE_SIZE];
+    // 磁盘JCB区使用位示图
+    boolean[] jcbZoneBitMap = new boolean[FileSystem.JCB_ZONE_SIZE];
 
     //----------------------修改位示图---------------
     // 修改内存页框位示图
     synchronized public void modifyMemoryPageBitMap(int pageFrameNo) {
-        this.memoryUsageBitmap[pageFrameNo] = true;
+        this.memoryAllPageBitmap[pageFrameNo] = true;
     }
 
     // 修改系统页表位示图
     synchronized public void modifySysPageTableBitMap(int logicalPageNo) {
-        this.sysPageTableUsed[logicalPageNo] = true;
+        this.sysPageTableBitMap[logicalPageNo] = true;
     }
 
     // 修改交换区位示图
     synchronized public void modifySwapAreaUsageBitMap(int blockNo) {
-        this.swapAreaUsageBitmap[blockNo] = true;
+        this.swapZoneBitmap[blockNo] = true;
     }
 
     //----------------------存储区判断-----------------------
     // 内存的pcb池是否已满
     public boolean isPCBPoolZoneHasEmpty() {
-        return Memory.memory.isPCBPoolFull();
+        return Memory.memory.isPCBPoolHasEmpty();
     }
 
     // 磁盘的交换区是否有足够空间
@@ -57,11 +61,11 @@ public class StorageManage {
     public void distributedPCBPageTable(PCB pcb) {
         int count = 0, base;
         int pagesNum = pcb.getPageNums();
-        for (base = 0; base < sysPageTableUsed.length - pagesNum; base++) {
+        for (base = 0; base < sysPageTableBitMap.length - pagesNum; base++) {
             count = 0;
-            if (!sysPageTableUsed[base]) {
+            if (!sysPageTableBitMap[base]) {
                 for (int j = 0; j < pagesNum; j++) {
-                    if (!sysPageTableUsed[base + j])
+                    if (!sysPageTableBitMap[base + j])
                         count++;
                 }
                 if (count == pagesNum)
@@ -70,16 +74,16 @@ public class StorageManage {
                     base += pagesNum - 1;
             }
         }
-        pcb.setPageTableBaseAddr(base * Memory.PAGE_TABLE_ENTRY_SIZE);
+        pcb.setInternPageTableBaseAddr(base * Memory.PAGE_TABLE_ENTRY_SIZE);
         for (int j = 0; j < count; j++) {
-            modifySysPageTableBitMap(base+j);
+            modifySysPageTableBitMap(base + j);
         }
     }
 
     // 获取内存空闲页数
     public int getFreePageNumInMemory() {
         int count = 0;
-        for (boolean b : memoryUsageBitmap) {
+        for (boolean b : memoryAllPageBitmap) {
             if (!b) {
                 count++;
             }
@@ -97,7 +101,7 @@ public class StorageManage {
     public int getFreePageNumsInSwapArea() {
         int count = 0;
         // 交换区在外存20224-20479块，在所有页面为1984~2112页
-        for (boolean b : swapAreaUsageBitmap) {
+        for (boolean b : swapZoneBitmap) {
             if (!b) {
                 count++;
             }
@@ -109,7 +113,7 @@ public class StorageManage {
     public void applyVirtualMemory(PCB pcb) {
         int needPageFrameNum = pcb.getPageNums();
         int count = 0;
-        for (int i = 0; i < swapAreaUsageBitmap.length; i++) {
+        for (int i = 0; i < swapZoneBitmap.length; i++) {
 
         }
     }
@@ -123,6 +127,35 @@ public class StorageManage {
 
     }
 
+    //-----------------------------从磁盘中分配空闲块-------------------
+    // 从磁盘JCB区分配出空闲的JCB块
+    public Block allocEmptyJCBBlock() {
+        int blockNo = 0;
+        for (int i = 0; i < jcbZoneBitMap.length; i++) {
+            if (!jcbZoneBitMap[i]) {
+                blockNo = i;
+            }
+        }
+        return new Block(blockNo + FileSystem.JCB_ZONE_INDEX);
+    }
+
+    // 从磁盘交换区分配出空闲的交换块
+    public Block allocSwapBlock() {
+        int blockNo = 0;
+        for (int i = 0; i < swapZoneBitmap.length; i++) {
+            if (!swapZoneBitmap[i]) {
+                blockNo = i;
+            }
+        }
+        return new Block(blockNo + FileSystem.SWAP_ZONE_INDEX);
+    }
+
+    // 向磁盘内写入一块
+    public void writeBlockToDisk(Block block) {
+        FileSystem.fs.writeBlock(block);
+    }
+
+    //---------------------------内存处理-------------------
     // 访问内存
     public int visitMemory(int physicalAddr) {
         return Memory.memory.readData((short) physicalAddr);

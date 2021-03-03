@@ -60,9 +60,4 @@ public class Disk implements BootDisk {
         diskHelper.updateBlock(addr >> 9, addr & 0X01FF, data);
     }
 
-    @Override
-    public void writeBlock(Page page) {
-
-    }
-
 }

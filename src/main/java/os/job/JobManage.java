@@ -1,6 +1,8 @@
 package os.job;
 
+import os.filesystem.Block;
 import os.process.Instruction;
+import os.storage.StorageManage;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -64,9 +66,12 @@ public class JobManage {
                 JCB jcb = new JCB();
                 String[] jobInfoStr = currentScanLine.split(",");
                 jcb.SetJobByFileLine(jobInfoStr);
+                // 将jcb写入磁盘
                 backJCBS.add(jcb);
                 count++;
                 ReadJobInstructions(jobInfoStr[0], jcb);
+                jcb.calcJobPageNum();
+                jcb.saveJobToDiskJCBZone();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -99,6 +104,8 @@ public class JobManage {
         // 加入后备队列
         backJCBS.add(jcb);
         hasNewJob = true;
+        // 将jcb写入磁盘
+        jcb.saveJobToDiskJCBZone();
     }
 
     void generateRandomInstruction(JCB jcb) {
@@ -129,6 +136,8 @@ public class JobManage {
         // calc pages job num
         jcb.calcJobPageNum();
     }
+
+
 
     byte[] intToByteArray(int num) {
         byte[] b = new byte[4];

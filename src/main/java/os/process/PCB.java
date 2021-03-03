@@ -27,8 +27,9 @@ public class PCB {
     private StackSeg stackSeg;                  //堆栈段
 
     //--------------进程页信息--------------------------------
-    private int pageTableBaseAddr;                   //页基址
+    private int internPageTableBaseAddr;             //内存页表基址
     private PageTableEntry[] internalPageTable;      //内页表
+    private int externalPageTableBaseAddr;           //外页表基址
     private PageTableEntry[] externalPageTable;      //外页表
     private int pageNums;                            //进程所占页数
 
@@ -187,14 +188,6 @@ public class PCB {
         this.pcbFramePageNo = pcbFramePageNo;
     }
 
-    public int getPageTableBaseAddr() {
-        return pageTableBaseAddr;
-    }
-
-    public void setPageTableBaseAddr(int pageTableBaseAddr) {
-        this.pageTableBaseAddr = pageTableBaseAddr;
-    }
-
     public int getPageNums() {
         return pageNums;
     }
@@ -325,5 +318,21 @@ public class PCB {
 
     public void setTimeSlice() {
         this.timeSlice = TIME_SLICE;
+    }
+
+    public int getInternPageTableBaseAddr() {
+        return internPageTableBaseAddr;
+    }
+
+    public void setInternPageTableBaseAddr(int internPageTableBaseAddr) {
+        this.internPageTableBaseAddr = internPageTableBaseAddr;
+    }
+
+    public int getExternalPageTableBaseAddr() {
+        return externalPageTableBaseAddr;
+    }
+
+    public void setExternalPageTableBaseAddr(int externalPageTableBaseAddr) {
+        this.externalPageTableBaseAddr = externalPageTableBaseAddr;
     }
 }

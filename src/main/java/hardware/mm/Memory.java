@@ -102,7 +102,7 @@ public class Memory {
     }
 
     // 判断内存中的pcb池是否已经满
-    public boolean isPCBPoolFull() {
+    public boolean isPCBPoolHasEmpty() {
         return this.pcbPoolZone.getFreePCBZone() > 0;
     }
 

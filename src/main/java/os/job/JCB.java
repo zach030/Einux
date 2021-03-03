@@ -1,9 +1,9 @@
 package os.job;
 
 import hardware.Clock;
+import os.filesystem.Block;
 import os.process.Instruction;
-import hardware.Clock;
-import os.process.Instruction;
+import os.storage.StorageManage;
 import utils.SysConst;
 
 import java.util.ArrayList;
@@ -68,11 +68,15 @@ public class JCB {
         this.jobPagesNum = codePages + dataPages + stackPages + metaDataPages;
     }
 
-    public void saveToDisk(){
-        //TODO 开始需要先将jcb写入磁盘jcb区
-        //  新建一个页，用来存job信息
-        //  从外磁盘分配块----》blockno
-        //  jcb设置外存盘块号
+    public void saveJobToDiskJCBZone(){
+        Block block = StorageManage.sm.allocEmptyJCBBlock();
+        block.write(0,(short)this.getJobID());
+        block.write(2,(short)this.getJobPriority());
+        block.write(4,(short)this.getJobInTime());
+        block.write(6,(short)this.getJobPagesNum());
+        block.write(8,(short)this.getJobInstructionNum());
+        // 同步jcb到磁盘
+        block.syncBlock();
     }
 
     public ArrayList<Instruction> getInstructions() {

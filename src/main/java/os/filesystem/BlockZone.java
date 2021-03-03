@@ -8,4 +8,6 @@ public interface BlockZone {
     short read(int blockNo,int offset);
 
     int getRelativeBlockNo(int blockNo);
+
+    void initZoneBlocks();
 }

@@ -1,4 +1,4 @@
-package os;
+package os.schedule;
 
 import hardware.CPU;
 import hardware.MMU;
@@ -25,7 +25,7 @@ public class Schedule {
                     PCB pcb = ProcessManage.pm.createPCB(jcb); // 将JCB转换为PCB，创建进程
                     StorageManage.sm.distributedPCBPageTable(pcb); // 分配内存系统页表
                     //int[,]pageTable = StorageManage.sm.applyVirtualMemory(pcb); // 申请虚存空间
-                    //ProcessManage.m.SetExternalPageTable(pcb, pageTable); // 设置外页表
+                    ProcessManage.pm.writePCBExternalPageTableToDisk(pcb); // 设置外页表
                     ProcessManage.pm.addPCBToPCBPool(pcb);
                     //ProcessManage.m.WriteProcessImageToSwapArea(pcb, pageTable); // 将进程映像写入虚存
                     ProcessManage.pm.joinReadQueue(pcb); // 将该进程加入到就绪队列
@@ -80,7 +80,7 @@ public class Schedule {
         PCB pcb = ProcessManage.pm.getFromReadyQueue(); // 从就绪队列取一个进程
         CPU.cpu.Recovery(pcb); // 恢复CPU现场
         CPU.cpu.getCurrent().setStatus(PCB.TASK_RUNNING); // 设为运行态
-        CPU.cpu.mmu.initMMU(CPU.cpu.getCurrent().getPageTableBaseAddr(), CPU.cpu.getCurrent().getPageNums());// 将进程页表基地址装入MMU
+        CPU.cpu.mmu.initMMU(CPU.cpu.getCurrent().getInternPageTableBaseAddr(), CPU.cpu.getCurrent().getPageNums());// 将进程页表基地址装入MMU
         return true;
     }
 
@@ -90,14 +90,14 @@ public class Schedule {
         ProcessManage.pm.DisplayAllPCBQueue();
 
         // 高级调度
-        if (needHighLevelScheduling){ // 由后备队列检测线程设置是否需要高级调度
+        if (needHighLevelScheduling) { // 由后备队列检测线程设置是否需要高级调度
             System.out.println("[SCHEDULE]------正在进行高级调度.......");
             HighLevelScheduling();// 进行高级调度
             needHighLevelScheduling = false;
         }
 
         // 中级调度
-        if (needMediumLevelScheduling){ // 是否需要中级调度
+        if (needMediumLevelScheduling) { // 是否需要中级调度
             System.out.println("[SCHEDULE]------正在进行中级调度.......");
             MediumLevelScheduling(); // 进行中级调度
             needMediumLevelScheduling = false;
@@ -143,7 +143,7 @@ public class Schedule {
         System.out.printf("[RUNNING]---当前运行进程[%d] ---运行时间:{%d} ---指令数:{%d} ---优先级:{%d} ---时间片余额:{%d}", CPU.cpu.getCurrent().getID(), CPU.cpu.getCurrent().getRunTimes(), CPU.cpu.getCurrent().getInstructionsNum(), CPU.cpu.getCurrent().getPriority(), CPU.cpu.getCurrent().getTimeSlice());
         System.out.printf("[RUNNING]---当前执行第%d条指令 ---指令类型:{%d} ---逻辑地址:0x{%s} ---物理地址:0x{%s}", CPU.cpu.getPC() + 1, IR, String.format("%02X", instructionLogicalAddr), String.format("%02X", physicalAddress));
         //CPU.cpu.getCurrent().SetRunTimeAdd(100); // 运行时间增加
-        ExecuteInstruction(IR); // 执行指令
+        Execute.execute.ExecuteInstruction(IR); // 执行指令
 
         if (!CPU.cpu.isRunning()) {
             // 如果cpu空闲
@@ -161,68 +161,6 @@ public class Schedule {
 //        Console.WriteLine(lOutput);
 //        ProcessManage.m.LogToFile(lOutput);
 //        MainForm.f.RefreshProcessInfoUI(lOutput);
-    }
-
-
-    public void ExecuteInstruction(int IR) {
-        switch (IR) {
-            case 0:
-                System.out.println("执行系统调用");
-                execSystemCallInstruction();
-                break;
-            case 1:
-                System.out.println("执行写内存指令");
-                execWriteMemoryInstruction();
-                break;
-            case 2:
-                System.out.println("执行跳转指令");
-                execJumpInstruction();
-                break;
-            case 3:
-                System.out.println("执行输入指令");
-                execInputInstruction();
-                break;
-            case 4:
-                System.out.println("执行输出指令");
-                execOutputInstruction();
-                break;
-            case 5:
-                System.out.println("执行申请资源类型");
-                execApplyResource();
-                break;
-            case 6:
-                System.out.println("执行释放资源类型");
-                execReleaseResource();
-                break;
-        }
-    }
-
-    void execSystemCallInstruction() {
-        CPU.cpu.autoAddPC();
-    }
-
-    void execWriteMemoryInstruction() {
-        CPU.cpu.autoAddPC();
-    }
-
-    void execJumpInstruction() {
-        CPU.cpu.autoAddPC();
-    }
-
-    void execInputInstruction() {
-        CPU.cpu.autoAddPC();
-    }
-
-    void execOutputInstruction() {
-        CPU.cpu.autoAddPC();
-    }
-
-    void execApplyResource() {
-        CPU.cpu.autoAddPC();
-    }
-
-    void execReleaseResource() {
-        CPU.cpu.autoAddPC();
     }
 
     // 调度线程开始

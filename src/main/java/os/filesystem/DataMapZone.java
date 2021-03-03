@@ -6,11 +6,13 @@ public class DataMapZone implements BlockZone {
 
     DataMapZone(int blockNo) {
         this.blockNo = blockNo;
+        initZoneBlocks();
     }
 
     @Override
     public void writeBlock(Block block) {
-
+        this.block = block;
+        this.block.syncBlock();
     }
 
     @Override
@@ -28,4 +30,7 @@ public class DataMapZone implements BlockZone {
         return blockNo - this.blockNo;
     }
 
+    public void initZoneBlocks() {
+        this.block = new Block(blockNo);
+    }
 }
