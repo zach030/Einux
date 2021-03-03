@@ -14,15 +14,11 @@ public class DataSeg {
     int segNo;
     byte[] data;
 
-    DataSeg(byte[] data) {
+    DataSeg(byte[] data, int pageNums) {
         this.segNo = PCB.DATA_SEG_NO;
         this.data = data;
         this.logicalPageNo = 1;
-        int dataLength = 0;
-        if (data != null) {
-            dataLength = data.length;
-        }
-        this.pageNums = dataLength / SysConst.PAGE_FRAME_SIZE + 1;
+        this.pageNums = pageNums;
         pages = new ArrayList<>(pageNums);
     }
 

@@ -89,6 +89,7 @@ public class DiskHelper {
         @Override
         public void writeBlock(byte[] data) {
             this.data = data;
+            updateFullBlock(this.no);
         }
 
         @Override
@@ -216,8 +217,31 @@ public class DiskHelper {
         }
     }
 
-    void updateFullBlock() {
-        //TODO 用更新后的byte[]填充磁盘
+    void updateFullBlock(int index) {
+        RealBlockEntry realBlockEntry = blockEntries.get(index);
+        StringBuilder content = new StringBuilder();
+        byte[] data = realBlockEntry.data;
+        for (int i = 0; i < data.length; i++) {
+            if (i % 16 == 0 && i != 0) {
+                content.append("\n");
+            }
+            String num = Integer.toHexString(data[i]);
+            if (num.length() == 1) {
+                // 如果只有一位，需要一位0来占位
+                content.append("0").append(num);
+            } else {
+                content.append(num);
+            }
+            content.append(" ");
+        }
+        try {
+            FileWriter fw = new FileWriter(realBlockEntry.getAbsoluteFile());
+            BufferedWriter bw = new BufferedWriter(fw);
+            bw.write(content.toString());
+            bw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     void updateBlock(int index, int offset, short data) {

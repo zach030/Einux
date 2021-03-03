@@ -29,8 +29,6 @@ public class PCB {
     //--------------进程页信息--------------------------------
     private int internPageTableBaseAddr;             //内存页表基址
     private PageTableEntry[] internalPageTable;      //内页表
-    private int externalPageTableBaseAddr;           //外页表基址
-    private PageTableEntry[] externalPageTable;      //外页表
     private int pageNums;                            //进程所占页数
 
     //----------进程分页信息：pcb基础页 + 数据段 + 代码段 + 栈段-------
@@ -83,7 +81,7 @@ public class PCB {
         initCodeSegment(jcb);
         initStackSegment();
         pageNums = dataSeg.pageNums + codeSeg.pageNums + stackSeg.pageNums + 1;
-        initPageTable();
+        initPageTable(jcb.getDiskBlockNo());
     }
 
     // 撤销进程
@@ -113,13 +111,13 @@ public class PCB {
 
     //----------------初始化进程各段------------------------
     void initDataSegment(JCB jcb) {
-        dataSeg = new DataSeg(jcb.getData());
+        dataSeg = new DataSeg(jcb.getData(),jcb.getDataSegPages());
         this.dataSegPageNums = dataSeg.getPageNums();
     }
 
     void initCodeSegment(JCB jcb) {
         this.codeLogicalPageNo = dataLogicalPageNo + dataSegPageNums;
-        codeSeg = new CodeSeg(jcb.getInstructions(), codeLogicalPageNo);
+        codeSeg = new CodeSeg(jcb.getInstructions(), codeLogicalPageNo, jcb.getCodeSegPages());
         this.codeSegPageNums = codeSeg.getPageNums();
     }
 
@@ -131,7 +129,7 @@ public class PCB {
 
     //----------------------初始化进程内外页表表----------------
     // 初始化进程内页表
-    void initPageTable() {
+    void initPageTable(int[] blockNo) {
         internalPageTable = new PageTableEntry[pageNums];
         Arrays.fill(internalPageTable, new PageTableEntry());
         for (int i = 0; i < pageNums; i++) {
@@ -139,7 +137,7 @@ public class PCB {
             internalPageTable[i].physicPageNo = -1;
             internalPageTable[i].isValid = false;
             internalPageTable[i].isModify = false;
-            internalPageTable[i].diskBlockNo = -1;
+            internalPageTable[i].diskBlockNo = blockNo[i];
         }
     }
 
@@ -156,7 +154,7 @@ public class PCB {
 
 
     //-------------------------内外存写数据------------------
-    // 写入pcb页
+    // 写入内存pcb池中
     public void writePCBPage() {
         // 新建pcb基础信息页
         Page page = new Page(PCB_LOGICAL_PAGE_NO, pcbFramePageNo, 0, true);
@@ -324,15 +322,8 @@ public class PCB {
         return internPageTableBaseAddr;
     }
 
+    //todo 修改页表基址寄存器之后，页表的虚拟页号还没改
     public void setInternPageTableBaseAddr(int internPageTableBaseAddr) {
         this.internPageTableBaseAddr = internPageTableBaseAddr;
-    }
-
-    public int getExternalPageTableBaseAddr() {
-        return externalPageTableBaseAddr;
-    }
-
-    public void setExternalPageTableBaseAddr(int externalPageTableBaseAddr) {
-        this.externalPageTableBaseAddr = externalPageTableBaseAddr;
     }
 }

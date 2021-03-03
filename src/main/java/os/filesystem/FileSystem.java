@@ -14,8 +14,6 @@ public class FileSystem implements VFS {
     public static final int INODE_ZONE_INDEX = 4;               // inode区在磁盘的下标
     public static final int INODE_ZONE_SIZE = 64;               // inode节点数
     public static final int DATA_ZONE_INDEX = 68;               // 数据区起始下标
-    public static final int EXTERNAL_PAGE_TABLE_INDEX = 68;     //外页表起始下标
-    public static final int EXTERNAL_PAGE_TABLE_SIZE = 2* DevConfig.BLOCK_SIZE;//外页表大小
     public static final int DATA_ZONE_SIZE = 19898;             // 数据区大小
     public static final int JCB_ZONE_INDEX = 19966;             // jcb区下标
     public static final int JCB_ZONE_SIZE = 256;                // jcb区大小

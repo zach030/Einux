@@ -17,7 +17,7 @@ public class BufferPool implements MemoryZone {
     int activeInodeNum = 2 * SysConst.PAGE_FRAME_SIZE / activeInodeSize; //总共的活动inode数
 
     public BufferPool() {
-        index = Memory.BUFFER_START_NO;
+        index = Memory.BUFFER_START;
         size = Memory.BUFFER_SIZE;
         pages = new Page[size];
         //activeINodeZone = new ActiveINodeZone(activeInodeZonePages);

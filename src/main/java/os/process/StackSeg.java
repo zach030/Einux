@@ -3,7 +3,6 @@ package os.process;
 import hardware.Page;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class StackSeg {
     ArrayList<Page> pages;

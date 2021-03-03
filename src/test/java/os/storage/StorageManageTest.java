@@ -25,6 +25,6 @@ class StorageManageTest {
         instructions.add(new Instruction(1,0,3,data));
         jcb.setInstructions(instructions);
         PCB pcb = ProcessManage.pm.createPCB(jcb);
-        StorageManage.sm.distributedPCBPageTable(pcb);
+        StorageManage.sm.allocPCBPageTable(pcb);
     }
 }

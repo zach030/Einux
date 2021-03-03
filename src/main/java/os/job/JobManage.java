@@ -66,7 +66,6 @@ public class JobManage {
                 JCB jcb = new JCB();
                 String[] jobInfoStr = currentScanLine.split(",");
                 jcb.SetJobByFileLine(jobInfoStr);
-                // 将jcb写入磁盘
                 backJCBS.add(jcb);
                 count++;
                 ReadJobInstructions(jobInfoStr[0], jcb);
@@ -136,7 +135,6 @@ public class JobManage {
         // calc pages job num
         jcb.calcJobPageNum();
     }
-
 
 
     byte[] intToByteArray(int num) {

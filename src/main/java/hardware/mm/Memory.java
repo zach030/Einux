@@ -24,7 +24,7 @@ public class Memory {
     public static final int PCB_ZONE_START = 16;                    // PCB区起始页号
     public static final int PCB_ZONE_SIZE = 32;                     // PCB区大小
 
-    public static final int BUFFER_START_NO = 48;                   // 缓冲区起始块号
+    public static final int BUFFER_START = 48;                   // 缓冲区起始块号
     public static final int BUFFER_SIZE = 16;                       // 缓冲区大小
 
     public static final int PAGE_TABLE_ENTRY_SIZE = 32;           //页表项大小

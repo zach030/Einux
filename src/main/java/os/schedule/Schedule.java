@@ -10,25 +10,24 @@ import os.storage.StorageManage;
 
 public class Schedule {
     public static Schedule schedule = new Schedule();
+
+    // 内存缺页警示值
+    public static final int MEMORY_LACK_WARN = 8;
     public static boolean needHighLevelScheduling = true;
     public static boolean needMediumLevelScheduling = true;
 
     // 高级调度，从后备队列选作业进入内存并创建进程
     public void HighLevelScheduling() {
-        if (!JobManage.jm.isBackJobsEmpty() && !ProcessManage.pm.isPCBPoolFull()) // 后备队列不为空并且系统可加入更多进程
-        {
+        if (!JobManage.jm.isBackJobsEmpty() && !ProcessManage.pm.isPCBPoolFull()) { // 后备队列不为空并且系统可加入更多进程
             JCB jcb = JobManage.jm.getFirstJCB(); // 从后备队列取一个job
-            if (StorageManage.sm.isPCBPoolZoneHasEmpty()) // PCB池空间足够
-            {
-                // 虚存空间足够
+            if (StorageManage.sm.isPCBPoolZoneHasEmpty()) { // PCB池空间足够
+                // 判断虚存空间足够
                 if (StorageManage.sm.isSwapAreaEnough(jcb.getJobPagesNum())) {
-                    PCB pcb = ProcessManage.pm.createPCB(jcb); // 将JCB转换为PCB，创建进程
-                    StorageManage.sm.distributedPCBPageTable(pcb); // 分配内存系统页表
-                    //int[,]pageTable = StorageManage.sm.applyVirtualMemory(pcb); // 申请虚存空间
-                    ProcessManage.pm.writePCBExternalPageTableToDisk(pcb); // 设置外页表
-                    ProcessManage.pm.addPCBToPCBPool(pcb);
-                    //ProcessManage.m.WriteProcessImageToSwapArea(pcb, pageTable); // 将进程映像写入虚存
-                    ProcessManage.pm.joinReadQueue(pcb); // 将该进程加入到就绪队列
+                    PCB pcb = ProcessManage.pm.createPCB(jcb);  // 将JCB转换为PCB，创建进程
+                    StorageManage.sm.allocPCBPageTable(pcb);    // 分配内存系统页表
+                    StorageManage.sm.saveToSwapZone(jcb);       // 将进程数据保存到磁盘交换区
+                    ProcessManage.pm.addPCBToPCBPool(pcb);      //将进程写入pcb池中
+                    ProcessManage.pm.joinReadQueue(pcb);        // 将该进程加入到就绪队列
                     System.out.println("[INFO]-----成功创建PCB，ID=" + pcb.getID());
                 } else {
                     System.out.println("[INFO]---虚存空间不足！---高级调度退出！");
@@ -47,14 +46,15 @@ public class Schedule {
         int pageFrameNum = StorageManage.sm.getFreePageNumInMemory();
         System.out.println("[INFO]---内存当前可用页框数:" + pageFrameNum);
         // 如果内存可用页框小于8，看做内存资源不足，把最近未访问的进程挂起调出内存
-        if (pageFrameNum < 8) {
-            PCB pcb = ProcessManage.pm.getNotUsedPCB(); // 找到一个不能运行的进程
-            if (pcb == null) // 找不到直接返回
-                return;
-            //ProcessManage.m.PullProcessOutOfMemory(pcb); // 将此进程关联的代码段和数据段调出内存
-            ProcessManage.pm.joinSuspendQueue(pcb); // 挂起进程
-            System.out.println("[INFO]---内存资源不足！ ---挂起进程:" + pcb.getID());
-        } else { // 内存资源足够，将挂起的进程从外存重新调回内存
+        if (pageFrameNum < MEMORY_LACK_WARN) {
+            // todo 将不可运行的进程挂起
+//            PCB pcb = ProcessManage.pm.getNotUsedPCB(); // 找到一个不能运行的进程
+//            if (pcb == null) // 找不到直接返回
+//                return;
+//            //ProcessManage.m.PullProcessOutOfMemory(pcb); // 将此进程关联的代码段和数据段调出内存
+//            ProcessManage.pm.joinSuspendQueue(pcb); // 挂起进程
+//            System.out.println("[INFO]---内存资源不足！ ---挂起进程:" + pcb.getID());
+        } else { //todo 内存资源足够，将挂起的进程从外存重新调回内存
             if (ProcessManage.pm.isSuspendQueueEmpty()) {
                 System.out.println("[INFO]---内存资源足够！ ---挂起队列为空！ ---退出中级调度！");
                 return;
@@ -70,12 +70,10 @@ public class Schedule {
     public boolean LowLevelScheduling() {
         System.out.printf("[TIME] 系统时间:%d ---开始低级调度！", CPU.cpu.clock.getCurrentTime());
         // 查看就绪队列是否有进程可调度
-        if (ProcessManage.pm.isReadyQueueEmpty()) // 就绪队列为空，直接返回
-        {
+        if (ProcessManage.pm.isReadyQueueEmpty()) { // 就绪队列为空，直接返回
             System.out.println("[INFO]------就绪队列为空！ ---结束低级调度！");
             return false;
         }
-
         // 就绪队列不为空
         PCB pcb = ProcessManage.pm.getFromReadyQueue(); // 从就绪队列取一个进程
         CPU.cpu.Recovery(pcb); // 恢复CPU现场
@@ -129,11 +127,12 @@ public class Schedule {
         System.out.println("[RUNNING]------正在运行进程:" + CPU.cpu.getCurrent().getID());
         // 开始运行指令，先获取指令的逻辑地址，通过MMU转成物理地址
         int instructionLogicalAddr = CPU.cpu.getCurrentIRAddr(); // 当前指令的逻辑地址
+        //todo 执行指令，怎么做缺页中断！！！
         int physicalAddress = CPU.cpu.mmu.ResolveLogicalAddress((short) instructionLogicalAddr); // 当前指令的物理地址
         if (physicalAddress == MMU.NOT_FOUND_ERROR) {  // 发生缺页
-            int pageNum = CPU.cpu.getCurrentIRPageNum(); // 获取当前指令所在的页
-            System.out.println("[PAGE FAULT]-----缺页中断，查询到指令:" + CPU.cpu.getPC() + ",逻辑页号:" + pageNum);
-            StorageManage.sm.doPageFault(CPU.cpu.getCurrent(), pageNum); // 处理缺页中断
+            int pageNo = CPU.cpu.getCurrentIRPageNum(); // 获取当前指令所在的页
+            System.out.println("[PAGE FAULT]-----缺页中断，查询到指令:" + CPU.cpu.getPC() + ",逻辑页号:" + pageNo);
+            StorageManage.sm.doPageFault(CPU.cpu.getCurrent(), pageNo); // 处理缺页中断
             physicalAddress = CPU.cpu.mmu.ResolveLogicalAddress((short) instructionLogicalAddr); // 当前指令的物理地址
         }
         //CPU.cpu.GetPCB().DisplayPageTable(); // 显示下页表
