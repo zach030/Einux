@@ -6,6 +6,7 @@ import os.filesystem.Block;
 import os.filesystem.FileSystem;
 import os.job.JCB;
 import os.process.PCB;
+import os.process.ProcessManage;
 import utils.SysConst;
 
 import java.util.Arrays;
@@ -13,10 +14,14 @@ import java.util.Arrays;
 public class StorageManage {
     public static StorageManage sm = new StorageManage();
 
+    // 空间不足
+    public static final int NOT_ENOUGH = -1;
+
     public StorageManage() {
         Arrays.fill(sysPageTableBitMap, false);
         Arrays.fill(memoryAllPageBitmap, false);
         Arrays.fill(memoryPCBPoolBitMap, false);
+        Arrays.fill(memoryPCBDataBitMap, false);
         Arrays.fill(memoryBufferBitMap, false);
         Arrays.fill(jcbZoneBitMap, false);
         Arrays.fill(swapZoneBitmap, false);
@@ -29,6 +34,8 @@ public class StorageManage {
     boolean[] sysPageTableBitMap = new boolean[SysConst.PAGE_FRAME_SIZE * Memory.PAGE_TABLE_SIZE / Memory.PAGE_TABLE_ENTRY_SIZE];
     // 内存pcb池使用位示图(13页)
     boolean[] memoryPCBPoolBitMap = new boolean[Memory.PCB_POOL_SIZE];
+    // 内存pcb数据区使用位示图
+    boolean[] memoryPCBDataBitMap = new boolean[Memory.PCB_ZONE_SIZE];
     // 内存缓冲区位示图(16页)
     boolean[] memoryBufferBitMap = new boolean[Memory.BUFFER_SIZE];
     // 交换区使用情况位示图(256块)
@@ -51,6 +58,12 @@ public class StorageManage {
     synchronized public void modifyPCBPoolAreaBitMap(int pageNo) {
         this.memoryPCBPoolBitMap[pageNo] = true;
         this.modifyMemoryPageBitMap(pageNo + Memory.PCB_POOL_START);
+    }
+
+    // 修改内存pcb池位示图
+    synchronized public void modifyPCBDataAreaBitMap(int pageNo) {
+        this.memoryPCBDataBitMap[pageNo] = true;
+        this.modifyMemoryPageBitMap(pageNo + Memory.PCB_ZONE_START);
     }
 
     // 修改内存缓冲区位示图
@@ -104,7 +117,7 @@ public class StorageManage {
                     base += pagesNum - 1;
             }
         }
-        pcb.setInternPageTableBaseAddr(base * Memory.PAGE_TABLE_ENTRY_SIZE);
+        pcb.setInternPageTableBaseAddr(base * Memory.PAGE_TABLE_ENTRY_SIZE + Memory.PAGE_TABLE_START * SysConst.PAGE_FRAME_SIZE);
         for (int j = 0; j < count; j++) {
             modifySysPageTableBitMap(base + j);
         }
@@ -119,6 +132,17 @@ public class StorageManage {
                 return;
             }
         }
+    }
+
+    // 内存PCB数据区申请页
+    public int allocEmptyPCBDataPage() {
+        for (int i = 0; i < memoryPCBDataBitMap.length; i++) {
+            if (memoryPCBDataBitMap[i]) {
+                modifyPCBDataAreaBitMap(i);
+                return i + Memory.PCB_ZONE_START;
+            }
+        }
+        return NOT_ENOUGH;
     }
 
     //---------------------------获取内存各分区空闲数-------------------
@@ -157,7 +181,16 @@ public class StorageManage {
         // cpu 进行保护现场
         CPU.cpu.Protect();
         pcb.setStatus(PCB.TASK_SUSPEND);
-
+        ProcessManage.pm.joinSuspendQueue(pcb);
+        // 查页表得到外存磁盘号，进行调页
+        int blockNo = pcb.searchPageTable(virtualPageNo);
+        int pageFrameNo = allocEmptyPCBDataPage();
+        // 查看内存是否有空闲页框，分配一个
+        if (pageFrameNo == NOT_ENOUGH) {
+            //淘汰页面,如果没有则使用淘汰算法淘汰一个，将淘汰页写回磁盘
+        }
+        // 进行调页，将磁盘中的页装入分配的页框中，修改页表
+        // 将块号blockNo的数据写入pageFrameNo的页内
     }
 
     //-----------------------------从磁盘中请求分配空闲块-------------------

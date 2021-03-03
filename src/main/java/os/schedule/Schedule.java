@@ -129,19 +129,18 @@ public class Schedule {
         int instructionLogicalAddr = CPU.cpu.getCurrentIRAddr(); // 当前指令的逻辑地址
         //todo 执行指令，怎么做缺页中断！！！
         int physicalAddress = CPU.cpu.mmu.ResolveLogicalAddress((short) instructionLogicalAddr); // 当前指令的物理地址
+
         if (physicalAddress == MMU.NOT_FOUND_ERROR) {  // 发生缺页
             int pageNo = CPU.cpu.getCurrentIRPageNum(); // 获取当前指令所在的页
             System.out.println("[PAGE FAULT]-----缺页中断，查询到指令:" + CPU.cpu.getPC() + ",逻辑页号:" + pageNo);
             StorageManage.sm.doPageFault(CPU.cpu.getCurrent(), pageNo); // 处理缺页中断
             physicalAddress = CPU.cpu.mmu.ResolveLogicalAddress((short) instructionLogicalAddr); // 当前指令的物理地址
         }
-        //CPU.cpu.GetPCB().DisplayPageTable(); // 显示下页表
         // 没有发生缺中断，则从内存取出指令
         int IR = StorageManage.sm.visitMemory(physicalAddress);
         CPU.cpu.setIR(IR);
         System.out.printf("[RUNNING]---当前运行进程[%d] ---运行时间:{%d} ---指令数:{%d} ---优先级:{%d} ---时间片余额:{%d}", CPU.cpu.getCurrent().getID(), CPU.cpu.getCurrent().getRunTimes(), CPU.cpu.getCurrent().getInstructionsNum(), CPU.cpu.getCurrent().getPriority(), CPU.cpu.getCurrent().getTimeSlice());
         System.out.printf("[RUNNING]---当前执行第%d条指令 ---指令类型:{%d} ---逻辑地址:0x{%s} ---物理地址:0x{%s}", CPU.cpu.getPC() + 1, IR, String.format("%02X", instructionLogicalAddr), String.format("%02X", physicalAddress));
-        //CPU.cpu.getCurrent().SetRunTimeAdd(100); // 运行时间增加
         Execute.execute.ExecuteInstruction(IR); // 执行指令
 
         if (!CPU.cpu.isRunning()) {

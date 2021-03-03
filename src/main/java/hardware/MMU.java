@@ -12,23 +12,28 @@ public class MMU {
 
     public int ResolveLogicalAddress(short VA) {
         // 高7位页号，低9位页内偏移
+        //1、将地址分解为逻辑页号与页内偏移
         int pageNo = (VA >> 9) & 0X007F;
         int offset = VA & 0X01FF;
         System.out.println("[MMU]-----将逻辑地址:" + VA + ",分解为:页号" + pageNo + ",页内偏移:" + offset);
         System.out.println("[TLB]-----开始搜索快表...");
+        //2、用逻辑页号查询快表
         int pageFrameNo = tlb.searchTLB(pageNo);
         if (pageFrameNo == NOT_FOUND_ERROR) {
+            //2.1 查不到去查页表
             System.out.println("[TLB]------快表未命中，开始查询页表...");
             pageFrameNo = searchPageTable(pageNo);
             if (pageFrameNo == NOT_FOUND_ERROR) {
                 System.out.println("[MMU]-----页表未命中.....");
-                return pageFrameNo;
+                return NOT_FOUND_ERROR;
             } else {
                 System.out.println("[MMU]-----页表命中，查询出页框号为:" + pageFrameNo);
+                //2.2 查到页框号，写入快表，并返回
                 tlb.addTLB(pageNo, pageFrameNo);
                 return pageFrameNo * SysConst.PAGE_FRAME_SIZE + offset;
             }
         } else {
+            //3、查到了，返回物理地址
             System.out.println("[TLB]-----快表命中，查询出页框号为:" + pageFrameNo);
             return pageFrameNo * SysConst.PAGE_FRAME_SIZE + offset;
         }
@@ -36,8 +41,8 @@ public class MMU {
 
     // 查询进程的页表
     int searchPageTable(int virtualPageNum) {
-        for (int i = 0, j = 0; i < pageNums; i++, j += 4)
-        {
+        for (int i = 0, j = 0; i < pageNums; i++, j += 4) {
+            //todo 用地址查询页表项有问题 !!!!!
             int pageNum = Memory.memory.readData((short)(pageTableBaseAddr + j));
             if (pageNum == virtualPageNum)
                 return Memory.memory.readData((short)(pageTableBaseAddr + j + 2));

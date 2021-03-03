@@ -2,24 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="c0bfff17-3919-431a-87e2-290f6591f1c4" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/test/java/disk/DiskHelperTest.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/disk/DiskHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/disk/DiskHelper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/hardware/TLB.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hardware/TLB.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/hardware/mm/BufferPool.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hardware/mm/BufferPool.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/hardware/mm/Memory.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hardware/mm/Memory.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/os/filesystem/FileSystem.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/FileSystem.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/os/job/JCB.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/job/JCB.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/os/job/JobManage.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/job/JobManage.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/os/process/CodeSeg.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/process/CodeSeg.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/os/process/DataSeg.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/process/DataSeg.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/hardware/MMU.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hardware/MMU.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/os/process/PCB.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/process/PCB.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/os/process/ProcessManage.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/process/ProcessManage.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/os/process/StackSeg.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/process/StackSeg.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/os/schedule/Schedule.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/schedule/Schedule.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/os/storage/StorageManage.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/storage/StorageManage.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/os/job/JobManageTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/os/job/JobManageTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/os/storage/StorageManageTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/os/storage/StorageManageTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -206,7 +193,7 @@
       <option name="presentableId" value="Default" />
       <updated>1614608113195</updated>
       <workItem from="1614608116231" duration="53277000" />
-      <workItem from="1614742883438" duration="26099000" />
+      <workItem from="1614742883438" duration="30800000" />
     </task>
     <servers />
   </component>

@@ -111,7 +111,7 @@ public class PCB {
 
     //----------------初始化进程各段------------------------
     void initDataSegment(JCB jcb) {
-        dataSeg = new DataSeg(jcb.getData(),jcb.getDataSegPages());
+        dataSeg = new DataSeg(jcb.getData(), jcb.getDataSegPages());
         this.dataSegPageNums = dataSeg.getPageNums();
     }
 
@@ -150,7 +150,15 @@ public class PCB {
         internalPageTable[virtualNo].physicPageNo = page.getFrameNo();
     }
 
-    // 初始化进程外页表
+    // 查找页表
+    public int searchPageTable(int blockNo) {
+        for (PageTableEntry pageTableEntry : internalPageTable) {
+            if (pageTableEntry.virtualPageNo == blockNo) {
+                return pageTableEntry.diskBlockNo;
+            }
+        }
+        return -1;
+    }
 
 
     //-------------------------内外存写数据------------------
