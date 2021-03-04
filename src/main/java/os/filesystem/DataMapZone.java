@@ -30,6 +30,11 @@ public class DataMapZone implements BlockZone {
         return blockNo - this.blockNo;
     }
 
+    @Override
+    public Block getBlock(int blockNo) {
+        return block;
+    }
+
     public void initZoneBlocks() {
         this.block = new Block(blockNo);
     }

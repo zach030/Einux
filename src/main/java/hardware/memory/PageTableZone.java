@@ -1,19 +1,19 @@
-package hardware.mm;
+package hardware.memory;
 
-import hardware.Page;
-
-import java.util.Arrays;
+import os.process.PageTableEntry;
 
 public class PageTableZone implements MemoryZone {
     int index;
     int size;
-    Page[] pages;
+    Page[] pages;                       // 页表所占的页
+    PageTableEntry[] pageTableEntries;  // 全部的页表项
 
     PageTableZone() {
         index = Memory.PAGE_TABLE_START;
         pages = new Page[Memory.PAGE_TABLE_SIZE];
-        Arrays.fill(pages, new Page());
         size = Memory.PAGE_TABLE_SIZE;
+        initPages();
+
     }
 
     @Override
@@ -40,6 +40,14 @@ public class PageTableZone implements MemoryZone {
     public void clearZone() {
         for (Page page : pages) {
             page.clearPage();
+        }
+    }
+
+    @Override
+    public void initPages() {
+        for (int i = 0; i < size; i++) {
+            Page page = new Page();
+            this.pages[i] = page;
         }
     }
 }

@@ -9,5 +9,7 @@ public interface BlockZone {
 
     int getRelativeBlockNo(int blockNo);
 
+    Block getBlock(int blockNo);
+
     void initZoneBlocks();
 }

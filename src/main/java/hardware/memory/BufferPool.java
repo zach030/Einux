@@ -1,9 +1,7 @@
-package hardware.mm;
+package hardware.memory;
 
-import hardware.Page;
-import hardware.mm.Memory;
-import hardware.mm.MemoryZone;
 import utils.SysConst;
+
 import java.util.LinkedList;
 
 // 内存缓冲区：管理
@@ -11,7 +9,6 @@ public class BufferPool implements MemoryZone {
     int index;
     int size;
     Page[] pages;
-    //ActiveINodeZone activeINodeZone;
     int activeInodeZonePages = 2;            // 分配缓冲区的前两页给内存的活动inode
     int activeInodeSize = 32;                // 活动inode大小 32B
     int activeInodeNum = 2 * SysConst.PAGE_FRAME_SIZE / activeInodeSize; //总共的活动inode数
@@ -20,7 +17,7 @@ public class BufferPool implements MemoryZone {
         index = Memory.BUFFER_START;
         size = Memory.BUFFER_SIZE;
         pages = new Page[size];
-        //activeINodeZone = new ActiveINodeZone(activeInodeZonePages);
+        initPages();
     }
 
     public int getActiveInodeNum() {
@@ -30,31 +27,6 @@ public class BufferPool implements MemoryZone {
     public void setActiveInodeNum(int activeInodeNum) {
         this.activeInodeNum = activeInodeNum;
     }
-
-//    class ActiveINodeZone {
-//        Page[] pages;
-//        ArrayList<DiskInode> memoryDiskInodes = new ArrayList<>(activeInodeNum);
-//
-//        ActiveINodeZone(int size) {
-//            this.pages = new Page[size];
-//        }
-//
-//        public ArrayList<DiskInode> getMemoryDiskInodes() {
-//            return memoryDiskInodes;
-//        }
-//
-//        public void setMemoryDiskInodes(ArrayList<DiskInode> memoryDiskInodes) {
-//            this.memoryDiskInodes = memoryDiskInodes;
-//        }
-//    }
-
-//    public ActiveINodeZone getActiveINodeZone() {
-//        return activeINodeZone;
-//    }
-//
-//    public void setActiveINodeZone(ActiveINodeZone activeINodeZone) {
-//        this.activeINodeZone = activeINodeZone;
-//    }
 
     @Override
     public void write(int pageNo, int offset, short data) {
@@ -81,6 +53,14 @@ public class BufferPool implements MemoryZone {
     public void clearZone() {
         for (Page page : pages) {
             page.clearPage();
+        }
+    }
+
+    @Override
+    public void initPages() {
+        for (int i = 0; i < size; i++) {
+            Page page = new Page();
+            this.pages[i] = page;
         }
     }
 

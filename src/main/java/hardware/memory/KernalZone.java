@@ -1,6 +1,4 @@
-package hardware.mm;
-
-import hardware.Page;
+package hardware.memory;
 
 public class KernalZone implements MemoryZone {
     int index;
@@ -10,7 +8,7 @@ public class KernalZone implements MemoryZone {
     KernalZone() {
         size = Memory.OS_KERNAL_SIZE;
         index = Memory.OS_KERNAL_START;
-        page = new Page();
+        initPages();
     }
 
     @Override
@@ -36,5 +34,10 @@ public class KernalZone implements MemoryZone {
     @Override
     public void clearZone() {
         page.clearPage();
+    }
+
+    @Override
+    public void initPages() {
+        page = new Page();
     }
 }

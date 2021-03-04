@@ -1,6 +1,6 @@
 package hardware;
 
-import hardware.mm.Memory;
+import hardware.memory.Memory;
 import utils.SysConst;
 
 public class MMU {
@@ -41,11 +41,15 @@ public class MMU {
 
     // 查询进程的页表
     int searchPageTable(int virtualPageNum) {
-        for (int i = 0, j = 0; i < pageNums; i++, j += 4) {
+        for (int i = 0, j = 0; i < pageNums; i++, j += Memory.PAGE_TABLE_ENTRY_SIZE) {
             //todo 用地址查询页表项有问题 !!!!!
-            int pageNum = Memory.memory.readData((short)(pageTableBaseAddr + j));
-            if (pageNum == virtualPageNum)
-                return Memory.memory.readData((short)(pageTableBaseAddr + j + 2));
+            int pte = Memory.memory.readWordData((short) (pageTableBaseAddr + j));
+            // 取得此页表项对应的逻辑页号
+            int virtualNo = pte >> 25 & 0X0000007F;
+            if (virtualNo == virtualPageNum) {
+                // 返回此页表项对应的页框号
+                return pte >> 19 & 0X0000003F;
+            }
         }
         return NOT_FOUND_ERROR;
     }

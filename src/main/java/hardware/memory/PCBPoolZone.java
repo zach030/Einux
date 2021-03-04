@@ -1,8 +1,4 @@
-package hardware.mm;
-
-import hardware.Page;
-
-import java.util.Arrays;
+package hardware.memory;
 
 public class PCBPoolZone implements MemoryZone {
 
@@ -10,15 +6,12 @@ public class PCBPoolZone implements MemoryZone {
     int index;
     int size;
     Page[] pages;
-    // pcb池分配位示图
-    boolean[] useBitMap = new boolean[Memory.PCB_POOL_SIZE];
 
     PCBPoolZone() {
         index = Memory.PCB_POOL_START;
         pages = new Page[Memory.PCB_POOL_SIZE];
-        Arrays.fill(pages, new Page());
         size = Memory.PCB_POOL_SIZE;
-        Arrays.fill(useBitMap, false);
+        initPages();
     }
 
     public int getFreePCBZone() {
@@ -53,15 +46,11 @@ public class PCBPoolZone implements MemoryZone {
         }
     }
 
-    // 分配空闲的pcb pool
-    public int allocNewPos() {
-        for (int i = 0; i < useBitMap.length; i++) {
-            // 遍历到第一个未用的位，就返回
-            if (!useBitMap[i]) {
-                // 返回物理页框号
-                return i + Memory.PCB_POOL_SIZE;
-            }
+    @Override
+    public void initPages() {
+        for (int i = 0; i < size; i++) {
+            Page page = new Page();
+            this.pages[i] = page;
         }
-        return -1;
     }
 }

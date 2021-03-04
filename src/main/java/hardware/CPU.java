@@ -1,6 +1,5 @@
 package hardware;
 
-import hardware.mm.Memory;
 import os.process.Instruction;
 import os.process.PCB;
 import utils.SysConst;

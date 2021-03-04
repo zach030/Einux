@@ -1,10 +1,8 @@
 package os.process;
 
-import hardware.Page;
-import utils.SysConst;
+import hardware.memory.Page;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 // 数据段
 public class DataSeg {

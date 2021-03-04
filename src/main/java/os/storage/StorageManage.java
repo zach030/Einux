@@ -1,7 +1,8 @@
 package os.storage;
 
 import hardware.CPU;
-import hardware.mm.Memory;
+import hardware.memory.Page;
+import hardware.memory.Memory;
 import os.filesystem.Block;
 import os.filesystem.FileSystem;
 import os.job.JCB;
@@ -86,7 +87,7 @@ public class StorageManage {
     // 内存的pcb池是否有空闲
     public boolean isPCBPoolZoneHasEmpty() {
         for (boolean b : memoryPCBPoolBitMap) {
-            if (b) {
+            if (!b) {
                 return true;
             }
         }
@@ -117,7 +118,7 @@ public class StorageManage {
                     base += pagesNum - 1;
             }
         }
-        pcb.setInternPageTableBaseAddr(base * Memory.PAGE_TABLE_ENTRY_SIZE + Memory.PAGE_TABLE_START * SysConst.PAGE_FRAME_SIZE);
+        pcb.setInternPageTableBaseAddr((short) (base * Memory.PAGE_TABLE_ENTRY_SIZE + Memory.PAGE_TABLE_START * SysConst.PAGE_FRAME_SIZE));
         for (int j = 0; j < count; j++) {
             modifySysPageTableBitMap(base + j);
         }
@@ -126,7 +127,7 @@ public class StorageManage {
     // 内存PCB池中申请空闲页
     public void allocEmptyPagePCBPool(PCB pcb) {
         for (int i = 0; i < memoryPCBPoolBitMap.length; i++) {
-            if (memoryPCBPoolBitMap[i]) {
+            if (!memoryPCBPoolBitMap[i]) {
                 modifyPCBPoolAreaBitMap(i);
                 pcb.setPcbFramePageNo(i + Memory.PCB_POOL_START);
                 return;
@@ -137,7 +138,7 @@ public class StorageManage {
     // 内存PCB数据区申请页
     public int allocEmptyPCBDataPage() {
         for (int i = 0; i < memoryPCBDataBitMap.length; i++) {
-            if (memoryPCBDataBitMap[i]) {
+            if (!memoryPCBDataBitMap[i]) {
                 modifyPCBDataAreaBitMap(i);
                 return i + Memory.PCB_ZONE_START;
             }
@@ -189,8 +190,23 @@ public class StorageManage {
         if (pageFrameNo == NOT_ENOUGH) {
             //淘汰页面,如果没有则使用淘汰算法淘汰一个，将淘汰页写回磁盘
         }
-        // 进行调页，将磁盘中的页装入分配的页框中，修改页表
         // 将块号blockNo的数据写入pageFrameNo的页内
+        // 根据块号查到物理块
+        Block block = FileSystem.fs.getBlockInDisk(blockNo);
+        //todo 加内存缓冲区处理，不是直接从磁盘写到内存
+        // 转化为内存页
+        Page page = Transfer.transfer.transferBlockToPage(block, virtualPageNo, pageFrameNo);
+        // 将页写入内存指定位置
+        Memory.memory.writePage(page);
+        // 设置进程页表
+        pcb.writePageTableEntry(virtualPageNo, page);
+        // pcb就绪态
+        pcb.setStatus(PCB.TASK_READY);
+        // cpu恢复现场
+        CPU.cpu.Recovery(pcb);
+        // 设置pcb运行态
+        pcb.setStatus(PCB.TASK_RUNNING);
+        System.out.println("[PAGE FAULT SUCCESS]------已成功完成请求调页，结束缺页中断...");
     }
 
     //-----------------------------从磁盘中请求分配空闲块-------------------

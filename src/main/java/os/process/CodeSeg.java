@@ -1,7 +1,6 @@
 package os.process;
 
-import hardware.Page;
-import utils.SysConst;
+import hardware.memory.Page;
 
 import java.util.ArrayList;
 

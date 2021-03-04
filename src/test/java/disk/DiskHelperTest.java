@@ -11,5 +11,6 @@ class DiskHelperTest {
         byte[] data = new byte[]{0x1F,0x12,0x03};
         System.out.println(Integer.toHexString(data[1]));
         System.out.println(Integer.toHexString(data[2]).length());
+        Disk.disk.createDisk();
     }
 }

@@ -232,7 +232,9 @@ public class DiskHelper {
             } else {
                 content.append(num);
             }
-            content.append(" ");
+            if (i % 16 != 15) {
+                content.append(" ");
+            }
         }
         try {
             FileWriter fw = new FileWriter(realBlockEntry.getAbsoluteFile());

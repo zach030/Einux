@@ -1,16 +1,15 @@
-package hardware;
+package hardware.memory;
 
-import disk.Disk;
-import hardware.mm.Memory;
+import hardware.memory.Memory;
 import utils.SysConst;
 
 // page : base operation for nno matter memory or disk
 public class Page {
-    private int logicalNo;     //逻辑页号
-    private int frameNo;        //物理页框号
-    private int blockNo;        //物理块号
-    private boolean stay;       //驻留内存(状态位)
-    private boolean modify;     //是否修改(修改位)
+    private int logicalNo;      // 逻辑页号
+    private int frameNo;        // 物理页框号
+    private int blockNo;        // 物理块号
+    private boolean stay;       // 驻留内存(状态位)
+    private boolean modify;     // 是否修改(修改位)
     byte[] pageData = new byte[SysConst.PAGE_FRAME_SIZE]; // 页数据
 
     public Page() {

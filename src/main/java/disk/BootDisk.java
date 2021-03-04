@@ -1,7 +1,5 @@
 package disk;
 
-import hardware.Page;
-
 // 通用磁盘接口
 public interface BootDisk {
     // 设置磁盘helper

@@ -36,6 +36,11 @@ public class DataZone implements BlockZone {
         return blockNo - startBlockNo;
     }
 
+    @Override
+    public Block getBlock(int blockNo) {
+        return blocks.get(getRelativeBlockNo(blockNo));
+    }
+
     public void initZoneBlocks() {
         for (int i = 0; i < zoneSize; i++) {
             // 物理块号

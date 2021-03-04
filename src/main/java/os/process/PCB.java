@@ -2,11 +2,11 @@ package os.process;
 
 import hardware.CPU;
 import hardware.Clock;
-import hardware.Page;
+import hardware.memory.Page;
+import hardware.memory.Memory;
 import os.job.JCB;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class PCB {
     //----------进程基本信息--------------------------
@@ -27,7 +27,7 @@ public class PCB {
     private StackSeg stackSeg;                  //堆栈段
 
     //--------------进程页信息--------------------------------
-    private int internPageTableBaseAddr;             //内存页表基址
+    private short internPageTableBaseAddr;             //内存页表基址
     private PageTableEntry[] internalPageTable;      //内页表
     private int pageNums;                            //进程所占页数
 
@@ -131,35 +131,38 @@ public class PCB {
     // 初始化进程内页表
     void initPageTable(int[] blockNo) {
         internalPageTable = new PageTableEntry[pageNums];
-        Arrays.fill(internalPageTable, new PageTableEntry());
         for (int i = 0; i < pageNums; i++) {
-            internalPageTable[i].virtualPageNo = -1;
-            internalPageTable[i].physicPageNo = -1;
-            internalPageTable[i].isValid = false;
-            internalPageTable[i].isModify = false;
-            internalPageTable[i].diskBlockNo = blockNo[i];
+            PageTableEntry pageTableEntry = new PageTableEntry();
+            pageTableEntry.setVirtualPageNo(i);
+            pageTableEntry.setPhysicPageNo(-1);
+            pageTableEntry.setValid(false);
+            pageTableEntry.setModify(false);
+            pageTableEntry.setDiskBlockNo(blockNo[i]);
+            internalPageTable[i] = pageTableEntry;
         }
     }
 
     // 写进程的内页表项
     public void writePageTableEntry(int virtualNo, Page page) {
-        internalPageTable[virtualNo].virtualPageNo = page.getLogicalNo();
-        internalPageTable[virtualNo].isValid = true;
-        internalPageTable[virtualNo].diskBlockNo = page.getBlockNo();
-        internalPageTable[virtualNo].isModify = page.isModify();
-        internalPageTable[virtualNo].physicPageNo = page.getFrameNo();
+        internalPageTable[virtualNo].setVirtualPageNo(page.getLogicalNo());
+        internalPageTable[virtualNo].setValid(true);
+        internalPageTable[virtualNo].setDiskBlockNo(page.getBlockNo());
+        internalPageTable[virtualNo].setModify(page.isModify());
+        internalPageTable[virtualNo].setPhysicPageNo(page.getFrameNo());
+        int pte = internalPageTable[virtualNo].pteDataToWord();
+        // 将页表项写入内存
+        Memory.memory.writeWordData((short) (internPageTableBaseAddr + virtualNo * Memory.PAGE_TABLE_ENTRY_SIZE), pte);
     }
 
     // 查找页表
     public int searchPageTable(int blockNo) {
         for (PageTableEntry pageTableEntry : internalPageTable) {
-            if (pageTableEntry.virtualPageNo == blockNo) {
-                return pageTableEntry.diskBlockNo;
+            if (pageTableEntry.getVirtualPageNo() == blockNo) {
+                return pageTableEntry.getDiskBlockNo();
             }
         }
         return -1;
     }
-
 
     //-------------------------内外存写数据------------------
     // 写入内存pcb池中
@@ -326,12 +329,12 @@ public class PCB {
         this.timeSlice = TIME_SLICE;
     }
 
-    public int getInternPageTableBaseAddr() {
+    public short getInternPageTableBaseAddr() {
         return internPageTableBaseAddr;
     }
 
     //todo 修改页表基址寄存器之后，页表的虚拟页号还没改
-    public void setInternPageTableBaseAddr(int internPageTableBaseAddr) {
+    public void setInternPageTableBaseAddr(short internPageTableBaseAddr) {
         this.internPageTableBaseAddr = internPageTableBaseAddr;
     }
 }

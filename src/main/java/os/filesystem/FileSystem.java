@@ -1,8 +1,5 @@
 package os.filesystem;
 
-import disk.DevConfig;
-import utils.SysConst;
-
 public class FileSystem implements VFS {
     public static FileSystem fs = new FileSystem();
 
@@ -87,6 +84,12 @@ public class FileSystem implements VFS {
         int blockNo = block.getBlockNo();
         BlockZone blockZone = switchZone(blockNo);
         blockZone.writeBlock(block);
+    }
+
+    // 获取磁盘内的物理块
+    public Block getBlockInDisk(int blockNo) {
+        BlockZone blockZone = switchZone(blockNo);
+        return blockZone.getBlock(blockNo);
     }
 
     BlockZone switchZone(int block) {

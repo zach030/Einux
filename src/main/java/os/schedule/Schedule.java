@@ -23,9 +23,9 @@ public class Schedule {
             if (StorageManage.sm.isPCBPoolZoneHasEmpty()) { // PCB池空间足够
                 // 判断虚存空间足够
                 if (StorageManage.sm.isSwapAreaEnough(jcb.getJobPagesNum())) {
+                    StorageManage.sm.saveToSwapZone(jcb);       // 将进程数据保存到磁盘交换区
                     PCB pcb = ProcessManage.pm.createPCB(jcb);  // 将JCB转换为PCB，创建进程
                     StorageManage.sm.allocPCBPageTable(pcb);    // 分配内存系统页表
-                    StorageManage.sm.saveToSwapZone(jcb);       // 将进程数据保存到磁盘交换区
                     ProcessManage.pm.addPCBToPCBPool(pcb);      //将进程写入pcb池中
                     ProcessManage.pm.joinReadQueue(pcb);        // 将该进程加入到就绪队列
                     System.out.println("[INFO]-----成功创建PCB，ID=" + pcb.getID());

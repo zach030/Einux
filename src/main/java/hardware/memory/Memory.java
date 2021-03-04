@@ -1,6 +1,5 @@
-package hardware.mm;
+package hardware.memory;
 
-import hardware.Page;
 import utils.SysConst;
 
 public class Memory {
@@ -24,10 +23,12 @@ public class Memory {
     public static final int PCB_ZONE_START = 16;                    // PCB区起始页号
     public static final int PCB_ZONE_SIZE = 32;                     // PCB区大小
 
-    public static final int BUFFER_START = 48;                   // 缓冲区起始块号
+    public static final int BUFFER_START = 48;                      // 缓冲区起始块号
     public static final int BUFFER_SIZE = 16;                       // 缓冲区大小
 
-    public static final int PAGE_TABLE_ENTRY_SIZE = 32;           //页表项大小
+    public static final int PAGE_TABLE_ENTRY_SIZE = 32;             // 页表项大小
+    public static final int ONE_PAGE_HAS_TABLE_ENTRY = SysConst.PAGE_FRAME_SIZE / PAGE_TABLE_ENTRY_SIZE; // 一个页有的页表项数
+
 
     KernalZone kernalZone;           // os 内核区
     PageTableZone pageTableZone;     // 页表区
@@ -51,7 +52,7 @@ public class Memory {
         bufferPool.clearZone();
     }
 
-    public void writePage(Page page){
+    public void writePage(Page page) {
         // 根据页框号，对内存中的页进行替换
         int pageFrameNo = page.getFrameNo();
         MemoryZone memoryZone = switchZone(pageFrameNo);
@@ -67,6 +68,18 @@ public class Memory {
         memoryZone.write(memoryZone.getRelativePageNo(page), offset, data);
     }
 
+    // 写32位大小的数据
+    public void writeWordData(short addr, int data) {
+        int page = (addr >> 9) & 0X003F;
+        int offset = (addr & 0X01FF);
+        MemoryZone memoryZone = switchZone(page);
+        short lowData = (short) (data & 0X0000FFFF);
+        short highData = (short) (data >> 16 & 0X0000FFFF);
+        memoryZone.write(memoryZone.getRelativePageNo(page), offset, lowData);
+        //todo 会不会跨页
+        memoryZone.write(memoryZone.getRelativePageNo(page), offset + 2, highData);
+    }
+
     // 入参是物理地址 15位:(6位页框号，9位页内偏移)
     public short readData(short addr) {
         // 物理地址分为页框号+页内偏移
@@ -75,6 +88,17 @@ public class Memory {
         // 通过页框号，找到对应哪个zone的页，再操作
         MemoryZone memoryZone = switchZone(page);
         return memoryZone.read(memoryZone.getRelativePageNo(page), offset);
+    }
+
+    public int readWordData(short addr) {
+        // 物理地址分为页框号+页内偏移
+        int page = (addr >> 9) & 0X003F;
+        int offset = (addr & 0X01FF);
+        // 通过页框号，找到对应哪个zone的页，再操作
+        MemoryZone memoryZone = switchZone(page);
+        short lowData = memoryZone.read(memoryZone.getRelativePageNo(page), offset);
+        short highData = memoryZone.read(memoryZone.getRelativePageNo(page), offset + 2);
+        return (((int) lowData) & 0X0000FFFF) | (((int) highData << 16) & 0XFFFF0000);
     }
 
     MemoryZone switchZone(int page) {

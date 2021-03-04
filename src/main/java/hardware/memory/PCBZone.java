@@ -1,8 +1,4 @@
-package hardware.mm;
-
-import hardware.Page;
-
-import java.util.Arrays;
+package hardware.memory;
 
 public class PCBZone implements MemoryZone {
     int index;
@@ -13,8 +9,8 @@ public class PCBZone implements MemoryZone {
     PCBZone() {
         index = Memory.PCB_ZONE_START;
         pages = new Page[Memory.PCB_ZONE_SIZE];
-        Arrays.fill(pages, new Page());
         size = Memory.PCB_ZONE_SIZE;
+        initPages();
     }
 
     @Override
@@ -41,6 +37,14 @@ public class PCBZone implements MemoryZone {
     public void clearZone() {
         for (Page page : pages) {
             page.clearPage();
+        }
+    }
+
+    @Override
+    public void initPages() {
+        for (int i = 0; i < size; i++) {
+            Page page = new Page();
+            this.pages[i] = page;
         }
     }
 }

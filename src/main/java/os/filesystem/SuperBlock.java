@@ -31,6 +31,11 @@ public class SuperBlock implements BlockZone {
         return 0;
     }
 
+    @Override
+    public Block getBlock(int blockNo) {
+        return block;
+    }
+
     public void initZoneBlocks() {
         this.block = new Block(blockNo);
     }

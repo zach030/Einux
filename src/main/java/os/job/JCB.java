@@ -7,6 +7,7 @@ import os.storage.StorageManage;
 import utils.SysConst;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Random;
 
 public class JCB {
@@ -26,7 +27,7 @@ public class JCB {
     // random create
     JCB(int jobID) {
         this.data = new byte[]{};
-        this.diskBlockNo = new int[jobPagesNum];
+
         Random random = new Random();
         this.jobID = jobID;
         this.setJobInTime(Clock.clock.getCurrentTime());
@@ -37,6 +38,7 @@ public class JCB {
 
     // load from initial file
     public JCB() {
+        this.data = new byte[]{};
         this.setJobInTime(Clock.clock.getCurrentTime());
         this.instructions = new ArrayList<>();
     }
@@ -75,6 +77,8 @@ public class JCB {
         int jcbMetaPages = 1;
         this.jobPagesNum = this.codeSegPages + this.dataSegPages + this.stackSegPages + jcbMetaPages;
         blocks = new ArrayList<>(jobPagesNum);
+        this.diskBlockNo = new int[jobPagesNum];
+        Arrays.fill(diskBlockNo, -1);
     }
 
     // 将jcb信息保存到磁盘jcb区
@@ -93,7 +97,7 @@ public class JCB {
 
     // 将jcb数据保存到磁盘交换区
     public void saveJobBlockToSwapZone() {
-        for (int i = 0; i < jobPagesNum; i++) {
+        for (int i = 0; i < jobPagesNum - 1; i++) {
             Block block = StorageManage.sm.allocEmptySwapBlock();
             //todo 存储jcb的数据到交换区
             // 记录jcb数据在磁盘中的物理块号

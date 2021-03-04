@@ -1,6 +1,6 @@
 package os.process;
 
-import hardware.Page;
+import hardware.memory.Page;
 
 import java.util.ArrayList;
 

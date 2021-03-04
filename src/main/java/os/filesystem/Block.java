@@ -15,6 +15,10 @@ public class Block {
         loadBlockData();
     }
 
+    public Block(){
+
+    }
+
     // 从磁盘加载数据
     void loadBlockData() {
         this.data = Disk.disk.getBlock(blockNo).getAllData();

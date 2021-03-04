@@ -1,6 +1,4 @@
-package hardware.mm;
-
-import hardware.Page;
+package hardware.memory;
 
 // interface of all memory zone
 public interface MemoryZone {
@@ -13,4 +11,6 @@ public interface MemoryZone {
     int getRelativePageNo(int pageNo);
 
     void clearZone();
+
+    void initPages();
 }

@@ -1,7 +1,5 @@
 package disk;
 
-import hardware.Page;
-
 //硬盘:外存
 public class Disk implements BootDisk {
     public static BootDisk disk = new Disk();
