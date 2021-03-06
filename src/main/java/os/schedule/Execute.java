@@ -1,12 +1,13 @@
 package os.schedule;
 
 import hardware.CPU;
+import os.process.Instruction;
 
 public class Execute {
     public static Execute execute = new Execute();
 
-    public void ExecuteInstruction(int IR) {
-        switch (IR) {
+    public void ExecuteInstruction(Instruction instruction) {
+        switch (instruction.getType()) {
             case 0:
                 System.out.println("执行系统调用");
                 execSystemCallInstruction();

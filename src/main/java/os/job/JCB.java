@@ -14,31 +14,31 @@ public class JCB {
     private int jobID;                //作业ID
     private int jobPriority;          //作业/进程的优先级
     private int jobInTime;            //作业进入时间
+    // 一个作业的指令数小于128，可保证代码段只占一个物理块
     private int jobInstructionNum;    //作业包含的指令数目
     private int jobPagesNum;          //作业所占用的页面数目
     private int dataSegPages;         //数据段页面数
     private int codeSegPages;         //代码段页面数
+    private int codeSegStart;         //代码段起始页
     private int stackSegPages;        //栈段页面数
     private int[] diskBlockNo;        //所在磁盘块号
-    private byte[] data;              //作业所带数据
+    private short[] data;              //作业所带数据
     private ArrayList<Block> blocks;  //作业所在的全部物理块
     ArrayList<Instruction> instructions;
 
     // random create
     JCB(int jobID) {
-        this.data = new byte[]{};
-
         Random random = new Random();
         this.jobID = jobID;
         this.setJobInTime(Clock.clock.getCurrentTime());
         this.setJobPriority(random.nextInt(4) + 1);
         this.setJobInstructionNum(random.nextInt(10) + 1);
         this.instructions = new ArrayList<>();
+        this.data = new short[jobInstructionNum];
     }
 
     // load from initial file
     public JCB() {
-        this.data = new byte[]{};
         this.setJobInTime(Clock.clock.getCurrentTime());
         this.instructions = new ArrayList<>();
     }
@@ -50,12 +50,13 @@ public class JCB {
         this.setJobInTime(Integer.parseInt(jobInfo[2]));
         this.setJobInstructionNum(Integer.parseInt(jobInfo[3]));
         instructions = new ArrayList<>(jobInstructionNum);
+        this.data = new short[jobInstructionNum];
     }
 
     // init job instructions from file
     public void SetJobInstructions(String[] instructionInfo) {
         Instruction instruction = new Instruction(Integer.parseInt(instructionInfo[0]),
-                Integer.parseInt(instructionInfo[1]), Integer.parseInt(instructionInfo[2]), instructionInfo[3].getBytes());
+                Integer.parseInt(instructionInfo[1]), Integer.parseInt(instructionInfo[2]), Short.parseShort(instructionInfo[3]));
         this.instructions.add(instruction);
     }
 
@@ -64,7 +65,7 @@ public class JCB {
         int codeSize = 0;
         for (int i = 0; i < jobInstructionNum; i++) {
             // traverse job's all instructions
-            this.data = mergeBytes(this.data, instructions.get(i).getData());
+            this.data[i] = instructions.get(i).getData();
             codeSize += this.instructions.get(i).getSize();
         }
         this.codeSegPages = codeSize / SysConst.PAGE_FRAME_SIZE + 1;
@@ -75,6 +76,7 @@ public class JCB {
         this.dataSegPages = dataLength / SysConst.PAGE_FRAME_SIZE + 1;
         this.stackSegPages = 1;
         int jcbMetaPages = 1;
+        this.codeSegStart = 1 + this.dataSegPages;
         this.jobPagesNum = this.codeSegPages + this.dataSegPages + this.stackSegPages + jcbMetaPages;
         blocks = new ArrayList<>(jobPagesNum);
         this.diskBlockNo = new int[jobPagesNum];
@@ -95,15 +97,24 @@ public class JCB {
         block.syncBlock();
     }
 
-    // 将jcb数据保存到磁盘交换区
+    // 将jcb数据保存到磁盘交换区(数据段+代码段+栈段)
     public void saveJobBlockToSwapZone() {
-        for (int i = 0; i < jobPagesNum - 1; i++) {
+        for (int i = 1; i < jobPagesNum; i++) {
             Block block = StorageManage.sm.allocEmptySwapBlock();
             //todo 存储jcb的数据到交换区
-            // 记录jcb数据在磁盘中的物理块号
+            if (i == codeSegStart) {
+                writeCodeBlock(block);
+            }
             blocks.add(block);
-            this.diskBlockNo[i + 1] = block.getBlockNo();
+            this.diskBlockNo[i] = block.getBlockNo();
             block.syncBlock();
+        }
+    }
+
+    public void writeCodeBlock(Block block) {
+        for (int i = 0; i < jobInstructionNum; i++) {
+            int data = this.instructions.get(i).simplifyInstructionData();
+            block.writeWord(i * 4, data);
         }
     }
 
@@ -197,11 +208,11 @@ public class JCB {
         this.jobPagesNum = jobPagesNum;
     }
 
-    public byte[] getData() {
+    public short[] getData() {
         return data;
     }
 
-    public void setData(byte[] data) {
+    public void setData(short[] data) {
         this.data = data;
     }
 }

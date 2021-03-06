@@ -15,7 +15,7 @@ public class Block {
         loadBlockData();
     }
 
-    public Block(){
+    public Block() {
 
     }
 
@@ -26,11 +26,18 @@ public class Block {
 
     public void write(int offset, short data) {
         // 低八位
-        this.data[offset] = (byte) (data & 0XFF);
+        this.data[offset] = (byte) (((byte) (data & 0X00FF)) & 0XFF);
         // 高八位
-        this.data[offset + 1] = (byte) (data >> 8);
+        this.data[offset + 1] = (byte) (data >> 8 & 0X00FF);
         // 同步写到磁盘
         // syncBlock();
+    }
+
+    public void writeWord(int offset, int data) {
+        short lowData = (short) (data & 0X0000FFFF);
+        this.write(offset, lowData);
+        short highData = (short) (data >> 16 & 0X0000FFFF);
+        this.write(offset + 2, highData);
     }
 
     public short read(int offset) {

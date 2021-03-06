@@ -10,9 +10,9 @@ public class DataSeg {
     int pageNums;
     int logicalPageNo;
     int segNo;
-    byte[] data;
+    short[] data;
 
-    DataSeg(byte[] data, int pageNums) {
+    DataSeg(short[] data, int pageNums) {
         this.segNo = PCB.DATA_SEG_NO;
         this.data = data;
         this.logicalPageNo = 1;

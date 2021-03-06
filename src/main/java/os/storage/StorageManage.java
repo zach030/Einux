@@ -6,6 +6,7 @@ import hardware.memory.Memory;
 import os.filesystem.Block;
 import os.filesystem.FileSystem;
 import os.job.JCB;
+import os.process.Instruction;
 import os.process.PCB;
 import os.process.ProcessManage;
 import utils.SysConst;
@@ -46,41 +47,41 @@ public class StorageManage {
 
     //----------------------修改位示图---------------
     // 修改系统页表位示图
-    synchronized public void modifySysPageTableBitMap(int logicalPageNo) {
-        this.sysPageTableBitMap[logicalPageNo] = true;
+    synchronized public void modifySysPageTableBitMap(int logicalPageNo, boolean status) {
+        this.sysPageTableBitMap[logicalPageNo] = status;
     }
 
     // 修改内存页框位示图
-    synchronized public void modifyMemoryPageBitMap(int pageFrameNo) {
-        this.memoryAllPageBitmap[pageFrameNo] = true;
+    synchronized public void modifyMemoryPageBitMap(int pageFrameNo, boolean status) {
+        this.memoryAllPageBitmap[pageFrameNo] = status;
     }
 
     // 修改内存pcb池位示图
-    synchronized public void modifyPCBPoolAreaBitMap(int pageNo) {
+    synchronized public void modifyPCBPoolAreaBitMap(int pageNo, boolean status) {
         this.memoryPCBPoolBitMap[pageNo] = true;
-        this.modifyMemoryPageBitMap(pageNo + Memory.PCB_POOL_START);
+        this.modifyMemoryPageBitMap(pageNo + Memory.PCB_POOL_START, status);
     }
 
     // 修改内存pcb池位示图
-    synchronized public void modifyPCBDataAreaBitMap(int pageNo) {
+    synchronized public void modifyPCBDataAreaBitMap(int pageNo, boolean status) {
         this.memoryPCBDataBitMap[pageNo] = true;
-        this.modifyMemoryPageBitMap(pageNo + Memory.PCB_ZONE_START);
+        this.modifyMemoryPageBitMap(pageNo + Memory.PCB_ZONE_START, status);
     }
 
     // 修改内存缓冲区位示图
-    synchronized public void modifyBufferAreaBitMap(int pageNo) {
-        this.memoryBufferBitMap[pageNo] = true;
-        this.modifyMemoryPageBitMap(pageNo + Memory.BUFFER_START);
+    synchronized public void modifyBufferAreaBitMap(int pageNo, boolean status) {
+        this.memoryBufferBitMap[pageNo] = status;
+        this.modifyMemoryPageBitMap(pageNo + Memory.BUFFER_START, status);
     }
 
-    // 修改交换区位示图
-    synchronized public void modifySwapAreaBitMap(int blockNo) {
-        this.swapZoneBitmap[blockNo] = true;
+    // 修改磁盘交换区位示图
+    synchronized public void modifySwapAreaBitMap(int blockNo, boolean status) {
+        this.swapZoneBitmap[blockNo] = status;
     }
 
     // 修改JCB区位示图
-    synchronized public void modifyJCBAreaBitMap(int blockNo) {
-        this.jcbZoneBitMap[blockNo] = true;
+    synchronized public void modifyJCBAreaBitMap(int blockNo, boolean status) {
+        this.jcbZoneBitMap[blockNo] = status;
     }
 
     //----------------------存储区判断-----------------------
@@ -99,7 +100,7 @@ public class StorageManage {
         return getFreePageNumsInSwapArea() >= pageNum;
     }
 
-    //----------------------内存请求分配页---------------------
+    //----------------------内存申请分配页---------------------
     // 给pcb分配页表
     public void allocPCBPageTable(PCB pcb) {
         int count = 0, base;
@@ -120,7 +121,7 @@ public class StorageManage {
         }
         pcb.setInternPageTableBaseAddr((short) (base * Memory.PAGE_TABLE_ENTRY_SIZE + Memory.PAGE_TABLE_START * SysConst.PAGE_FRAME_SIZE));
         for (int j = 0; j < count; j++) {
-            modifySysPageTableBitMap(base + j);
+            modifySysPageTableBitMap(base + j, true);
         }
     }
 
@@ -128,7 +129,7 @@ public class StorageManage {
     public void allocEmptyPagePCBPool(PCB pcb) {
         for (int i = 0; i < memoryPCBPoolBitMap.length; i++) {
             if (!memoryPCBPoolBitMap[i]) {
-                modifyPCBPoolAreaBitMap(i);
+                modifyPCBPoolAreaBitMap(i, true);
                 pcb.setPcbFramePageNo(i + Memory.PCB_POOL_START);
                 return;
             }
@@ -139,12 +140,31 @@ public class StorageManage {
     public int allocEmptyPCBDataPage() {
         for (int i = 0; i < memoryPCBDataBitMap.length; i++) {
             if (!memoryPCBDataBitMap[i]) {
-                modifyPCBDataAreaBitMap(i);
+                modifyPCBDataAreaBitMap(i, true);
                 return i + Memory.PCB_ZONE_START;
             }
         }
         return NOT_ENOUGH;
     }
+
+    //------------------------内存释放资源---------------------
+    // 将pcb占用的页表释放
+    public void releasePCBPageTable(PCB pcb) {
+        // pcb的页表基址是物理地址，需要转为逻辑地址
+        int pcbPageTableLogicalBase = (pcb.getInternPageTableBaseAddr() - Memory.PAGE_TABLE_START * SysConst.PAGE_FRAME_SIZE) / Memory.PAGE_TABLE_ENTRY_SIZE;
+        for (int i = 0; i < pcb.getPageNums(); i++) {
+            this.modifySysPageTableBitMap(i + pcbPageTableLogicalBase, false);
+        }
+    }
+
+    // 将pcb占用的pcb池页释放
+    public void releasePCBPoolPage(PCB pcb) {
+        this.modifyPCBPoolAreaBitMap(pcb.getPcbFramePageNo() - Memory.PCB_POOL_START, false);
+    }
+
+    // 将内存占用的内存数据区释放
+
+
 
     //---------------------------获取内存各分区空闲数-------------------
     // 获取内存空闲页数
@@ -209,14 +229,14 @@ public class StorageManage {
         System.out.println("[PAGE FAULT SUCCESS]------已成功完成请求调页，结束缺页中断...");
     }
 
-    //-----------------------------从磁盘中请求分配空闲块-------------------
+    //-----------------------------从磁盘中请求-------------------
     // 从磁盘JCB区分配出空闲的JCB块
     public Block allocEmptyJCBBlock() {
         int blockNo = 0;
         for (int i = 0; i < jcbZoneBitMap.length; i++) {
             if (!jcbZoneBitMap[i]) {
                 blockNo = i;
-                modifyJCBAreaBitMap(i);
+                modifyJCBAreaBitMap(i, true);
                 break;
             }
         }
@@ -229,7 +249,7 @@ public class StorageManage {
         for (int i = 0; i < swapZoneBitmap.length; i++) {
             if (!swapZoneBitmap[i]) {
                 blockNo = i;
-                modifySwapAreaBitMap(i);
+                modifySwapAreaBitMap(i, true);
                 break;
             }
         }
@@ -241,10 +261,28 @@ public class StorageManage {
         FileSystem.fs.writeBlock(block);
     }
 
+    //--------------------------磁盘释放--------------------
+    // 释放jcb在磁盘jcb区的资源
+    public void releaseJCBBlock(){
+
+    }
+
+
     //---------------------------内存处理-------------------
     // 访问内存
     public int visitMemory(int physicalAddr) {
-        return Memory.memory.readData((short) physicalAddr);
+        return Memory.memory.readWordData((short) physicalAddr);
+    }
+
+    // 由读出的数据构成指令结构体
+    public Instruction getInstructionByData(int data) {
+        Instruction instruction = new Instruction();
+        // 32bit: id 8位，type 3位，arg 5位，data 16位
+        instruction.setId(data >> 24 & 0X000000FF);
+        instruction.setType(data >> 21 & 0X00000007);
+        instruction.setArg(data >> 16 & 0X0000001F);
+        instruction.setData((short) ((short) data & 0X0000FFFF));
+        return instruction;
     }
 
 }

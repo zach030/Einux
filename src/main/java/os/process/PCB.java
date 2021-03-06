@@ -181,6 +181,10 @@ public class PCB {
         this.pcbHasPages.add(page);
     }
 
+    public void subTimeSlice() {
+        this.timeSlice--;
+    }
+
     public int getInstructionsNum() {
         return instructionsNum;
     }

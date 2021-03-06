@@ -42,7 +42,6 @@ public class MMU {
     // 查询进程的页表
     int searchPageTable(int virtualPageNum) {
         for (int i = 0, j = 0; i < pageNums; i++, j += Memory.PAGE_TABLE_ENTRY_SIZE) {
-            //todo 用地址查询页表项有问题 !!!!!
             int pte = Memory.memory.readWordData((short) (pageTableBaseAddr + j));
             // 取得此页表项对应的逻辑页号
             int virtualNo = pte >> 25 & 0X0000007F;

@@ -4,6 +4,7 @@ import hardware.CPU;
 import hardware.MMU;
 import os.job.JCB;
 import os.job.JobManage;
+import os.process.Instruction;
 import os.process.PCB;
 import os.process.ProcessManage;
 import os.storage.StorageManage;
@@ -18,9 +19,12 @@ public class Schedule {
 
     // 高级调度，从后备队列选作业进入内存并创建进程
     public void HighLevelScheduling() {
-        if (!JobManage.jm.isBackJobsEmpty() && !ProcessManage.pm.isPCBPoolFull()) { // 后备队列不为空并且系统可加入更多进程
-            JCB jcb = JobManage.jm.getFirstJCB(); // 从后备队列取一个job
-            if (StorageManage.sm.isPCBPoolZoneHasEmpty()) { // PCB池空间足够
+        // 后备队列不为空且内存pcb池不满
+        if (!JobManage.jm.isBackJobsEmpty() && !ProcessManage.pm.isPCBPoolFull()) {
+            // 从后备队列取一个job
+            JCB jcb = JobManage.jm.getFirstJCB();
+            // PCB池空间足够
+            if (StorageManage.sm.isPCBPoolZoneHasEmpty()) {
                 // 判断虚存空间足够
                 if (StorageManage.sm.isSwapAreaEnough(jcb.getJobPagesNum())) {
                     StorageManage.sm.saveToSwapZone(jcb);       // 将进程数据保存到磁盘交换区
@@ -85,6 +89,7 @@ public class Schedule {
     // 运行进程
     public void RunProcess() {
         System.out.println("[TIME]-----系统时间:" + CPU.cpu.clock.getCurrentTime() + "，系统正在运行...");
+        // 展示当前的队列信息
         ProcessManage.pm.DisplayAllPCBQueue();
 
         // 高级调度
@@ -118,7 +123,7 @@ public class Schedule {
         }
 
         // 如果进程运行完毕
-        if (CPU.cpu.getPC() >= CPU.cpu.getCurrent().getInstructionsNum()) {
+        if (CPU.cpu.isCurrentPCBEnd()) {
             System.out.println("[INFO]------进程:" + CPU.cpu.getCurrent().getID() + ",运行结束.....");
             CPU.cpu.Protect(); // CPU保护现场
             ProcessManage.pm.cancelPCB(CPU.cpu.getCurrent()); // 撤销进程;
@@ -127,9 +132,7 @@ public class Schedule {
         System.out.println("[RUNNING]------正在运行进程:" + CPU.cpu.getCurrent().getID());
         // 开始运行指令，先获取指令的逻辑地址，通过MMU转成物理地址
         int instructionLogicalAddr = CPU.cpu.getCurrentIRAddr(); // 当前指令的逻辑地址
-        //todo 执行指令，怎么做缺页中断！！！
         int physicalAddress = CPU.cpu.mmu.ResolveLogicalAddress((short) instructionLogicalAddr); // 当前指令的物理地址
-
         if (physicalAddress == MMU.NOT_FOUND_ERROR) {  // 发生缺页
             int pageNo = CPU.cpu.getCurrentIRPageNum(); // 获取当前指令所在的页
             System.out.println("[PAGE FAULT]-----缺页中断，查询到指令:" + CPU.cpu.getPC() + ",逻辑页号:" + pageNo);
@@ -137,11 +140,12 @@ public class Schedule {
             physicalAddress = CPU.cpu.mmu.ResolveLogicalAddress((short) instructionLogicalAddr); // 当前指令的物理地址
         }
         // 没有发生缺中断，则从内存取出指令
-        int IR = StorageManage.sm.visitMemory(physicalAddress);
-        CPU.cpu.setIR(IR);
-        System.out.printf("[RUNNING]---当前运行进程[%d] ---运行时间:{%d} ---指令数:{%d} ---优先级:{%d} ---时间片余额:{%d}", CPU.cpu.getCurrent().getID(), CPU.cpu.getCurrent().getRunTimes(), CPU.cpu.getCurrent().getInstructionsNum(), CPU.cpu.getCurrent().getPriority(), CPU.cpu.getCurrent().getTimeSlice());
-        System.out.printf("[RUNNING]---当前执行第%d条指令 ---指令类型:{%d} ---逻辑地址:0x{%s} ---物理地址:0x{%s}", CPU.cpu.getPC() + 1, IR, String.format("%02X", instructionLogicalAddr), String.format("%02X", physicalAddress));
-        Execute.execute.ExecuteInstruction(IR); // 执行指令
+        int instructionData = StorageManage.sm.visitMemory(physicalAddress);
+        Instruction instruction = StorageManage.sm.getInstructionByData(instructionData);
+        CPU.cpu.setIR(instruction.getType());
+        System.out.printf("[RUNNING]---当前运行进程[%d] ---运行时间:[%d] ---指令数:[%d] ---优先级:[%d] ---时间片余额:[%d]", CPU.cpu.getCurrent().getID(), CPU.cpu.getCurrent().getRunTimes(), CPU.cpu.getCurrent().getInstructionsNum(), CPU.cpu.getCurrent().getPriority(), CPU.cpu.getCurrent().getTimeSlice());
+        System.out.printf("[RUNNING]---当前执行第[%d]条指令 ---指令类型:[%d] ---逻辑地址:0x[%s] ---物理地址:0x[%s]", CPU.cpu.getPC() + 1, instruction.getType(), String.format("%02X", instructionLogicalAddr), String.format("%02X", physicalAddress));
+        Execute.execute.ExecuteInstruction(instruction); // 执行指令
 
         if (!CPU.cpu.isRunning()) {
             // 如果cpu空闲
@@ -149,16 +153,13 @@ public class Schedule {
         }
 
         // 进程没运行完
-//        CPU.cpu.GetPCB().SetTimeSliceSubtract(); // 时间片减少
-//        if (CPU.cpu.GetPCB().GetTimeSlice() <= 0) // 时间片用完
-//        {
-//            lOutput += "\n---时间片用完！";
-//            CPU.cpu.ProtectSpot(); // CPU保护现场
-//            ProcessManage.m.JoinReadyQueue(CPU.cpu.GetPCB()); // 进程加入到就绪队列
-//        }
-//        Console.WriteLine(lOutput);
-//        ProcessManage.m.LogToFile(lOutput);
-//        MainForm.f.RefreshProcessInfoUI(lOutput);
+        CPU.cpu.getCurrent().subTimeSlice(); // 时间片减少
+        if (CPU.cpu.getCurrent().getTimeSlice() <= 0) // 时间片用完
+        {
+            System.out.printf("[CPU]----当前进程: %d,时间片已用完", CPU.cpu.getCurrent().getID());
+            CPU.cpu.Protect(); // CPU保护现场
+            ProcessManage.pm.joinReadQueue(CPU.cpu.getCurrent());
+        }
     }
 
     // 调度线程开始

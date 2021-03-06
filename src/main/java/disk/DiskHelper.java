@@ -225,13 +225,8 @@ public class DiskHelper {
             if (i % 16 == 0 && i != 0) {
                 content.append("\n");
             }
-            String num = Integer.toHexString(data[i]);
-            if (num.length() == 1) {
-                // 如果只有一位，需要一位0来占位
-                content.append("0").append(num);
-            } else {
-                content.append(num);
-            }
+            String num = Integer.toHexString((data[i] & 0x000000FF) | 0xFFFFFF00).substring(6).toUpperCase();
+            content.append(num);
             if (i % 16 != 15) {
                 content.append(" ");
             }

@@ -1,7 +1,5 @@
 package os.process;
 
-import disk.DevConfig;
-import os.filesystem.FileSystem;
 import os.job.JCB;
 import os.storage.StorageManage;
 
@@ -64,7 +62,11 @@ public class ProcessManage {
 
     // 撤销进程
     public void cancelPCB(PCB pcb) {
-
+        pcb.cancelProcess();
+        // 将pcb从所有的队列中移除
+        removeFromAllQueue(pcb);
+        // 加入完成队列
+        this.finishQueue.add(pcb);
     }
 
     //-----------------------------内存操作-----------------------
@@ -81,7 +83,7 @@ public class ProcessManage {
 
     //--------------展示进程队列信息----------------------
     public synchronized void DisplayAllPCBQueue() {
-        System.out.println("[INFO]----当前就绪队列：");
+        System.out.print("[INFO]----当前就绪队列：");
         displayReadyQueue();
         System.out.println("[INFO]----当前阻塞队列：");
         displayBlockQueue();
@@ -97,8 +99,9 @@ public class ProcessManage {
                 System.out.print("进程：" + pcb.getID() + "\t");
             }
         } else {
-            System.out.println("就绪队列为空");
+            System.out.print("就绪队列为空");
         }
+        System.out.println();
     }
 
     synchronized void displayBlockQueue() {
@@ -107,8 +110,9 @@ public class ProcessManage {
                 System.out.print("进程：" + pcb.getID() + "\t");
             }
         } else {
-            System.out.println("阻塞队列为空");
+            System.out.print("阻塞队列为空");
         }
+        System.out.println();
     }
 
     synchronized void displaySuspendQueue() {
@@ -117,8 +121,9 @@ public class ProcessManage {
                 System.out.print("进程：" + pcb.getID() + "\t");
             }
         } else {
-            System.out.println("挂起队列为空");
+            System.out.print("挂起队列为空");
         }
+        System.out.println();
     }
 
     synchronized void displayFinishQueue() {
@@ -127,8 +132,9 @@ public class ProcessManage {
                 System.out.print("进程：" + pcb.getID() + "\t");
             }
         } else {
-            System.out.println("已完成队列为空");
+            System.out.print("已完成队列为空");
         }
+        System.out.println();
     }
 
     //-----------------------进程调度队列基本操作--------------
@@ -154,12 +160,16 @@ public class ProcessManage {
 
     // 获取就绪队列队头
     synchronized public PCB getFromReadyQueue() {
-        return this.readyQueue.get(0);
+        PCB pcb = this.readyQueue.get(0);
+        this.readyQueue.remove(pcb);
+        return pcb;
     }
 
     // 获取挂起队列对头
     synchronized public PCB getFromSuspendQueue() {
-        return this.suspendQueue.get(0);
+        PCB pcb = this.suspendQueue.get(0);
+        this.suspendQueue.remove(pcb);
+        return pcb;
     }
 
     // 获取阻塞队列队头
@@ -167,9 +177,15 @@ public class ProcessManage {
         return this.blockQueue.get(0);
     }
 
-    // 获取一个不适用的PCB
+    // 获取一个不使用的PCB
     synchronized public PCB getNotUsedPCB() {
         return null;
     }
 
+    // 移除被撤销的PCB
+    synchronized public void removeFromAllQueue(PCB pcb) {
+        this.readyQueue.remove(pcb);
+        this.suspendQueue.remove(pcb);
+        this.blockQueue.remove(pcb);
+    }
 }

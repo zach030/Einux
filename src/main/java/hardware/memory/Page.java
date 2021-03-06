@@ -1,9 +1,7 @@
 package hardware.memory;
 
-import hardware.memory.Memory;
 import utils.SysConst;
 
-// page : base operation for nno matter memory or disk
 public class Page {
     private int logicalNo;      // 逻辑页号
     private int frameNo;        // 物理页框号
@@ -56,18 +54,11 @@ public class Page {
     public void syncPage() {
         if (stay) {
             syncMemory();
-        } else {
-            // 将页转为块，写入磁盘
-            syncDisk();
         }
     }
 
     void syncMemory() {
         Memory.memory.writePage(this);
-    }
-
-    void syncDisk() {
-        //TODO sync page data to disk
     }
 
     public int getLogicalNo() {

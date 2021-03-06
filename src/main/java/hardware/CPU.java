@@ -59,6 +59,11 @@ public class CPU {
         return PC / Instruction.ONE_PAGE_HAS_INSTRUCTION_NUM + current.getCode().getLogicalPageNo();
     }
 
+    // 判断当前进程是否执行结束
+    public boolean isCurrentPCBEnd(){
+        return this.getPC() > this.getCurrent().getInstructionsNum();
+    }
+
     public int getMode() {
         return mode;
     }

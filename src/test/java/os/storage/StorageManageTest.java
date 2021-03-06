@@ -19,10 +19,10 @@ class StorageManageTest {
 
     @Test
     void distributedPCBPageTable() {
-        byte[] data = {0x01, 0x01, 0x02, 0x04, 0x71, 0x2b, 0x5f, 0x30};
+        short[] data = {0x01, 0x01, 0x02, 0x04, 0x71, 0x2b, 0x5f, 0x30};
         jcb.setData(data);
         ArrayList<Instruction> instructions = new ArrayList<>(){};
-        instructions.add(new Instruction(1,0,3,data));
+        instructions.add(new Instruction(1,0,3,data[0]));
         jcb.setInstructions(instructions);
         PCB pcb = ProcessManage.pm.createPCB(jcb);
         StorageManage.sm.allocPCBPageTable(pcb);
