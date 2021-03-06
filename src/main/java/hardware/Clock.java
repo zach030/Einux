@@ -5,8 +5,8 @@ public class Clock extends Thread {
     public static Clock clock = new Clock();
 
     private boolean if_interrupt = false;        //是否发生中断的标志位
-    private int time = -10;    //计时器的时间
-    public static final int SYSTEM_INTERVAL = 10;
+    private int time = -100;    //计时器的时间
+    public static final int SYSTEM_INTERVAL = 100;
 
     public void run() {
         while (true) {

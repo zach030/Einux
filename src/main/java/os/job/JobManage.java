@@ -1,10 +1,6 @@
 package os.job;
 
-import os.filesystem.Block;
 import os.process.Instruction;
-import os.storage.StorageManage;
-
-import java.security.MessageDigest;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -18,13 +14,12 @@ public class JobManage {
 
     private int count = 0;
     private boolean hasNewJob = false;
+    // 按照进入时间顺序排列
     public ArrayList<JCB> backJCBS = new ArrayList<>(); //后备作业队列（不在磁盘中）
     public static final String jobInstructionPath = "D:/AllProjects/Java/Simulation-Implementation-Of-Linux-System/test/input/";
     public static final String inputJobPath = "D:/AllProjects/Java/Simulation-Implementation-Of-Linux-System/test/input/19318123-jobs-input.txt";
     public static File jobFile = new File(inputJobPath);
 
-    JobManage() {
-    }
 
     public boolean isBackJobsEmpty() {
         return backJCBS.isEmpty();

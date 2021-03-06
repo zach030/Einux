@@ -8,39 +8,63 @@ import os.process.Instruction;
 import os.process.PCB;
 import os.process.ProcessManage;
 import os.storage.StorageManage;
+import utils.Log;
+
+import java.util.logging.Logger;
 
 public class Schedule {
     public static Schedule schedule = new Schedule();
 
     // 内存缺页警示值
     public static final int MEMORY_LACK_WARN = 8;
+    public static final String highLevelSchedule = "高级调度";
+    public static final String midLevelSchedule = "中级调度";
+    public static final String lowLevelSchedule = "低级调度";
+    public static final String memoryDetect = "内存空间检测";
+    public static final String memoryOperate = "内存读写操作";
+    public static final String diskDetect = "磁盘空间检测";
+    public static final String diskOperate = "磁盘读写操作";
     public static boolean needHighLevelScheduling = true;
     public static boolean needMediumLevelScheduling = true;
 
     // 高级调度，从后备队列选作业进入内存并创建进程
     public void HighLevelScheduling() {
         // 后备队列不为空且内存pcb池不满
+        Log.Debug(highLevelSchedule, "正在检测后备队列是否为空，内存pcb池是否有足够空间");
         if (!JobManage.jm.isBackJobsEmpty() && !ProcessManage.pm.isPCBPoolFull()) {
             // 从后备队列取一个job
             JCB jcb = JobManage.jm.getFirstJCB();
+            Log.Info(highLevelSchedule, "取出作业,作业id为:" + jcb.getJobID());
             // PCB池空间足够
+            Log.Debug(memoryDetect, "正在检测内存pcb池是否有空闲空间");
             if (StorageManage.sm.isPCBPoolZoneHasEmpty()) {
                 // 判断虚存空间足够
+                Log.Debug(diskDetect, "正在检测磁盘交换区是否有空闲空间，当前作业需要物理块数:" + jcb.getJobPagesNum());
                 if (StorageManage.sm.isSwapAreaEnough(jcb.getJobPagesNum())) {
-                    StorageManage.sm.saveToSwapZone(jcb);       // 将进程数据保存到磁盘交换区
-                    PCB pcb = ProcessManage.pm.createPCB(jcb);  // 将JCB转换为PCB，创建进程
-                    StorageManage.sm.allocPCBPageTable(pcb);    // 分配内存系统页表
-                    ProcessManage.pm.addPCBToPCBPool(pcb);      //将进程写入pcb池中
-                    ProcessManage.pm.joinReadQueue(pcb);        // 将该进程加入到就绪队列
-                    System.out.println("[INFO]-----成功创建PCB，ID=" + pcb.getID());
+                    // 将作业数据保存到磁盘交换区
+                    StorageManage.sm.saveToSwapZone(jcb);
+                    Log.Info(diskOperate, "成功将当前作业的数据保存到磁盘交换区");
+                    // 将JCB转换为PCB，创建进程
+                    PCB pcb = ProcessManage.pm.createPCB(jcb);
+                    Log.Info(highLevelSchedule, "成功由当前作业新建进程pcb，id为" + pcb.getID());
+                    // 分配内存系统页表
+                    StorageManage.sm.allocPCBPageTable(pcb);
+                    Log.Info(memoryOperate, "成功为进程:" + pcb.getID() + "分配页表");
+                    // 将进程写入pcb池中
+                    ProcessManage.pm.addPCBToPCBPool(pcb);
+                    Log.Info(memoryOperate, "成功将进程pcb信息页写入内存pcb池");
+                    // 将该进程加入到就绪队列
+                    ProcessManage.pm.joinReadQueue(pcb);
+                    Log.Info(memoryOperate, "成功将当前进程:" + pcb.getID() + "加入就绪队列");
+                    Log.Info(memoryOperate, "成功创建PCB，ID=" + pcb.getID());
                 } else {
-                    System.out.println("[INFO]---虚存空间不足！---高级调度退出！");
+                    Log.Error(highLevelSchedule, "虚存空间不足！---高级调度退出");
                 }
             } else {
-                System.out.println("[INFO]---PCB池空间不足！---高级调度退出！");
+                Log.Error(highLevelSchedule, "PCB池空间不足！---高级调度退出！");
             }
         } else {
-            System.out.println("[INFO]---后备队列为空！---高级调度退出！");
+            Log.Error(highLevelSchedule, "后备队列为空！---高级调度退出！");
         }
     }
 
