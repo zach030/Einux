@@ -6,8 +6,8 @@ import os.job.JCB;
 import os.job.JobManage;
 import os.process.Instruction;
 import os.process.PCB;
-import os.process.ProcessManage;
-import os.storage.StorageManage;
+import os.process.ProcessManager;
+import os.storage.StorageManager;
 import utils.Log;
 
 public class Schedule {
@@ -33,30 +33,30 @@ public class Schedule {
     public void HighLevelScheduling() {
         // 后备队列不为空且内存pcb池不满
         Log.Debug(highLevelSchedule, "正在检测后备队列是否为空，内存pcb池是否有足够空间");
-        if (!JobManage.jm.isBackJobsEmpty() && !ProcessManage.pm.isPCBPoolFull()) {
+        if (!JobManage.jm.isBackJobsEmpty() && !ProcessManager.pm.requesterManager.isPCBPoolFull()) {
             // 从后备队列取一个job
             JCB jcb = JobManage.jm.getFirstJCB();
             Log.Info(highLevelSchedule, "取出作业,作业id为:" + jcb.getJobID());
             // PCB池空间足够
             Log.Debug(memoryDetect, "正在检测内存pcb池是否有空闲空间");
-            if (StorageManage.sm.isPCBPoolZoneHasEmpty()) {
+            if (StorageManager.sm.requesterManager.isPCBPoolZoneHasEmpty()) {
                 // 判断虚存空间足够
                 Log.Debug(diskDetect, "正在检测磁盘交换区是否有空闲空间，当前作业需要物理块数:" + jcb.getJobPagesNum());
-                if (StorageManage.sm.isSwapAreaEnough(jcb.getJobPagesNum())) {
+                if (StorageManager.sm.requesterManager.isSwapAreaEnough(jcb.getJobPagesNum())) {
                     // 将作业数据保存到磁盘交换区
-                    StorageManage.sm.saveToSwapZone(jcb);
+                    StorageManager.sm.diskManager.saveToSwapZone(jcb);
                     Log.Info(diskOperate, "成功将当前作业的数据保存到磁盘交换区");
                     // 将JCB转换为PCB，创建进程
-                    PCB pcb = ProcessManage.pm.createPCB(jcb);
+                    PCB pcb = ProcessManager.pm.processOperator.createPCB(jcb);
                     Log.Info(highLevelSchedule, "成功由当前作业新建进程pcb，id为" + pcb.getID());
                     // 分配内存系统页表
-                    StorageManage.sm.allocPCBPageTable(pcb);
+                    StorageManager.sm.allotManager.allocPCBPageTable(pcb);
                     Log.Info(memoryOperate, "成功为进程:" + pcb.getID() + "分配页表");
                     // 将进程写入pcb池中
-                    ProcessManage.pm.addPCBToPCBPool(pcb);
+                    ProcessManager.pm.processOperator.addPCBToPCBPool(pcb);
                     Log.Info(memoryOperate, "成功将进程pcb信息页写入内存pcb池");
                     // 将该进程加入到就绪队列
-                    ProcessManage.pm.joinReadQueue(pcb);
+                    ProcessManager.pm.queueManager.joinReadQueue(pcb);
                     Log.Info(memoryOperate, "成功将当前进程:" + pcb.getID() + "加入就绪队列");
                     Log.Info(memoryOperate, "成功创建PCB，ID=" + pcb.getID());
                 } else {
@@ -72,7 +72,7 @@ public class Schedule {
 
     // 中级调度，根据内存的使用情况，对进程进行换入换出
     public void MidLevelScheduling() {
-        int pageFrameNum = StorageManage.sm.getFreePageNumInMemory();
+        int pageFrameNum = StorageManager.sm.requesterManager.getFreePageNumInMemory();
         Log.Info(midLevelSchedule, "内存当前可用页框数为:" + pageFrameNum);
         // 如果内存可用页框小于8，看做内存资源不足，把最近未访问的进程挂起调出内存
         if (pageFrameNum < MEMORY_LACK_WARN) {
@@ -84,13 +84,13 @@ public class Schedule {
 //            ProcessManage.pm.joinSuspendQueue(pcb); // 挂起进程
 //            System.out.println("[INFO]---内存资源不足！ ---挂起进程:" + pcb.getID());
         } else { //todo 内存资源足够，将挂起的进程从外存重新调回内存
-            if (ProcessManage.pm.isSuspendQueueEmpty()) {
+            if (ProcessManager.pm.requesterManager.isSuspendQueueEmpty()) {
                 Log.Info(midLevelSchedule, "当前内存资源足够，挂起队列为空，退出中级调度");
                 return;
             }
-            PCB pcb = ProcessManage.pm.getFromSuspendQueue(); // 取出挂起队列第一个进程
+            PCB pcb = ProcessManager.pm.queueManager.getFromSuspendQueue(); // 取出挂起队列第一个进程
             //ProcessManage.m.BringProcessToMemory(pcb); // 将代码段、数据段重新调入内存
-            ProcessManage.pm.joinReadQueue(pcb); // 加入到就绪队列
+            ProcessManager.pm.queueManager.joinReadQueue(pcb); // 加入到就绪队列
             Log.Info(midLevelSchedule, "当前内存资源充足，已将进程:" + pcb.getID() + "的数据调回内存");
         }
     }
@@ -99,12 +99,12 @@ public class Schedule {
     public boolean LowLevelScheduling() {
         Log.Info(lowLevelSchedule, "开始低级调度");
         // 查看就绪队列是否有进程可调度
-        if (ProcessManage.pm.isReadyQueueEmpty()) { // 就绪队列为空，直接返回
+        if (ProcessManager.pm.requesterManager.isReadyQueueEmpty()) { // 就绪队列为空，直接返回
             Log.Debug(lowLevelSchedule, "就绪队列为空，结束此次低级调度");
             return false;
         }
         // 就绪队列不为空
-        PCB pcb = ProcessManage.pm.getFromReadyQueue(); // 从就绪队列取一个进程
+        PCB pcb = ProcessManager.pm.queueManager.getFromReadyQueue(); // 从就绪队列取一个进程
         CPU.cpu.Recovery(pcb); // 恢复CPU现场
         CPU.cpu.getCurrent().setStatus(PCB.TASK_RUNNING); // 设为运行态
         CPU.cpu.mmu.initMMU(CPU.cpu.getCurrent().getInternPageTableBaseAddr(), CPU.cpu.getCurrent().getPageNums());// 将进程页表基地址装入MMU
@@ -125,13 +125,13 @@ public class Schedule {
             int pageNo = CPU.cpu.getCurrentIRPageNum();
             Log.Error("缺页中断", "查询到指令:" + CPU.cpu.getPC() + ",逻辑页号是：" + pageNo);
             // 2.2. 进行缺页中断
-            StorageManage.sm.doPageFault(CPU.cpu.getCurrent(), pageNo);
+            StorageManager.sm.memoryManager.doPageFault(CPU.cpu.getCurrent(), pageNo);
             // 2.3. 重新获得当前指令的物理地址
             physicalAddress = CPU.cpu.mmu.ResolveLogicalAddress((short) instructionLogicalAddr);
         }
         // 3.从内存取出这条指令
-        int instructionData = StorageManage.sm.visitMemory(physicalAddress);
-        Instruction instruction = StorageManage.sm.getInstructionByData(instructionData);
+        int instructionData = StorageManager.sm.memoryManager.visitMemory(physicalAddress);
+        Instruction instruction = ProcessManager.pm.processOperator.getInstructionByData(instructionData);
         // 4.进程运行时间增加
         CPU.cpu.getCurrent().addRunTime(100);
         // 5. 进程时间片减少
@@ -154,7 +154,7 @@ public class Schedule {
             // 7.1 CPU保护现场
             CPU.cpu.Protect();
             // 7.2 将此进程重新放入就绪队列
-            ProcessManage.pm.joinReadQueue(CPU.cpu.getCurrent());
+            ProcessManager.pm.queueManager.joinReadQueue(CPU.cpu.getCurrent());
         }
     }
 
@@ -196,11 +196,11 @@ public class Schedule {
                 if (CPU.cpu.isCurrentPCBEnd()) {
                     Log.Info(systemRun, "进程:" + CPU.cpu.getCurrent().getID() + ",运行结束");
                     CPU.cpu.Protect(); // CPU保护现场
-                    ProcessManage.pm.cancelPCB(CPU.cpu.getCurrent()); // 撤销进程;
+                    ProcessManager.pm.processOperator.cancelPCB(CPU.cpu.getCurrent()); // 撤销进程;
                     return;
                 }
                 // 如果所有进程运行完毕
-                if (ProcessManage.pm.isAllFinished()) {
+                if (ProcessManager.pm.requesterManager.isAllFinished()) {
                     Log.Info(schedulePeriod, "当前进程已全部运行结束");
                     return;
                 }

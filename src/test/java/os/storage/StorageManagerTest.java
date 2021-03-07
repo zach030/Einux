@@ -4,17 +4,19 @@ import org.junit.jupiter.api.Test;
 import os.job.JCB;
 import os.process.Instruction;
 import os.process.PCB;
-import os.process.ProcessManage;
+import os.process.ProcessManager;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-class StorageManageTest {
+class StorageManagerTest {
     JCB jcb = new JCB();
     @Test
     void getFreePageNumsInSwapArea() {
-        System.out.println("current disk swap area blocks:" + StorageManage.sm.getFreePageNumsInSwapArea());
+        boolean[] test = new boolean[5];
+        Arrays.fill(test,false);
+        test[2]=true;
+        System.out.println(test);
     }
 
     @Test
@@ -24,7 +26,7 @@ class StorageManageTest {
         ArrayList<Instruction> instructions = new ArrayList<>(){};
         instructions.add(new Instruction(1,0,3,data[0]));
         jcb.setInstructions(instructions);
-        PCB pcb = ProcessManage.pm.createPCB(jcb);
-        StorageManage.sm.allocPCBPageTable(pcb);
+        PCB pcb = ProcessManager.pm.processOperator.createPCB(jcb);
+        StorageManager.sm.allotManager.allocPCBPageTable(pcb);
     }
 }

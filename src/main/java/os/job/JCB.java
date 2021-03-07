@@ -3,7 +3,7 @@ package os.job;
 import hardware.Clock;
 import os.filesystem.Block;
 import os.process.Instruction;
-import os.storage.StorageManage;
+import os.storage.StorageManager;
 import utils.SysConst;
 
 import java.util.ArrayList;
@@ -95,7 +95,7 @@ public class JCB {
 
     // 将jcb信息保存到磁盘jcb区
     public void saveJobToDiskJCBZone() {
-        Block block = StorageManage.sm.allocEmptyJCBBlock();
+        Block block = StorageManager.sm.allotManager.allocEmptyJCBBlock();
         block.write(0, (short) this.getJobID());
         block.write(2, (short) this.getJobPriority());
         block.write(4, (short) this.getJobInTime());
@@ -110,7 +110,7 @@ public class JCB {
     // 将jcb数据保存到磁盘交换区(数据段+代码段+栈段)
     public void saveJobBlockToSwapZone() {
         for (int i = 1; i < jobPagesNum; i++) {
-            Block block = StorageManage.sm.allocEmptySwapBlock();
+            Block block = StorageManager.sm.allotManager.allocEmptySwapBlock();
             //todo 存储jcb的数据到交换区
             if (i == codeSegStart) {
                 writeCodeBlock(block);

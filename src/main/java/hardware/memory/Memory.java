@@ -68,6 +68,14 @@ public class Memory {
         memoryZone.write(memoryZone.getRelativePageNo(page), offset, data);
     }
 
+    // 清除内存该位的数据
+    public void clearData(short addr) {
+        int page = (addr >> 9) & 0X003F;
+        int offset = (addr & 0X01FF);
+        MemoryZone memoryZone = switchZone(page);
+        memoryZone.write(memoryZone.getRelativePageNo(page), offset, (short) 0);
+    }
+
     // 写32位大小的数据
     public void writeWordData(short addr, int data) {
         int page = (addr >> 9) & 0X003F;

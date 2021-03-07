@@ -4,8 +4,8 @@ import hardware.CPU;
 import hardware.MMU;
 import hardware.memory.Memory;
 import os.process.Instruction;
-import os.process.ProcessManage;
-import os.storage.StorageManage;
+import os.process.ProcessManager;
+import os.storage.StorageManager;
 import utils.Log;
 import utils.SysConst;
 
@@ -58,7 +58,7 @@ public class Execute {
         // 2. cpu进入内核态
         CPU.cpu.setState(CPU.KERNAL_STATE);
         // 3. 阻塞进程
-        ProcessManage.pm.blockPCB(CPU.cpu.getCurrent());
+        ProcessManager.pm.processOperator.blockPCB(CPU.cpu.getCurrent());
         // 4. cpu保护现场
         CPU.cpu.Protect();
     }
@@ -78,7 +78,7 @@ public class Execute {
             // 5.1 获取逻辑页号
             int logicalPageNo = logicalAddr / SysConst.PAGE_FRAME_SIZE;
             // 5.2 进行缺页中断
-            StorageManage.sm.doPageFault(CPU.cpu.getCurrent(), logicalPageNo);
+            StorageManager.sm.memoryManager.doPageFault(CPU.cpu.getCurrent(), logicalPageNo);
             // 5.3 查询到物理地址
             physicAddr = CPU.cpu.mmu.ResolveLogicalAddress((short) logicalAddr);
         }
@@ -103,7 +103,7 @@ public class Execute {
             // 5.1 获取逻辑页号
             int logicalPageNo = logicalAddr / SysConst.PAGE_FRAME_SIZE;
             // 5.2 进行缺页中断
-            StorageManage.sm.doPageFault(CPU.cpu.getCurrent(), logicalPageNo);
+            StorageManager.sm.memoryManager.doPageFault(CPU.cpu.getCurrent(), logicalPageNo);
             // 5.3 查询到物理地址
             physicAddr = CPU.cpu.mmu.ResolveLogicalAddress((short) logicalAddr);
         }

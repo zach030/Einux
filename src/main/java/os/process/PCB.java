@@ -41,6 +41,7 @@ public class PCB {
     private int codeSegPageNums;                     //代码段所占页数
     private int stackLogicalPageNo;                  //栈段起始逻辑页号
     private int stackSegPageNums;                    //栈段所占页数
+    private int bufferNo;                            //阻塞队列排位
 
     //-------- 进程调度策略--------------------------
     public static final int SCHED_NORMAL = 0; // 按照优先级进行调度
@@ -129,7 +130,7 @@ public class PCB {
     }
 
     //----------------------初始化进程内外页表表----------------
-    // 初始化进程内页表
+    // 初始化进程页表
     void initPageTable(int[] blockNo) {
         internalPageTable = new PageTableEntry[pageNums];
         for (int i = 0; i < pageNums; i++) {
@@ -180,6 +181,12 @@ public class PCB {
         page.syncPage();
         // 将pcb基础信息页加入列表
         this.pcbHasPages.add(page);
+    }
+
+    public void freePCBPage(){
+        Page page = this.pcbHasPages.get(0);
+        page.clearPage();
+        page.syncPage();
     }
 
     //----------------进程时间操作-------------
@@ -347,8 +354,16 @@ public class PCB {
         return internPageTableBaseAddr;
     }
 
-    //todo 修改页表基址寄存器之后，页表的虚拟页号还没改
+    public int getBufferNo() {
+        return bufferNo;
+    }
+
+    public void setBufferNo(int bufferNo) {
+        this.bufferNo = bufferNo;
+    }
+
     public void setInternPageTableBaseAddr(short internPageTableBaseAddr) {
         this.internPageTableBaseAddr = internPageTableBaseAddr;
     }
+
 }
