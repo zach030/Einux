@@ -32,7 +32,17 @@ public class JCB {
         this.jobID = jobID;
         this.setJobInTime(Clock.clock.getCurrentTime());
         this.setJobPriority(random.nextInt(4) + 1);
-        this.setJobInstructionNum(random.nextInt(10) + 1);
+        this.setJobInstructionNum(random.nextInt(20) + 1);
+        this.instructions = new ArrayList<>();
+        this.data = new short[jobInstructionNum];
+    }
+
+    JCB(int jobID, int jobInstructionNum) {
+        Random random = new Random();
+        this.jobID = jobID;
+        this.setJobInTime(Clock.clock.getCurrentTime());
+        this.setJobPriority(random.nextInt(4) + 1);
+        this.setJobInstructionNum(jobInstructionNum);
         this.instructions = new ArrayList<>();
         this.data = new short[jobInstructionNum];
     }

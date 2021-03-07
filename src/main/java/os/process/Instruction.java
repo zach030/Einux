@@ -22,8 +22,8 @@ public class Instruction {
             put(3, "jump");               // 跳转        指令id            0
             put(4, "input");              // 输入        申请DMA           0
             put(5, "output");             // 输出        申请DMA           0
-            put(6, "request resource");   // 申请资源    资源类型：1，2，3  0
-            put(7, "release resource");   // 释放资源    资源类型；1，2，3  0
+            put(6, "request resource");   // 申请资源    资源类型：0，1，2  0
+            put(7, "release resource");   // 释放资源    资源类型；0，1，2  0
         }
     };
 

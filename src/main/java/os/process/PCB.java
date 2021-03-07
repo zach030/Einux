@@ -19,7 +19,7 @@ public class PCB {
     private int instructionsNum;//指令数
     private int timeSlice;  //当前时间片
     private int InTimes, EndTimes, RunTimes, TurnTimes; // 进程创建时间,进程结束时间,进程运行时间,进程周转时间
-    static final int TIME_SLICE = 2;            //时间片
+    static final int TIME_SLICE = 200;            //时间片
 
     //---------------进程段信息-------------------------------
     private DataSeg dataSeg;                    //数据段
@@ -62,7 +62,7 @@ public class PCB {
     static final int STACK_SEG_NO = 3; //栈段段号
 
     public PCB() {
-        this.timeSlice = TIME_SLICE;
+        this.setTimeSlice();
     }
 
     //-----------------进程原语-----------------------
@@ -76,6 +76,7 @@ public class PCB {
         this.setStatus(TASK_READY);
         this.setPolicy(SCHED_RR);
         this.setPC(0);
+        this.setTimeSlice();
         this.instructionsNum = jcb.getJobInstructionNum();
         initDataSegment(jcb);
         initCodeSegment(jcb);
@@ -181,8 +182,13 @@ public class PCB {
         this.pcbHasPages.add(page);
     }
 
+    //----------------进程时间操作-------------
     public void subTimeSlice() {
-        this.timeSlice--;
+        this.timeSlice -= 100;
+    }
+
+    public void addRunTime(int time) {
+        this.setRunTimes(this.getRunTimes() + time);
     }
 
     public int getInstructionsNum() {
@@ -327,6 +333,10 @@ public class PCB {
 
     public int getTimeSlice() {
         return timeSlice;
+    }
+
+    public boolean isRunOutOfTimeSlice() {
+        return timeSlice <= 0;
     }
 
     public void setTimeSlice() {

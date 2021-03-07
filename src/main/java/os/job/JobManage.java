@@ -1,6 +1,7 @@
 package os.job;
 
 import os.process.Instruction;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -16,8 +17,8 @@ public class JobManage {
     private boolean hasNewJob = false;
     // 按照进入时间顺序排列
     public ArrayList<JCB> backJCBS = new ArrayList<>(); //后备作业队列（不在磁盘中）
-    public static final String jobInstructionPath = "D:/AllProjects/Java/Simulation-Implementation-Of-Linux-System/test/input/";
-    public static final String inputJobPath = "D:/AllProjects/Java/Simulation-Implementation-Of-Linux-System/test/input/19318123-jobs-input.txt";
+    public static final String jobInstructionPath = "D:/AllProjects/Java/Einux/test/input/";
+    public static final String inputJobPath = "D:/AllProjects/Java/Einux/test/input/19318123-jobs-input.txt";
     public static File jobFile = new File(inputJobPath);
 
 
@@ -84,9 +85,7 @@ public class JobManage {
     void generateRandomInstruction(JCB jcb) {
         Random rand = new Random();
         int num = jcb.getJobInstructionNum();
-        int arg;
-        for (int i = 0; i < num; i++) {
-            short data = 0;
+        for (int i = 1; i <= num; i++) {
             // 产生指令类型随机数
             int type = rand.nextInt(8);
             Instruction instruction = new Instruction(i);
@@ -145,8 +144,8 @@ public class JobManage {
     // 写内存指令
     public void createWriteMemoryIns(Instruction instruction) {
         instruction.setType(1);
-        // todo 访存地址
-        int addr = new Random().nextInt();
+        // todo 访存地址:限定在第二块（数据块），第一块放作业基本信息，数据块从第二块开始
+        int addr = new Random().nextInt(511) + 512;
         instruction.setArg(addr);
         instruction.setData((short) new Random().nextInt(50));
         instruction.setSize(Instruction.INSTRUCTION_SIZE);
@@ -156,7 +155,7 @@ public class JobManage {
     public void createReadMemoryIns(Instruction instruction) {
         instruction.setType(2);
         // todo 访存地址
-        int addr = new Random().nextInt();
+        int addr = new Random().nextInt(511) + 512;
         instruction.setArg(addr);
         instruction.setData((short) 0);
         instruction.setSize(Instruction.INSTRUCTION_SIZE);
@@ -206,8 +205,10 @@ public class JobManage {
         int source = 0;
         int type = 7;
         for (int i = 0; i < requireSource.length; i++) {
+            // 只能释放已经申请的资源
             if (!requireSource[i]) {
-                source = i + 1;
+                source = i;
+                requireSource[i] = true;
                 break;
             }
             // 如果没有申请资源，则将此指令变为跳转指令

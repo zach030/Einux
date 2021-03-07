@@ -10,13 +10,14 @@ import os.process.ProcessManage;
 import os.storage.StorageManage;
 import utils.Log;
 
-import java.util.logging.Logger;
-
 public class Schedule {
     public static Schedule schedule = new Schedule();
 
     // 内存缺页警示值
     public static final int MEMORY_LACK_WARN = 8;
+    //------------------日志常量------------------
+    public static final String systemRun = "系统运行";
+    public static final String schedulePeriod = "系统调度";
     public static final String highLevelSchedule = "高级调度";
     public static final String midLevelSchedule = "中级调度";
     public static final String lowLevelSchedule = "低级调度";
@@ -24,8 +25,9 @@ public class Schedule {
     public static final String memoryOperate = "内存读写操作";
     public static final String diskDetect = "磁盘空间检测";
     public static final String diskOperate = "磁盘读写操作";
-    public static boolean needHighLevelScheduling = true;
-    public static boolean needMediumLevelScheduling = true;
+    //----------------调度标志位------------------------
+    public static boolean needHighLevelScheduling = false;   // 是否需要高级调度
+    public static boolean needMediumLevelScheduling = false; // 是否需要中级调度
 
     // 高级调度，从后备队列选作业进入内存并创建进程
     public void HighLevelScheduling() {
@@ -68,11 +70,10 @@ public class Schedule {
         }
     }
 
-    // 中级调度，又称平衡调度，根据内存资源情况决定内存要容纳的进程数
-    public void MediumLevelScheduling() {
-        System.out.printf("[TIME]---系统时间:%d ---开始中级调度！", CPU.cpu.clock.getCurrentTime());
+    // 中级调度，根据内存的使用情况，对进程进行换入换出
+    public void MidLevelScheduling() {
         int pageFrameNum = StorageManage.sm.getFreePageNumInMemory();
-        System.out.println("[INFO]---内存当前可用页框数:" + pageFrameNum);
+        Log.Info(midLevelSchedule, "内存当前可用页框数为:" + pageFrameNum);
         // 如果内存可用页框小于8，看做内存资源不足，把最近未访问的进程挂起调出内存
         if (pageFrameNum < MEMORY_LACK_WARN) {
             // todo 将不可运行的进程挂起
@@ -84,22 +85,22 @@ public class Schedule {
 //            System.out.println("[INFO]---内存资源不足！ ---挂起进程:" + pcb.getID());
         } else { //todo 内存资源足够，将挂起的进程从外存重新调回内存
             if (ProcessManage.pm.isSuspendQueueEmpty()) {
-                System.out.println("[INFO]---内存资源足够！ ---挂起队列为空！ ---退出中级调度！");
+                Log.Info(midLevelSchedule, "当前内存资源足够，挂起队列为空，退出中级调度");
                 return;
             }
             PCB pcb = ProcessManage.pm.getFromSuspendQueue(); // 取出挂起队列第一个进程
             //ProcessManage.m.BringProcessToMemory(pcb); // 将代码段、数据段重新调入内存
             ProcessManage.pm.joinReadQueue(pcb); // 加入到就绪队列
-            System.out.printf("[MEMORY]---内存资源足够！ ---将进程%d调回内存", pcb.getID());
+            Log.Info(midLevelSchedule, "当前内存资源充足，已将进程:" + pcb.getID() + "的数据调回内存");
         }
     }
 
-    // 低级调度，选择一个进程运行
+    // 低级调度，从就绪队列选择一个进程运行
     public boolean LowLevelScheduling() {
-        System.out.printf("[TIME] 系统时间:%d ---开始低级调度！", CPU.cpu.clock.getCurrentTime());
+        Log.Info(lowLevelSchedule, "开始低级调度");
         // 查看就绪队列是否有进程可调度
         if (ProcessManage.pm.isReadyQueueEmpty()) { // 就绪队列为空，直接返回
-            System.out.println("[INFO]------就绪队列为空！ ---结束低级调度！");
+            Log.Debug(lowLevelSchedule, "就绪队列为空，结束此次低级调度");
             return false;
         }
         // 就绪队列不为空
@@ -112,87 +113,97 @@ public class Schedule {
 
     // 运行进程
     public void RunProcess() {
-        System.out.println("[TIME]-----系统时间:" + CPU.cpu.clock.getCurrentTime() + "，系统正在运行...");
-        // 展示当前的队列信息
-        ProcessManage.pm.DisplayAllPCBQueue();
-
-        // 高级调度
-        if (needHighLevelScheduling) { // 由后备队列检测线程设置是否需要高级调度
-            System.out.println("[SCHEDULE]------正在进行高级调度.......");
-            HighLevelScheduling();// 进行高级调度
-            needHighLevelScheduling = false;
-        }
-
-        // 中级调度
-        if (needMediumLevelScheduling) { // 是否需要中级调度
-            System.out.println("[SCHEDULE]------正在进行中级调度.......");
-            MediumLevelScheduling(); // 进行中级调度
-            needMediumLevelScheduling = false;
-        }
-
-        // 如果所有进程运行完毕
-        if (ProcessManage.pm.isAllFinished()) {
-            System.out.println("[INFO]------当前所有进程都已运行完毕");
-            return;
-        }
-
-        // 如果CPU空闲
-        if (!CPU.cpu.isRunning()) {
-            System.out.println("[INFO]------当前CPU空闲...");
-            boolean success = LowLevelScheduling(); // 进行低级调度
-            if (success) {
-                System.out.println("[RUNNING]----开始运行进程:" + CPU.cpu.getCurrent().getID());
-            } else
-                return;
-        }
-
-        // 如果进程运行完毕
-        if (CPU.cpu.isCurrentPCBEnd()) {
-            System.out.println("[INFO]------进程:" + CPU.cpu.getCurrent().getID() + ",运行结束.....");
-            CPU.cpu.Protect(); // CPU保护现场
-            ProcessManage.pm.cancelPCB(CPU.cpu.getCurrent()); // 撤销进程;
-            return;
-        }
-        System.out.println("[RUNNING]------正在运行进程:" + CPU.cpu.getCurrent().getID());
-        // 开始运行指令，先获取指令的逻辑地址，通过MMU转成物理地址
-        int instructionLogicalAddr = CPU.cpu.getCurrentIRAddr(); // 当前指令的逻辑地址
+        // 0.系统时间自增
+        CPU.cpu.clock.systemTimeSelfAdd();
+        Log.Info(systemRun, "正在运行进程:" + CPU.cpu.getCurrent().getID());
+        // 1.获取当前指令的逻辑地址
+        int instructionLogicalAddr = CPU.cpu.getCurrentIRAddr();
+        // 2.通过MMU将逻辑地址转为物理地址
         int physicalAddress = CPU.cpu.mmu.ResolveLogicalAddress((short) instructionLogicalAddr); // 当前指令的物理地址
-        if (physicalAddress == MMU.NOT_FOUND_ERROR) {  // 发生缺页
-            int pageNo = CPU.cpu.getCurrentIRPageNum(); // 获取当前指令所在的页
-            System.out.println("[PAGE FAULT]-----缺页中断，查询到指令:" + CPU.cpu.getPC() + ",逻辑页号:" + pageNo);
-            StorageManage.sm.doPageFault(CPU.cpu.getCurrent(), pageNo); // 处理缺页中断
-            physicalAddress = CPU.cpu.mmu.ResolveLogicalAddress((short) instructionLogicalAddr); // 当前指令的物理地址
+        if (physicalAddress == MMU.NOT_FOUND_ERROR) {
+            // 2.1. 如果发生缺页，获取当前指令所在的页
+            int pageNo = CPU.cpu.getCurrentIRPageNum();
+            Log.Error("缺页中断", "查询到指令:" + CPU.cpu.getPC() + ",逻辑页号是：" + pageNo);
+            // 2.2. 进行缺页中断
+            StorageManage.sm.doPageFault(CPU.cpu.getCurrent(), pageNo);
+            // 2.3. 重新获得当前指令的物理地址
+            physicalAddress = CPU.cpu.mmu.ResolveLogicalAddress((short) instructionLogicalAddr);
         }
-        // 没有发生缺中断，则从内存取出指令
+        // 3.从内存取出这条指令
         int instructionData = StorageManage.sm.visitMemory(physicalAddress);
         Instruction instruction = StorageManage.sm.getInstructionByData(instructionData);
+        // 4.进程运行时间增加
+        CPU.cpu.getCurrent().addRunTime(100);
+        // 5. 进程时间片减少
+        CPU.cpu.getCurrent().subTimeSlice();
+        // 6. 执行指令
         CPU.cpu.setIR(instruction.getType());
-        System.out.printf("[RUNNING]---当前运行进程[%d] ---运行时间:[%d] ---指令数:[%d] ---优先级:[%d] ---时间片余额:[%d]", CPU.cpu.getCurrent().getID(), CPU.cpu.getCurrent().getRunTimes(), CPU.cpu.getCurrent().getInstructionsNum(), CPU.cpu.getCurrent().getPriority(), CPU.cpu.getCurrent().getTimeSlice());
-        System.out.printf("[RUNNING]---当前执行第[%d]条指令 ---指令类型:[%d] ---逻辑地址:0x[%s] ---物理地址:0x[%s]", CPU.cpu.getPC() + 1, instruction.getType(), String.format("%02X", instructionLogicalAddr), String.format("%02X", physicalAddress));
-        Execute.execute.ExecuteInstruction(instruction); // 执行指令
+        Log.Info(systemRun, String.format("当前运行进程:%d, 运行时间:%d, 指令数:%d, 优先级:%d, 时间片余额:%d", CPU.cpu.getCurrent().getID(), CPU.cpu.getCurrent().getRunTimes(), CPU.cpu.getCurrent().getInstructionsNum(), CPU.cpu.getCurrent().getPriority(), CPU.cpu.getCurrent().getTimeSlice()));
+        Log.Info(systemRun, String.format("当前执行第:%d条指令，指令类型是:%d, 指令的逻辑地址是:%d, 物理地址是:%d", instruction.getId(), instruction.getType(), instructionLogicalAddr, physicalAddress));
+        Execute.execute.ExecuteInstruction(instruction);
 
+        // 如果cpu此时空闲，则需要重新调度（进程被阻塞了）
         if (!CPU.cpu.isRunning()) {
-            // 如果cpu空闲
+            Log.Debug(lowLevelSchedule, "当前进程被阻塞，需要重新调度");
             return;
         }
 
-        // 进程没运行完
-        CPU.cpu.getCurrent().subTimeSlice(); // 时间片减少
-        if (CPU.cpu.getCurrent().getTimeSlice() <= 0) // 时间片用完
-        {
-            System.out.printf("[CPU]----当前进程: %d,时间片已用完", CPU.cpu.getCurrent().getID());
-            CPU.cpu.Protect(); // CPU保护现场
+        // 7. 判断进程时间片是否用完
+        if (CPU.cpu.getCurrent().isRunOutOfTimeSlice()) {
+            Log.Info(systemRun, String.format("当前进程:%d, 时间片已用完", CPU.cpu.getCurrent().getID()));
+            // 7.1 CPU保护现场
+            CPU.cpu.Protect();
+            // 7.2 将此进程重新放入就绪队列
             ProcessManage.pm.joinReadQueue(CPU.cpu.getCurrent());
         }
     }
 
     // 调度线程开始
     public void Run() {
-        CPU.cpu.clock.start(); // 开启计时器
+        // 0.开启系统计时器
+        CPU.cpu.clock.start();
+        // 1.开启高级、中级调度检测线程
+        Detector.detector.StartDetector();
+        Log.Info("系统启动", "正在装载磁盘......");
+        // todo(加载初始作业，后续可设置为按钮)
         JobManage.jm.LoadJobFromFile(JobManage.jobFile);
         while (true) {
-            if (CPU.cpu.clock.GetIfInterrupt()) // 一次中断
-            {
+            // 如果发生时钟中断，开启调度
+            if (CPU.cpu.clock.GetIfInterrupt()) {
+                // 高级调度
+                if (needHighLevelScheduling) {
+                    // 由后备队列检测线程设置是否需要高级调度
+                    Log.Info(schedulePeriod, "正在进行高级调度");
+                    HighLevelScheduling();
+                    needHighLevelScheduling = false;
+                }
+                // 中级调度
+                if (needMediumLevelScheduling) {
+                    Log.Info(schedulePeriod, "正在进行中级调度");
+                    MidLevelScheduling();
+                    needMediumLevelScheduling = false;
+                }
+                // 如果CPU空闲,需要低级调度
+                if (!CPU.cpu.isRunning()) {
+                    Log.Info(schedulePeriod, "当前CPU空闲");
+                    boolean success = LowLevelScheduling(); // 进行低级调度
+                    if (success) {
+                        Log.Info(systemRun, "开始运行进程:" + CPU.cpu.getCurrent().getID());
+                    } else
+                        return;
+                }
+                // 如果进程运行完毕，取消进程
+                if (CPU.cpu.isCurrentPCBEnd()) {
+                    Log.Info(systemRun, "进程:" + CPU.cpu.getCurrent().getID() + ",运行结束");
+                    CPU.cpu.Protect(); // CPU保护现场
+                    ProcessManage.pm.cancelPCB(CPU.cpu.getCurrent()); // 撤销进程;
+                    return;
+                }
+                // 如果所有进程运行完毕
+                if (ProcessManage.pm.isAllFinished()) {
+                    Log.Info(schedulePeriod, "当前进程已全部运行结束");
+                    return;
+                }
                 RunProcess(); // 运行进程
                 CPU.cpu.clock.ResetIfInterrupt(); // 恢复中断
             }

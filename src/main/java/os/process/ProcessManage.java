@@ -2,6 +2,7 @@ package os.process;
 
 import os.job.JCB;
 import os.storage.StorageManage;
+import utils.Log;
 
 import java.util.ArrayList;
 
@@ -69,6 +70,13 @@ public class ProcessManage {
         this.finishQueue.add(pcb);
     }
 
+    public void blockPCB(PCB pcb) {
+        // 进程阻塞原语
+        pcb.blockProcess();
+        // 加入阻塞队列
+        blockQueue.add(pcb);
+    }
+
     //-----------------------------内存操作-----------------------
     // 将pcb加入内存的pcb池
     public void addPCBToPCBPool(PCB pcb) {
@@ -83,13 +91,13 @@ public class ProcessManage {
 
     //--------------展示进程队列信息----------------------
     public synchronized void DisplayAllPCBQueue() {
-        System.out.print("[INFO]----当前就绪队列：");
+        Log.Info("进程队列信息", "当前就绪队列:");
         displayReadyQueue();
-        System.out.println("[INFO]----当前阻塞队列：");
+        Log.Info("进程队列信息", "当前阻塞队列:");
         displayBlockQueue();
-        System.out.println("[INFO]----当前挂起队列：");
+        Log.Info("进程队列信息", "当前挂起队列:");
         displaySuspendQueue();
-        System.out.println("[INFO]----当前完成队列：");
+        Log.Info("进程队列信息", "当前完成队列:");
         displayFinishQueue();
     }
 

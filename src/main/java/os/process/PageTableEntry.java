@@ -10,7 +10,6 @@ public class PageTableEntry {
 
     public int pteDataToWord() {
         int data = 0;
-        // 1    16         0                  1   0   0
         // 7 逻辑页号  6 物理页框号  15 物理块号  1 有效位   1 修改位   2 未用
         data |= this.getVirtualPageNo() << 25 & 0XFE000000;
         data |= this.getPhysicPageNo() << 19 & 0X01F80000;

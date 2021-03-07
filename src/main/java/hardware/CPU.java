@@ -13,8 +13,8 @@ public class CPU {
     static final int REAL_MODE = 0;     //实模式
     static final int PROTECT_MODE = 1;  //保护模式
     //-----CPU工作状态-------
-    static final int KERNAL_STATE = 0; //核心态
-    static final int USER_STATE = 1;   //用户态
+    public static final int KERNAL_STATE = 0; //核心态
+    public static final int USER_STATE = 1;   //用户态
     private int mode;    //cpu mode
     private int state;   // 态
     private boolean running;  // 运行
@@ -42,7 +42,7 @@ public class CPU {
         setRunning(true);
     }
 
-    // 保护现场
+    // 保护现场：进程被阻塞时
     public void Protect() {
         current.setIR(this.IR);
         current.setPC(this.PC);
@@ -61,7 +61,7 @@ public class CPU {
 
     // 判断当前进程是否执行结束
     public boolean isCurrentPCBEnd(){
-        return this.getPC() > this.getCurrent().getInstructionsNum();
+        return this.getPC() >= this.getCurrent().getInstructionsNum();
     }
 
     public int getMode() {

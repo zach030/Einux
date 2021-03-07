@@ -2,16 +2,27 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="c0bfff17-3919-431a-87e2-290f6591f1c4" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/utils/Log.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/log4j.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/os/schedule/Detector.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test/input/1.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test/input/19318123-jobs-input.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test/input/2.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test/input/3.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test/input/4.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test/input/5.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/hardware/CPU.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hardware/CPU.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/hardware/Clock.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hardware/Clock.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/job/JCB.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/job/JCB.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/job/JobDetector.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/os/job/JobManage.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/job/JobManage.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/os/job/JobRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/job/JobDetector.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/os/process/DeadLock.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/process/DeadLock.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/process/Instruction.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/process/Instruction.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/process/PCB.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/process/PCB.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/process/PageTableEntry.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/process/PageTableEntry.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/process/ProcessManage.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/process/ProcessManage.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/schedule/Execute.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/schedule/Execute.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/os/schedule/Schedule.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/schedule/Schedule.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/storage/StorageManage.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/storage/StorageManage.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/os/job/JobManageTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/os/job/JobManageTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -61,6 +72,7 @@
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
     <property name="DatabaseDriversLRU" value="mysql" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
@@ -72,18 +84,16 @@
     <property name="project.structure.last.edited" value="SDKs" />
     <property name="project.structure.proportion" value="0.15402843" />
     <property name="project.structure.side.proportion" value="0.2" />
+    <property name="run.code.analysis.last.selected.profile" value="pProject Default" />
     <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
   </component>
   <component name="RecentsManager">
     <key name="CreateTestDialog.RecentsKey">
+      <recent name="os.job" />
       <recent name="hardware.mm" />
       <recent name="hardware" />
       <recent name="os.process" />
       <recent name="disk" />
-      <recent name="os.filesystem" />
-    </key>
-    <key name="CreateTestDialog.Recents.Supers">
-      <recent name="" />
     </key>
     <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
       <recent name="hardware.memory" />
@@ -91,6 +101,9 @@
     <key name="CopyClassDialog.RECENTS_KEY">
       <recent name="hardware" />
       <recent name="utils" />
+    </key>
+    <key name="CreateTestDialog.Recents.Supers">
+      <recent name="" />
     </key>
     <key name="CopyFile.RECENT_KEYS">
       <recent name="D:\AllProjects\Java\Einux\src\main\java\hardware" />
@@ -102,32 +115,6 @@
   <component name="RunManager" selected="JUnit.ScheduleTest.run">
     <configuration name="Console" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="ui.Console" />
-      <module name="Einux" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="ui.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="ConsoleTest" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="ui.ConsoleTest" />
-      <module name="Einux" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="ui.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="JProgressBarExample" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="ui.JProgressBarExample" />
       <module name="Einux" />
       <extension name="coverage">
         <pattern>
@@ -152,6 +139,38 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="JobManageTest.createNewJob" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="Einux" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="os.job.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="os.job" />
+      <option name="MAIN_CLASS_NAME" value="os.job.JobManageTest" />
+      <option name="METHOD_NAME" value="createNewJob" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="JobManageTest.loadJobFromFile" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="Einux" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="os.job.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="os.job" />
+      <option name="MAIN_CLASS_NAME" value="os.job.JobManageTest" />
+      <option name="METHOD_NAME" value="loadJobFromFile" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="ScheduleTest.run" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="Einux" />
       <extension name="coverage">
@@ -171,10 +190,10 @@
     <recent_temporary>
       <list>
         <item itemvalue="JUnit.ScheduleTest.run" />
+        <item itemvalue="JUnit.JobManageTest.loadJobFromFile" />
+        <item itemvalue="JUnit.JobManageTest.createNewJob" />
         <item itemvalue="Application.Log" />
         <item itemvalue="Application.Console" />
-        <item itemvalue="Application.JProgressBarExample" />
-        <item itemvalue="Application.ConsoleTest" />
       </list>
     </recent_temporary>
   </component>
@@ -194,12 +213,15 @@
       <workItem from="1614943899288" duration="2195000" />
       <workItem from="1614946113176" duration="545000" />
       <workItem from="1614946673587" duration="2371000" />
-      <workItem from="1614950113023" duration="22622000" />
+      <workItem from="1614950113023" duration="42226000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
   </component>
   <component name="WindowStateProjectService">
     <state x="107" y="0" key="#Custom_Plugin_Repositories" timestamp="1614944836032">
@@ -232,68 +254,69 @@
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state x="235" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog/0.0.1280.689@0.0.1280.689" timestamp="1615039457550" />
-    <state x="309" y="34" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog" timestamp="1614612168883">
+    <state x="309" y="34" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog" timestamp="1615096636943">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
-    <state x="309" y="34" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/0.0.1280.689@0.0.1280.689" timestamp="1614612168883" />
+    <state x="309" y="34" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/0.0.1280.689@0.0.1280.689" timestamp="1615096636943" />
     <state x="367" y="155" key="#com.intellij.tools.ToolEditorDialog" timestamp="1614945005739">
       <screen x="0" y="0" width="1280" height="720" />
     </state>
     <state x="367" y="155" key="#com.intellij.tools.ToolEditorDialog/0.0.1280.720@0.0.1280.720" timestamp="1614945005739" />
-    <state x="376" y="0" key="#xdebugger.evaluate" timestamp="1614941298794">
+    <state x="376" y="0" key="#xdebugger.evaluate" timestamp="1615095828004">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state x="438" y="0" key="#xdebugger.evaluate/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614841656839" />
-    <state x="376" y="0" key="#xdebugger.evaluate/0.0.1280.689@0.0.1280.689" timestamp="1614941298794" />
-    <state x="335" y="8" key="ANALYSIS_DLG_com.intellij.analysis.BaseAnalysisAction$1" timestamp="1614829465972">
+    <state x="376" y="0" key="#xdebugger.evaluate/0.0.1280.689@0.0.1280.689" timestamp="1615095828004" />
+    <state x="335" y="8" key="ANALYSIS_DLG_com.intellij.analysis.BaseAnalysisAction$1" timestamp="1615100348457">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state x="335" y="8" key="ANALYSIS_DLG_com.intellij.analysis.BaseAnalysisAction$1/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614829465972" />
+    <state x="335" y="8" key="ANALYSIS_DLG_com.intellij.analysis.BaseAnalysisAction$1/0.0.1280.689@0.0.1280.689" timestamp="1615100348457" />
     <state x="345" y="27" key="FileChooserDialogImpl" timestamp="1614950984624">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state x="345" y="27" key="FileChooserDialogImpl/0.0.1280.689@0.0.1280.689" timestamp="1614950984624" />
     <state x="518" y="42" key="FileChooserDialogImpl/0.0.1920.1080@0.0.1920.1080" timestamp="1614946090690" />
-    <state width="1227" height="497" key="GridCell.Tab.0.bottom" timestamp="1615041487890">
+    <state width="1227" height="162" key="GridCell.Tab.0.bottom" timestamp="1615101975061">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state width="1227" height="331" key="GridCell.Tab.0.bottom/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614961604945" />
-    <state width="1227" height="497" key="GridCell.Tab.0.bottom/0.0.1280.689@0.0.1280.689" timestamp="1615041487890" />
-    <state width="1227" height="497" key="GridCell.Tab.0.center" timestamp="1615041487890">
+    <state width="1227" height="162" key="GridCell.Tab.0.bottom/0.0.1280.689@0.0.1280.689" timestamp="1615101975061" />
+    <state width="1227" height="162" key="GridCell.Tab.0.center" timestamp="1615101975061">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state width="1227" height="331" key="GridCell.Tab.0.center/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614961604945" />
-    <state width="1227" height="497" key="GridCell.Tab.0.center/0.0.1280.689@0.0.1280.689" timestamp="1615041487890" />
-    <state width="1227" height="497" key="GridCell.Tab.0.left" timestamp="1615041487890">
+    <state width="1227" height="162" key="GridCell.Tab.0.center/0.0.1280.689@0.0.1280.689" timestamp="1615101975061" />
+    <state width="1227" height="162" key="GridCell.Tab.0.left" timestamp="1615101975061">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state width="1227" height="331" key="GridCell.Tab.0.left/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614961604944" />
-    <state width="1227" height="497" key="GridCell.Tab.0.left/0.0.1280.689@0.0.1280.689" timestamp="1615041487890" />
-    <state width="1227" height="497" key="GridCell.Tab.0.right" timestamp="1615041487890">
+    <state width="1227" height="162" key="GridCell.Tab.0.left/0.0.1280.689@0.0.1280.689" timestamp="1615101975061" />
+    <state width="1227" height="162" key="GridCell.Tab.0.right" timestamp="1615101975061">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state width="1227" height="331" key="GridCell.Tab.0.right/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614961604945" />
-    <state width="1227" height="497" key="GridCell.Tab.0.right/0.0.1280.689@0.0.1280.689" timestamp="1615041487890" />
-    <state width="1227" height="277" key="GridCell.Tab.1.bottom" timestamp="1614941880490">
+    <state width="1227" height="162" key="GridCell.Tab.0.right/0.0.1280.689@0.0.1280.689" timestamp="1615101975061" />
+    <state width="1227" height="321" key="GridCell.Tab.1.bottom" timestamp="1615101227577">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state width="1227" height="282" key="GridCell.Tab.1.bottom/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614924055687" />
-    <state width="1227" height="277" key="GridCell.Tab.1.bottom/0.0.1280.689@0.0.1280.689" timestamp="1614941880490" />
-    <state width="1227" height="277" key="GridCell.Tab.1.center" timestamp="1614941880489">
+    <state width="1227" height="321" key="GridCell.Tab.1.bottom/0.0.1280.689@0.0.1280.689" timestamp="1615101227577" />
+    <state width="1227" height="321" key="GridCell.Tab.1.center" timestamp="1615101227577">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state width="1227" height="282" key="GridCell.Tab.1.center/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614924055687" />
-    <state width="1227" height="277" key="GridCell.Tab.1.center/0.0.1280.689@0.0.1280.689" timestamp="1614941880489" />
-    <state width="1227" height="277" key="GridCell.Tab.1.left" timestamp="1614941880489">
+    <state width="1227" height="321" key="GridCell.Tab.1.center/0.0.1280.689@0.0.1280.689" timestamp="1615101227577" />
+    <state width="1227" height="321" key="GridCell.Tab.1.left" timestamp="1615101227576">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state width="1227" height="282" key="GridCell.Tab.1.left/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614924055687" />
-    <state width="1227" height="277" key="GridCell.Tab.1.left/0.0.1280.689@0.0.1280.689" timestamp="1614941880489" />
-    <state width="1227" height="277" key="GridCell.Tab.1.right" timestamp="1614941880489">
+    <state width="1227" height="321" key="GridCell.Tab.1.left/0.0.1280.689@0.0.1280.689" timestamp="1615101227576" />
+    <state width="1227" height="321" key="GridCell.Tab.1.right" timestamp="1615101227577">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state width="1227" height="282" key="GridCell.Tab.1.right/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614924055687" />
-    <state width="1227" height="277" key="GridCell.Tab.1.right/0.0.1280.689@0.0.1280.689" timestamp="1614941880489" />
+    <state width="1227" height="321" key="GridCell.Tab.1.right/0.0.1280.689@0.0.1280.689" timestamp="1615101227577" />
     <state x="59" y="0" key="Maven.ArtifactSearchDialog" timestamp="1615039291470">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
@@ -305,11 +328,11 @@
     <state x="0" y="0" key="SettingsEditor/0.0.1280.720@0.0.1280.720" timestamp="1614945010427" />
     <state x="0" y="0" key="SettingsEditor/0.0.1536.864@0.0.1536.864" timestamp="1614945081229" />
     <state x="262" y="16" key="SettingsEditor/0.0.1920.1080@0.0.1920.1080" timestamp="1614946657916" />
-    <state x="410" y="0" key="com.intellij.testIntegration.createTest.CreateTestDialog" timestamp="1614860973724">
+    <state x="410" y="0" key="com.intellij.testIntegration.createTest.CreateTestDialog" timestamp="1615098704979">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state x="410" y="0" key="com.intellij.testIntegration.createTest.CreateTestDialog/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614740821601" />
-    <state x="410" y="0" key="com.intellij.testIntegration.createTest.CreateTestDialog/0.0.1280.689@0.0.1280.689" timestamp="1614860973724" />
+    <state x="410" y="0" key="com.intellij.testIntegration.createTest.CreateTestDialog/0.0.1280.689@0.0.1280.689" timestamp="1615098704979" />
     <state x="309" y="62" key="extract.method.dialog" timestamp="1614687778337">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
@@ -333,6 +356,11 @@
           <url>file://$PROJECT_DIR$/src/test/java/hardware/memory/MemoryTest.java</url>
           <line>10</line>
           <option name="timeStamp" value="61" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/os/job/JCB.java</url>
+          <line>69</line>
+          <option name="timeStamp" value="81" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

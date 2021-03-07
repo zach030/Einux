@@ -1,6 +1,7 @@
 package os.storage;
 
 import hardware.CPU;
+import hardware.MMU;
 import hardware.memory.Page;
 import hardware.memory.Memory;
 import os.filesystem.Block;

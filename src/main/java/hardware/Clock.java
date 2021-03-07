@@ -12,12 +12,15 @@ public class Clock extends Thread {
         while (true) {
             try {
                 sleep(SYSTEM_INTERVAL);        //睡眠一定时间
-                if_interrupt = true;
-                time += SYSTEM_INTERVAL;            //CPU内时间自增
+                if_interrupt = true;           //CPU内时间自增
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    synchronized public void systemTimeSelfAdd() {
+        time += SYSTEM_INTERVAL;
     }
 
     synchronized public int getCurrentTime() {
