@@ -1,5 +1,6 @@
 package os.storage;
 
+import disk.Disk;
 import hardware.CPU;
 import hardware.memory.Page;
 import hardware.memory.Memory;
@@ -41,7 +42,7 @@ public class StorageManager {
         diskManager = new DiskManager();
     }
 
-    static class BitMapManager {
+    public static class BitMapManager {
         BitMapManager() {
             Arrays.fill(sysPageTableBitMap, false);
             Arrays.fill(memoryAllPageBitmap, false);
@@ -233,7 +234,7 @@ public class StorageManager {
 
         // 释放jcb在磁盘jcb区的资源
         public void releaseJCBData() {
-           //todo implement
+            //todo implement
         }
 
     }
@@ -283,6 +284,7 @@ public class StorageManager {
         public int visitMemory(int physicalAddr) {
             return Memory.memory.readWordData((short) physicalAddr);
         }
+
         // 处理缺页中断
         public void doPageFault(PCB pcb, int virtualPageNo) {
             System.out.println("[PAGE FAULT] 开始处理缺页中断");
@@ -315,6 +317,13 @@ public class StorageManager {
             pcb.setStatus(PCB.TASK_RUNNING);
             System.out.println("[PAGE FAULT SUCCESS]------已成功完成请求调页，结束缺页中断...");
         }
+
+        public void writeDiskToBuffer(int blockNo, int logicalNo, int frameNo){
+            // 读出磁盘块
+            Block block = FileSystem.fs.getBlockInDisk(blockNo);
+            Page page = Transfer.transfer.transferBlockToPage(block,logicalNo,frameNo);
+            page.syncPage();
+        }
     }
 
     public class DiskManager {
@@ -326,6 +335,16 @@ public class StorageManager {
         // 向磁盘内写入一块
         public void writeBlockToDisk(Block block) {
             FileSystem.fs.writeBlock(block);
+        }
+
+        // 向缓冲区数据写入磁盘
+        public void writeBufferToDisk(int blockNo, int frameNo) {
+            // 获取内存页
+            Page page = Memory.memory.readPage(frameNo);
+            // 转换为物理块
+            Block block = Transfer.transfer.transferPageToBlock(page,blockNo);
+            // 同步修改到磁盘
+            block.syncBlock();
         }
     }
 

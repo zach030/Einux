@@ -8,6 +8,8 @@ public interface MemoryZone {
 
     void replacePage(Page page);
 
+    Page getPage(int pageNo);
+
     int getRelativePageNo(int pageNo);
 
     void clearZone();

@@ -33,6 +33,11 @@ public class PCBPoolZone implements MemoryZone {
         this.pages[getRelativePageNo(page.getFrameNo())] = page;
     }
 
+    @Override
+    public Page getPage(int pageNo) {
+        return pages[getRelativePageNo(pageNo)];
+    }
+
     // 区域内相对页框号
     @Override
     public int getRelativePageNo(int pageNo) {

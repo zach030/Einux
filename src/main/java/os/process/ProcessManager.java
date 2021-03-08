@@ -34,18 +34,20 @@ public class ProcessManager {
             this.blockQueue = new ArrayList<>();
             this.suspendQueue = new ArrayList<>();
             this.finishQueue = new ArrayList<>();
+            this.bufferBlockQueue = new ArrayList<>();
+            this.resourceBlockQueue = new ArrayList<>();
+            this.DMABlockQueue = new ArrayList<>();
         }
 
         //----------进程调度的PCB队列-------------------
-        ArrayList<PCB> allPCB;         //全部的PCB
-        ArrayList<PCB> readyQueue;     //pcb就绪队列
-        ArrayList<PCB> blockQueue;     //pcb阻塞队列
-        ArrayList<PCB> suspendQueue;   //pcb挂起队列
-        ArrayList<PCB> finishQueue;    //pcb完成队列
-        ArrayList<PCB> resourceABlockQueue; //资源A阻塞队列
-        ArrayList<PCB> resourceBBlockQueue; //资源A阻塞队列
-        ArrayList<PCB> resourceCBlockQueue; //资源A阻塞队列
-        ArrayList<PCB> DMABlockQueue; //DMA阻塞队列
+        ArrayList<PCB> allPCB;                      //全部的PCB
+        ArrayList<PCB> readyQueue;                  //pcb就绪队列
+        ArrayList<PCB> blockQueue;                  //pcb阻塞队列
+        ArrayList<PCB> suspendQueue;                //pcb挂起队列
+        ArrayList<PCB> finishQueue;                 //pcb完成队列
+        ArrayList<ArrayList<PCB>> bufferBlockQueue; //设备缓冲区阻塞队列
+        ArrayList<ArrayList<PCB>> resourceBlockQueue;//资源阻塞队列
+        ArrayList<PCB> DMABlockQueue;               //DMA阻塞队列
 
         //--------------展示进程队列信息----------------------
         public synchronized void DisplayAllPCBQueue() {
@@ -122,6 +124,16 @@ public class ProcessManager {
         // 加入已完成队列
         synchronized public void joinFinishedQueue(PCB pcb) {
             this.finishQueue.add(pcb);
+        }
+
+        // 加入资源阻塞队列
+        synchronized public void joinResourceBlockQueue(PCB pcb, int resource) {
+            this.resourceBlockQueue.get(resource).add(pcb);
+        }
+
+        // 加入缓冲区阻塞队列
+        synchronized public void joinBufferBlockQueue(PCB pcb, int devNo) {
+            this.bufferBlockQueue.get(devNo).add(pcb);
         }
 
         // 获取就绪队列队头
@@ -205,6 +217,22 @@ public class ProcessManager {
             pcb.blockProcess();
             // 加入阻塞队列
             queueManager.blockQueue.add(pcb);
+        }
+
+        // 申请资源阻塞进程
+        public void blockPCB(PCB pcb, int resource) {
+            pcb.blockProcess();
+            queueManager.joinResourceBlockQueue(pcb, resource);
+        }
+
+        // 申请缓冲区阻塞进程
+        public void blockPCB(PCB pcb, int devNo, int bufferNo) {
+            // 阻塞进程原语
+            pcb.blockProcess();
+            // 设置进程阻塞等待的缓冲区号
+            pcb.setBufferNo(bufferNo);
+            // 加入缓冲区阻塞队列
+            queueManager.joinBufferBlockQueue(pcb, devNo);
         }
 
         // 将pcb加入内存的pcb池

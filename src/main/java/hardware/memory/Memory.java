@@ -59,6 +59,11 @@ public class Memory {
         memoryZone.replacePage(page);
     }
 
+    public Page readPage(int frameNo) {
+        MemoryZone memoryZone = switchZone(frameNo);
+        return memoryZone.getPage(frameNo);
+    }
+
     // 入参是物理地址：页框号(6 bit)+页内偏移(9 bit)
     public void writeData(short addr, short data) {
         // 将数据写入指定内存地址

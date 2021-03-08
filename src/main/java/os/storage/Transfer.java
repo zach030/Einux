@@ -18,8 +18,9 @@ public class Transfer {
         return page;
     }
 
-    public Block transferPageToBlock(Page page) {
+    public Block transferPageToBlock(Page page, int blockNo) {
         Block block = new Block();
+        block.setBlockNo(blockNo);
         block.setData(page.getData());
         return block;
     }

@@ -45,6 +45,11 @@ public class BufferPool implements MemoryZone {
     }
 
     @Override
+    public Page getPage(int pageNo) {
+        return pages[getRelativePageNo(pageNo)];
+    }
+
+    @Override
     public int getRelativePageNo(int pageNo) {
         return pageNo - index;
     }

@@ -2,20 +2,18 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="c0bfff17-3919-431a-87e2-290f6591f1c4" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/os/device/BufferHead.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/os/device/DeviceManager.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/os/process/ProcessManager.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/os/storage/StorageManager.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/hardware/memory/BufferPool.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hardware/memory/BufferPool.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/hardware/memory/KernalZone.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hardware/memory/KernalZone.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/hardware/memory/Memory.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hardware/memory/Memory.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/os/job/JCB.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/job/JCB.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/os/process/PCB.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/process/PCB.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/os/process/ProcessManage.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/os/schedule/Execute.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/schedule/Execute.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/os/schedule/Schedule.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/schedule/Schedule.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/os/storage/StorageManage.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/os/storage/StorageManageTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/os/storage/StorageManagerTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/hardware/memory/MemoryZone.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hardware/memory/MemoryZone.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/hardware/memory/PCBPoolZone.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hardware/memory/PCBPoolZone.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/hardware/memory/PCBZone.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hardware/memory/PCBZone.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/hardware/memory/PageTableZone.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hardware/memory/PageTableZone.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/device/DeviceManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/device/DeviceManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/process/ProcessManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/process/ProcessManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/storage/StorageManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/storage/StorageManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/storage/Transfer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/storage/Transfer.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -78,7 +76,7 @@
     <property name="project.structure.proportion" value="0.15402843" />
     <property name="project.structure.side.proportion" value="0.2" />
     <property name="run.code.analysis.last.selected.profile" value="pProject Default" />
-    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
+    <property name="settings.editor.selected.configurable" value="copyright" />
   </component>
   <component name="RecentsManager">
     <key name="CreateTestDialog.RecentsKey">
@@ -105,7 +103,7 @@
       <recent name="D:\AllProjects\Java\Einux\src\main\java\disk" />
     </key>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Application.Log">
     <configuration name="Log" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="utils.Log" />
       <module name="Einux" />
@@ -209,7 +207,9 @@
       <workItem from="1614943899288" duration="2195000" />
       <workItem from="1614946113176" duration="545000" />
       <workItem from="1614946673587" duration="2371000" />
-      <workItem from="1614950113023" duration="54402000" />
+      <workItem from="1614950113023" duration="59488000" />
+      <workItem from="1615188748750" duration="156000" />
+      <workItem from="1615189192071" duration="10647000" />
     </task>
     <servers />
   </component>
@@ -237,11 +237,11 @@
     </state>
     <state x="96" y="0" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614742997962" />
     <state x="96" y="0" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1280.689@0.0.1280.689" timestamp="1614608262359" />
-    <state x="402" y="0" key="#com.intellij.ide.util.MemberChooser" timestamp="1615132026457">
+    <state x="402" y="0" key="#com.intellij.ide.util.MemberChooser" timestamp="1615195568652">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state x="402" y="0" key="#com.intellij.ide.util.MemberChooser/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614826867078" />
-    <state x="402" y="0" key="#com.intellij.ide.util.MemberChooser/0.0.1280.689@0.0.1280.689" timestamp="1615132026457" />
+    <state x="402" y="0" key="#com.intellij.ide.util.MemberChooser/0.0.1280.689@0.0.1280.689" timestamp="1615195568652" />
     <state x="388" y="180" width="505" height="342" key="#com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesDialog.classes" timestamp="1614868476860">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
@@ -317,10 +317,10 @@
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state x="59" y="0" key="Maven.ArtifactSearchDialog/0.0.1280.689@0.0.1280.689" timestamp="1615039291470" />
-    <state x="262" y="16" key="SettingsEditor" timestamp="1614946657916">
-      <screen x="0" y="0" width="1920" height="1080" />
+    <state x="0" y="0" key="SettingsEditor" timestamp="1615189472261">
+      <screen x="0" y="0" width="1280" height="689" />
     </state>
-    <state x="0" y="0" key="SettingsEditor/0.0.1280.689@0.0.1280.689" timestamp="1614944337422" />
+    <state x="0" y="0" key="SettingsEditor/0.0.1280.689@0.0.1280.689" timestamp="1615189472261" />
     <state x="0" y="0" key="SettingsEditor/0.0.1280.720@0.0.1280.720" timestamp="1614945010427" />
     <state x="0" y="0" key="SettingsEditor/0.0.1536.864@0.0.1536.864" timestamp="1614945081229" />
     <state x="262" y="16" key="SettingsEditor/0.0.1920.1080@0.0.1920.1080" timestamp="1614946657916" />
@@ -333,11 +333,15 @@
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state x="309" y="62" key="extract.method.dialog/0.0.1280.689@0.0.1280.689" timestamp="1614687778337" />
-    <state x="213" y="150" key="run.anything.popup" timestamp="1614951577389">
+    <state x="231" y="161" width="874" height="366" key="org.intellij.images.editor.actions.BackgroundImageDialog" timestamp="1615189438842">
+      <screen x="0" y="0" width="1280" height="689" />
+    </state>
+    <state x="231" y="161" width="874" height="366" key="org.intellij.images.editor.actions.BackgroundImageDialog/0.0.1280.689@0.0.1280.689" timestamp="1615189438842" />
+    <state x="213" y="150" key="run.anything.popup" timestamp="1615190351383">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state x="213" y="150" width="840" height="1034" key="run.anything.popup/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614843513971" />
-    <state x="213" y="150" key="run.anything.popup/0.0.1280.689@0.0.1280.689" timestamp="1614951577389" />
+    <state x="213" y="150" key="run.anything.popup/0.0.1280.689@0.0.1280.689" timestamp="1615190351383" />
     <state x="213" y="157" key="run.anything.popup/0.0.1280.720@0.0.1280.720" timestamp="1614945012803" />
     <state x="219" y="-1" width="840" height="1034" key="search.everywhere.popup" timestamp="1614944445721">
       <screen x="0" y="0" width="1280" height="689" />
