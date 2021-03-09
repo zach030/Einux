@@ -1,5 +1,9 @@
 package os.device;
 
+import os.process.PCB;
+
+import java.util.ArrayList;
+
 public class BufferHead {
 
     private int devNo;           // 设备编号
@@ -7,6 +11,7 @@ public class BufferHead {
     private int bufferNo;        // 缓冲区编号
     private int memoryBlockNo;   //​内存块号
     public int flag;             // 标志位
+    ArrayList<PCB> blockWaitBufferQueue; // 被此块阻塞的进程队列
 
     public int getDevNo() {
         return devNo;
@@ -46,5 +51,20 @@ public class BufferHead {
 
     public void setFlag(int flag) {
         this.flag = flag;
+    }
+
+    public ArrayList<PCB> getBlockWaitBufferQueue() {
+        return blockWaitBufferQueue;
+    }
+
+    synchronized public void blockPCBToThis(PCB pcb) {
+        pcb.setBufferNo(this.getBufferNo());
+        this.blockWaitBufferQueue.add(pcb);
+    }
+
+    synchronized public ArrayList<PCB> wakePCBToThis() {
+        ArrayList<PCB> allBlockPCB = this.blockWaitBufferQueue;
+        this.blockWaitBufferQueue.clear();
+        return allBlockPCB;
     }
 }

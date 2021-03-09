@@ -95,7 +95,7 @@ public class JCB {
 
     // 将jcb信息保存到磁盘jcb区
     public void saveJobToDiskJCBZone() {
-        Block block = StorageManager.sm.allotManager.allocEmptyJCBBlock();
+        Block block = StorageManager.sm.allotManager.allotEmptyJCBBlock();
         block.write(0, (short) this.getJobID());
         block.write(2, (short) this.getJobPriority());
         block.write(4, (short) this.getJobInTime());
@@ -110,8 +110,7 @@ public class JCB {
     // 将jcb数据保存到磁盘交换区(数据段+代码段+栈段)
     public void saveJobBlockToSwapZone() {
         for (int i = 1; i < jobPagesNum; i++) {
-            Block block = StorageManager.sm.allotManager.allocEmptySwapBlock();
-            //todo 存储jcb的数据到交换区
+            Block block = StorageManager.sm.allotManager.allotEmptySwapBlock();
             if (i == codeSegStart) {
                 writeCodeBlock(block);
             }

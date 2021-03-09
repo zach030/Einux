@@ -50,7 +50,7 @@ public class Schedule {
                     PCB pcb = ProcessManager.pm.processOperator.createPCB(jcb);
                     Log.Info(highLevelSchedule, "成功由当前作业新建进程pcb，id为" + pcb.getID());
                     // 分配内存系统页表
-                    StorageManager.sm.allotManager.allocPCBPageTable(pcb);
+                    StorageManager.sm.allotManager.allotPCBPageTable(pcb);
                     Log.Info(memoryOperate, "成功为进程:" + pcb.getID() + "分配页表");
                     // 将进程写入pcb池中
                     ProcessManager.pm.processOperator.addPCBToPCBPool(pcb);
@@ -77,20 +77,27 @@ public class Schedule {
         // 如果内存可用页框小于8，看做内存资源不足，把最近未访问的进程挂起调出内存
         if (pageFrameNum < MEMORY_LACK_WARN) {
             // todo 将不可运行的进程挂起
-//            PCB pcb = ProcessManage.pm.getNotUsedPCB(); // 找到一个不能运行的进程
-//            if (pcb == null) // 找不到直接返回
-//                return;
-//            //ProcessManage.m.PullProcessOutOfMemory(pcb); // 将此进程关联的代码段和数据段调出内存
-//            ProcessManage.pm.joinSuspendQueue(pcb); // 挂起进程
-//            System.out.println("[INFO]---内存资源不足！ ---挂起进程:" + pcb.getID());
-        } else { //todo 内存资源足够，将挂起的进程从外存重新调回内存
+            // 0. 找到一个不能运行的进程
+            PCB pcb = ProcessManager.pm.processOperator.chooseNotUsedPCB();
+            if (pcb == null) // 找不到直接返回
+                return;
+            // 1. 将此进程数据转至磁盘
+            ProcessManager.pm.processOperator.turnPCBToDisk(pcb);
+            // 2. 将此进程加入挂起队列
+            ProcessManager.pm.queueManager.joinSuspendQueue(pcb);
+            System.out.println("[INFO]---内存资源不足！ ---挂起进程:" + pcb.getID());
+        } else {
+            // 0. 判断挂起队列是否空
             if (ProcessManager.pm.requesterManager.isSuspendQueueEmpty()) {
                 Log.Info(midLevelSchedule, "当前内存资源足够，挂起队列为空，退出中级调度");
                 return;
             }
-            PCB pcb = ProcessManager.pm.queueManager.getFromSuspendQueue(); // 取出挂起队列第一个进程
-            //ProcessManage.m.BringProcessToMemory(pcb); // 将代码段、数据段重新调入内存
-            ProcessManager.pm.queueManager.joinReadQueue(pcb); // 加入到就绪队列
+            // 1. 取出挂起队列第一个进程
+            PCB pcb = ProcessManager.pm.queueManager.getFromSuspendQueue();
+            // 2. 将代码段、数据段重新调入内存
+            ProcessManager.pm.processOperator.returnPCBToMemory(pcb);
+            // 3. 加入到就绪队列
+            ProcessManager.pm.queueManager.joinReadQueue(pcb);
             Log.Info(midLevelSchedule, "当前内存资源充足，已将进程:" + pcb.getID() + "的数据调回内存");
         }
     }

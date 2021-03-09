@@ -35,7 +35,7 @@ public class SysConst {
     // bitmap位示图大小
     public static final int BIT_MAP_SIZE = 10;
     // -------磁盘设备号----------------
-    public static final int DEFAULT_DISK = 1;
+    public static final int DEFAULT_DISK = 0;
     //TODO 可添加其他启动盘
 
     // ----仿真汇编指令------

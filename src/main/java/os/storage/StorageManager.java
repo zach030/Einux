@@ -1,6 +1,5 @@
 package os.storage;
 
-import disk.Disk;
 import hardware.CPU;
 import hardware.memory.Page;
 import hardware.memory.Memory;
@@ -9,15 +8,17 @@ import os.filesystem.FileSystem;
 import os.job.JCB;
 import os.process.PCB;
 import os.process.ProcessManager;
+import utils.Log;
 import utils.SysConst;
 
-import java.util.Arrays;
+import java.util.*;
 
 public class StorageManager {
     public static StorageManager sm = new StorageManager();
     //----------------常量-------------------------
     // 空间不足
     public static final int NOT_ENOUGH = -1;
+    public static final String allot = "分配内存页";
 
     //---------------成员--------------------------
     // 位示图管理
@@ -111,8 +112,65 @@ public class StorageManager {
     }
 
     public class AllotManager {
+
+        class PageGroup {
+            int startFrameNo;
+            int endFrameNo;
+            int usedFrameNum;
+            boolean free;
+
+            PageGroup(int startFrameNo, int endFrameNo) {
+                this.startFrameNo = startFrameNo;
+                this.endFrameNo = endFrameNo;
+                this.usedFrameNum = 0;
+                this.free = true;
+            }
+
+            public int getStartFrameNo() {
+                return startFrameNo;
+            }
+
+            public void setStartFrameNo(int startFrameNo) {
+                this.startFrameNo = startFrameNo;
+            }
+
+            public int getEndFrameNo() {
+                return endFrameNo;
+            }
+
+            public void setEndFrameNo(int endFrameNo) {
+                this.endFrameNo = endFrameNo;
+            }
+
+            public int getUsedFrameNum() {
+                return usedFrameNum;
+            }
+
+            public void setUsedFrameNum(int usedFrameNum) {
+                this.usedFrameNum = usedFrameNum;
+            }
+
+            public boolean isFree() {
+                return free;
+            }
+
+            public void setFree(boolean free) {
+                this.free = free;
+            }
+        }
+
+        List<List<PageGroup>> freeGroups = new LinkedList<List<PageGroup>>();
+
+        AllotManager(){
+            initFreeGroupList();
+        }
+
+        // 初始化空闲链表
+        private void initFreeGroupList(){
+
+        }
         // 给pcb分配页表bit
-        public void allocPCBPageTable(PCB pcb) {
+        public void allotPCBPageTable(PCB pcb) {
             int count = 0, base;
             int pagesNum = pcb.getPageNums();
             for (base = 0; base < bitMapManager.sysPageTableBitMap.length - pagesNum; base++) {
@@ -136,7 +194,7 @@ public class StorageManager {
         }
 
         // 内存PCB池中申请空闲页bit
-        public void allocEmptyPagePCBPool(PCB pcb) {
+        public void allotEmptyPagePCBPool(PCB pcb) {
             for (int i = 0; i < bitMapManager.memoryPCBPoolBitMap.length; i++) {
                 if (!bitMapManager.memoryPCBPoolBitMap[i]) {
                     bitMapManager.modifyPCBPoolAreaBitMap(i, true);
@@ -147,7 +205,7 @@ public class StorageManager {
         }
 
         // 内存PCB数据区申请页bit
-        public int allocEmptyPCBDataPage() {
+        public int allotEmptyPCBDataPage() {
             for (int i = 0; i < bitMapManager.memoryPCBDataBitMap.length; i++) {
                 if (!bitMapManager.memoryPCBDataBitMap[i]) {
                     bitMapManager.modifyPCBDataAreaBitMap(i, true);
@@ -158,7 +216,7 @@ public class StorageManager {
         }
 
         // 从磁盘JCB区分配出空闲的JCB块bit
-        public Block allocEmptyJCBBlock() {
+        public Block allotEmptyJCBBlock() {
             int blockNo = 0;
             for (int i = 0; i < bitMapManager.jcbZoneBitMap.length; i++) {
                 if (!bitMapManager.jcbZoneBitMap[i]) {
@@ -171,7 +229,7 @@ public class StorageManager {
         }
 
         // 从磁盘交换区分配出空闲的交换块bit
-        public Block allocEmptySwapBlock() {
+        public Block allotEmptySwapBlock() {
             int blockNo = 0;
             for (int i = 0; i < bitMapManager.swapZoneBitmap.length; i++) {
                 if (!bitMapManager.swapZoneBitmap[i]) {
@@ -280,8 +338,90 @@ public class StorageManager {
     }
 
     public class MemoryManager {
+        public LRUCache lruCache;
+
+        MemoryManager() {
+            lruCache = new LRUCache();
+        }
+
+        class LRUCache {
+            private int capacity;
+            private HashMap<Integer, ListNode> hashmap;
+            private ListNode head;
+            private ListNode tail;
+
+            private class ListNode {
+                int key;
+                Page val;
+                ListNode prev;
+                ListNode next;
+
+                public ListNode() {
+                }
+
+                public ListNode(int key, Page val) {
+                    this.key = key;
+                    this.val = val;
+                }
+            }
+
+            public LRUCache() {
+                this.capacity = Memory.PCB_ZONE_SIZE;
+                hashmap = new HashMap<>();
+                head = new ListNode();
+                tail = new ListNode();
+                head.next = tail;
+                tail.prev = head;
+            }
+
+            private void removeNode(ListNode node) {
+                node.prev.next = node.next;
+                node.next.prev = node.prev;
+            }
+
+            private void addNodeToLast(ListNode node) {
+                node.prev = tail.prev;
+                node.prev.next = node;
+                node.next = tail;
+                tail.prev = node;
+            }
+
+            private void moveNodeToLast(ListNode node) {
+                removeNode(node);
+                addNodeToLast(node);
+            }
+
+            public Page getPage(int key) {
+                if (hashmap.containsKey(key)) {
+                    ListNode node = hashmap.get(key);
+                    moveNodeToLast(node);
+                    return node.val;
+                } else {
+                    return null;
+                }
+            }
+
+            public void visitPage(int key, Page page) {
+                if (hashmap.containsKey(key)) {
+                    ListNode node = hashmap.get(key);
+                    node.val = page;
+                    moveNodeToLast(node);
+                    return;
+                }
+                if (hashmap.size() == capacity) {
+                    hashmap.remove(head.next.key);
+                    removeNode(head.next);
+                }
+                ListNode node = new ListNode(key, page);
+                hashmap.put(key, node);
+                addNodeToLast(node);
+            }
+        }
+
         // 读内存
         public int visitMemory(int physicalAddr) {
+            int frameNo = (physicalAddr >> 9) & 0X003F;
+            lruCache.visitPage(frameNo, Memory.memory.readPage(frameNo));
             return Memory.memory.readWordData((short) physicalAddr);
         }
 
@@ -294,7 +434,7 @@ public class StorageManager {
             ProcessManager.pm.queueManager.joinSuspendQueue(pcb);
             // 查页表得到外存磁盘号，进行调页
             int blockNo = pcb.searchPageTable(virtualPageNo);
-            int pageFrameNo = allotManager.allocEmptyPCBDataPage();
+            int pageFrameNo = allotManager.allotEmptyPCBDataPage();
             // 查看内存是否有空闲页框，分配一个
             if (pageFrameNo == NOT_ENOUGH) {
                 //淘汰页面,如果没有则使用淘汰算法淘汰一个，将淘汰页写回磁盘
@@ -318,10 +458,10 @@ public class StorageManager {
             System.out.println("[PAGE FAULT SUCCESS]------已成功完成请求调页，结束缺页中断...");
         }
 
-        public void writeDiskToBuffer(int blockNo, int logicalNo, int frameNo){
+        public void writeDiskToBuffer(int blockNo, int logicalNo, int frameNo) {
             // 读出磁盘块
             Block block = FileSystem.fs.getBlockInDisk(blockNo);
-            Page page = Transfer.transfer.transferBlockToPage(block,logicalNo,frameNo);
+            Page page = Transfer.transfer.transferBlockToPage(block, logicalNo, frameNo);
             page.syncPage();
         }
     }
@@ -342,7 +482,7 @@ public class StorageManager {
             // 获取内存页
             Page page = Memory.memory.readPage(frameNo);
             // 转换为物理块
-            Block block = Transfer.transfer.transferPageToBlock(page,blockNo);
+            Block block = Transfer.transfer.transferPageToBlock(page, blockNo);
             // 同步修改到磁盘
             block.syncBlock();
         }

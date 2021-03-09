@@ -7,16 +7,22 @@ import os.process.PCB;
 import os.process.ProcessManager;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 class StorageManagerTest {
     JCB jcb = new JCB();
     @Test
     void getFreePageNumsInSwapArea() {
-        boolean[] test = new boolean[5];
-        Arrays.fill(test,false);
-        test[2]=true;
-        System.out.println(test);
+        //2, 0, 3, 0, 1, 3, 1, 2, 0, 1
+        StorageManager.sm.allotManager.lruCache.put(1,2);
+        StorageManager.sm.allotManager.lruCache.put(2,0);
+        StorageManager.sm.allotManager.lruCache.put(3,3);
+        StorageManager.sm.allotManager.lruCache.put(4,0);
+        StorageManager.sm.allotManager.lruCache.put(5,1);
+        StorageManager.sm.allotManager.lruCache.put(6,3);
+        StorageManager.sm.allotManager.lruCache.get(2);
+        StorageManager.sm.allotManager.lruCache.get(0);
+        StorageManager.sm.allotManager.lruCache.get(3);
+        StorageManager.sm.allotManager.lruCache.get(1);
     }
 
     @Test
@@ -27,6 +33,6 @@ class StorageManagerTest {
         instructions.add(new Instruction(1,0,3,data[0]));
         jcb.setInstructions(instructions);
         PCB pcb = ProcessManager.pm.processOperator.createPCB(jcb);
-        StorageManager.sm.allotManager.allocPCBPageTable(pcb);
+        StorageManager.sm.allotManager.allotPCBPageTable(pcb);
     }
 }

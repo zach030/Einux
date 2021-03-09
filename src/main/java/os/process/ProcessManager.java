@@ -1,7 +1,12 @@
 package os.process;
 
+import hardware.memory.Memory;
+import hardware.memory.Page;
+import os.filesystem.Block;
+import os.filesystem.FileSystem;
 import os.job.JCB;
 import os.storage.StorageManager;
+import os.storage.Transfer;
 import utils.Log;
 
 import java.util.ArrayList;
@@ -211,6 +216,13 @@ public class ProcessManager {
             queueManager.finishQueue.add(pcb);
         }
 
+        // 唤醒进程
+        public void wakePCB(PCB pcb) {
+            pcb.wakeUpProcess();
+            queueManager.removeFromAllQueue(pcb);
+            queueManager.joinReadQueue(pcb);
+        }
+
         // 阻塞进程
         public void blockPCB(PCB pcb) {
             // 进程阻塞原语
@@ -238,9 +250,34 @@ public class ProcessManager {
         // 将pcb加入内存的pcb池
         public void addPCBToPCBPool(PCB pcb) {
             //1、向内存的pcb池请求分配页
-            StorageManager.sm.allotManager.allocEmptyPagePCBPool(pcb);
+            StorageManager.sm.allotManager.allotEmptyPagePCBPool(pcb);
             //2、将pcb的数据写入该页
             pcb.writePCBPage();
+        }
+
+        // 将pcb的数据从磁盘调回内存
+        public void returnPCBToMemory(PCB pcb) {
+            // 0. 根据当前执行的指令所在页面获取页号
+            int pageNo = pcb.getCurrentPageNumOfIR();
+            // 1. 请求内存分配空闲页框
+            int pageFrame = StorageManager.sm.allotManager.allotEmptyPCBDataPage();
+            // 2. 查询页表找到pcb存放在外存数据的起始块号
+            int swapBlockNo = pcb.searchPageTable(pageNo);
+            // 3. 获取此块数据
+            Block block = FileSystem.fs.getBlockInDisk(swapBlockNo);
+            // 4. 重写页表
+            Page page = Transfer.transfer.transferBlockToPage(block, pageNo, pageFrame);
+            pcb.writePageTableEntry(pageNo, page);
+            // 5. 写回内存
+            Memory.memory.writePage(page);
+        }
+
+        public void turnPCBToDisk(PCB pcb) {
+
+        }
+
+        public PCB chooseNotUsedPCB() {
+            return null;
         }
 
         // 由读出的数据构成指令结构体

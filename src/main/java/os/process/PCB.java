@@ -157,9 +157,9 @@ public class PCB {
     }
 
     // 查找页表
-    public int searchPageTable(int blockNo) {
+    public int searchPageTable(int pageNo) {
         for (PageTableEntry pageTableEntry : internalPageTable) {
-            if (pageTableEntry.getVirtualPageNo() == blockNo) {
+            if (pageTableEntry.getVirtualPageNo() == pageNo) {
                 return pageTableEntry.getDiskBlockNo();
             }
         }
@@ -190,6 +190,10 @@ public class PCB {
     }
 
     //----------------进程时间操作-------------
+    public int getCurrentPageNumOfIR(){
+        return PC/64 + codeLogicalPageNo;
+    }
+
     public void subTimeSlice() {
         this.timeSlice -= 100;
     }
