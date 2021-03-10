@@ -11,7 +11,7 @@ class DiskTest {
         bootDisk.loadDisk();
         // addr: 15位块号 + 9位块内偏移
         bootDisk.writeData(10, (short) 0X08);
-        bootDisk.readData(10);
+        System.out.println(bootDisk.readData(10));
     }
 
     @org.junit.jupiter.api.Test

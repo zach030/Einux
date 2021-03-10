@@ -12,17 +12,7 @@ class StorageManagerTest {
     JCB jcb = new JCB();
     @Test
     void getFreePageNumsInSwapArea() {
-        //2, 0, 3, 0, 1, 3, 1, 2, 0, 1
-        StorageManager.sm.allotManager.lruCache.put(1,2);
-        StorageManager.sm.allotManager.lruCache.put(2,0);
-        StorageManager.sm.allotManager.lruCache.put(3,3);
-        StorageManager.sm.allotManager.lruCache.put(4,0);
-        StorageManager.sm.allotManager.lruCache.put(5,1);
-        StorageManager.sm.allotManager.lruCache.put(6,3);
-        StorageManager.sm.allotManager.lruCache.get(2);
-        StorageManager.sm.allotManager.lruCache.get(0);
-        StorageManager.sm.allotManager.lruCache.get(3);
-        StorageManager.sm.allotManager.lruCache.get(1);
+
     }
 
     @Test

@@ -2,8 +2,6 @@ package hardware.memory;
 
 import utils.SysConst;
 
-import java.util.HashMap;
-
 public class Memory {
     public static Memory memory = new Memory();
 

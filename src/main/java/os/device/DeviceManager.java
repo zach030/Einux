@@ -70,7 +70,7 @@ public class DeviceManager {
                 bh.setBlockNo(-1);
                 bh.setBufferNo(i);
                 bh.setDevNo(-1);
-                bh.setMemoryBlockNo(Memory.BUFFER_START + i);
+                bh.setFrameNo(Memory.BUFFER_START + i);
                 bh.setFlag(BH_EMPTY);
                 bufferHeads[i] = bh;
                 bufferQueueManager.joinFreeQueue(bh);
@@ -122,7 +122,7 @@ public class DeviceManager {
                     bh.setFlag(BH_BUSY);
                     // 修改缓冲区位示图
                     modifyStorageBitMap(bh.getBufferNo(), true);
-                    Log.Info(bufferOp, String.format("缓冲区散列队列中空闲区:%d,已获得申请，对应内存块号:%d,磁盘块号:%d", bh.getBufferNo(), bh.getMemoryBlockNo(), bh.getBlockNo()));
+                    Log.Info(bufferOp, String.format("缓冲区散列队列中空闲区:%d,已获得申请，对应内存块号:%d,磁盘块号:%d", bh.getBufferNo(), bh.getFrameNo(), bh.getBlockNo()));
                     return bh;
                 }
             }
@@ -146,7 +146,7 @@ public class DeviceManager {
             freeBh.setFlag(BH_BUSY);
             modifyStorageBitMap(freeBh.getBufferNo(), true);
             bufferQueueManager.joinAllottedQueue(devNo, freeBh);
-            Log.Info(bufferOp, String.format("从缓冲空闲队列中取出:%d,对应内存块号:%d,对应外存块号:%d", freeBh.getBufferNo(), freeBh.getMemoryBlockNo(), freeBh.getBlockNo()));
+            Log.Info(bufferOp, String.format("从缓冲空闲队列中取出:%d,对应内存块号:%d,对应外存块号:%d", freeBh.getBufferNo(), freeBh.getFrameNo(), freeBh.getBlockNo()));
             return freeBh;
         }
 
@@ -155,7 +155,7 @@ public class DeviceManager {
             // 0. 清除bh的标志位
             bh.setFlag(BH_EMPTY);
             // 1. 从已释放的缓冲区中选出来，写入空闲队列
-            Log.Info(bufferOp, String.format("释放缓冲区:%d,内存块号:%d,外设块号:%d", bh.getBufferNo(), bh.getMemoryBlockNo(), bh.getBlockNo()));
+            Log.Info(bufferOp, String.format("释放缓冲区:%d,内存块号:%d,外设块号:%d", bh.getBufferNo(), bh.getFrameNo(), bh.getBlockNo()));
             // 2. 设置内存缓冲区位图
             modifyStorageBitMap(bh.getBufferNo(), false);
             // 3. 加入空闲队列
@@ -176,7 +176,7 @@ public class DeviceManager {
                 return bh;
             }
             // 不是最新，需要从磁盘读取
-            StorageManager.sm.memoryManager.writeDiskToBuffer(blockNo, bh.getBufferNo(), bh.getMemoryBlockNo());
+            StorageManager.sm.memoryManager.writeDiskToBuffer(blockNo, bh.getBufferNo(), bh.getFrameNo());
             bh.setFlag(BH_UPDATE);
             return bh;
         }
@@ -184,7 +184,7 @@ public class DeviceManager {
         // 缓冲区数据写入设备
         public void writeBufferToDev(BufferHead bh) {
             // 将缓冲区数据写入设备
-            StorageManager.sm.diskManager.writeBufferToDisk(bh.getBlockNo(), bh.getMemoryBlockNo());
+            StorageManager.sm.diskManager.writeBufferToDisk(bh.getBlockNo(), bh.getFrameNo());
             // 设置缓冲区在进行写入设备
             // 清空缓冲区
             freeBuffer(bh);

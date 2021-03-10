@@ -9,7 +9,7 @@ public class BufferHead {
     private int devNo;           // 设备编号
     private int blockNo;         // 外存块编号
     private int bufferNo;        // 缓冲区编号
-    private int memoryBlockNo;   //​内存块号
+    private int frameNo;   //​内存块号
     public int flag;             // 标志位
     ArrayList<PCB> blockWaitBufferQueue; // 被此块阻塞的进程队列
 
@@ -37,12 +37,12 @@ public class BufferHead {
         this.bufferNo = bufferNo;
     }
 
-    public int getMemoryBlockNo() {
-        return memoryBlockNo;
+    public int getFrameNo() {
+        return frameNo;
     }
 
-    public void setMemoryBlockNo(int memoryBlockNo) {
-        this.memoryBlockNo = memoryBlockNo;
+    public void setFrameNo(int frameNo) {
+        this.frameNo = frameNo;
     }
 
     public int getFlag() {

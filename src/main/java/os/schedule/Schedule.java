@@ -122,6 +122,28 @@ public class Schedule {
     public void RunProcess() {
         // 0.系统时间自增
         CPU.cpu.clock.systemTimeSelfAdd();
+        // 如果CPU空闲,需要低级调度
+        if (!CPU.cpu.isRunning()) {
+            Log.Info(schedulePeriod, "当前CPU空闲");
+            boolean success = LowLevelScheduling(); // 进行低级调度
+            if (success) {
+                Log.Info(systemRun, "开始运行进程:" + CPU.cpu.getCurrent().getID());
+            } else
+                return;
+        }
+        // 如果进程运行完毕，取消进程
+        if (CPU.cpu.isCurrentPCBEnd()) {
+            Log.Info(systemRun, "进程:" + CPU.cpu.getCurrent().getID() + ",运行结束");
+            CPU.cpu.Protect(); // CPU保护现场
+            ProcessManager.pm.processOperator.cancelPCB(CPU.cpu.getCurrent()); // 撤销进程;
+            return;
+        }
+        // 如果所有进程运行完毕
+        if (ProcessManager.pm.requesterManager.isAllFinished()) {
+            Log.Info(schedulePeriod, "当前进程已全部运行结束");
+            return;
+        }
+
         Log.Info(systemRun, "正在运行进程:" + CPU.cpu.getCurrent().getID());
         // 1.获取当前指令的逻辑地址
         int instructionLogicalAddr = CPU.cpu.getCurrentIRAddr();
@@ -190,27 +212,7 @@ public class Schedule {
                     MidLevelScheduling();
                     needMediumLevelScheduling = false;
                 }
-                // 如果CPU空闲,需要低级调度
-                if (!CPU.cpu.isRunning()) {
-                    Log.Info(schedulePeriod, "当前CPU空闲");
-                    boolean success = LowLevelScheduling(); // 进行低级调度
-                    if (success) {
-                        Log.Info(systemRun, "开始运行进程:" + CPU.cpu.getCurrent().getID());
-                    } else
-                        return;
-                }
-                // 如果进程运行完毕，取消进程
-                if (CPU.cpu.isCurrentPCBEnd()) {
-                    Log.Info(systemRun, "进程:" + CPU.cpu.getCurrent().getID() + ",运行结束");
-                    CPU.cpu.Protect(); // CPU保护现场
-                    ProcessManager.pm.processOperator.cancelPCB(CPU.cpu.getCurrent()); // 撤销进程;
-                    return;
-                }
-                // 如果所有进程运行完毕
-                if (ProcessManager.pm.requesterManager.isAllFinished()) {
-                    Log.Info(schedulePeriod, "当前进程已全部运行结束");
-                    return;
-                }
+
                 RunProcess(); // 运行进程
                 CPU.cpu.clock.ResetIfInterrupt(); // 恢复中断
             }
