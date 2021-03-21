@@ -14,7 +14,7 @@ public class Detector {
         new JobDetector().start();
     }
 
-    class MidDetector extends Thread {
+    static class MidDetector extends Thread {
         public void run() {
             while (true) {
                 try {
@@ -28,7 +28,7 @@ public class Detector {
         }
     }
 
-    class JobDetector extends Thread {
+    static class JobDetector extends Thread {
         public void run() {
             while (true) {
                 try {

@@ -1,0 +1,4 @@
+resource:
+  Screen: 1
+  Keyboard: 1
+  Print: 2

@@ -129,6 +129,7 @@ public class Execute {
         // 2. cpu用户态
         CPU.cpu.setState(CPU.USER_STATE);
         //todo 如果无资源，则阻塞
+
     }
 
     // 请求输出
@@ -147,6 +148,7 @@ public class Execute {
         // 2. cpu核心态
         CPU.cpu.setState(CPU.KERNAL_STATE);
         //todo 如果无资源则阻塞
+        ProcessManager.pm.processOperator.blockPCB(CPU.cpu.getCurrent(), instruction.getArg());
     }
 
     // 释放资源

@@ -2,18 +2,19 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="c0bfff17-3919-431a-87e2-290f6591f1c4" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/log/debug.log.2021-03-08" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/log/error.log.2021-03-07" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/log/debug.log.2021-03-10" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/log/error.log.2021-03-10" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/config/Config.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/config/Resource.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/config/disk.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/config/resource.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/config/ConfigTest.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/hardware/MMU.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hardware/MMU.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/hardware/memory/Memory.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hardware/memory/Memory.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/os/device/BufferHead.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/device/BufferHead.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/os/device/DeviceManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/device/DeviceManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/os/schedule/Schedule.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/schedule/Schedule.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/utils/Log.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/utils/Log.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/disk/DiskTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/disk/DiskTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/hardware/MMUTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/hardware/MMUTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/os/storage/StorageManagerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/os/storage/StorageManagerTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/process/DeadLock.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/process/DeadLock.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/process/ProcessManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/process/ProcessManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/schedule/Detector.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/schedule/Detector.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/schedule/Execute.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/schedule/Execute.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -81,20 +82,14 @@
   </component>
   <component name="RecentsManager">
     <key name="CreateTestDialog.RecentsKey">
+      <recent name="config" />
+      <recent name="utils" />
       <recent name="os.storage" />
       <recent name="os.device" />
       <recent name="os.job" />
-      <recent name="hardware.mm" />
-      <recent name="hardware" />
     </key>
     <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
       <recent name="hardware.memory" />
-    </key>
-    <key name="CopyFile.RECENT_KEYS">
-      <recent name="D:\AllProjects\Java\Einux\src\main\java\hardware" />
-      <recent name="D:\AllProjects\Java\Einux\src\main\java\os\process" />
-      <recent name="D:\AllProjects\Java\Einux\src\main\java\os" />
-      <recent name="D:\AllProjects\Java\Einux\src\main\java\disk" />
     </key>
     <key name="CopyClassDialog.RECENTS_KEY">
       <recent name="hardware" />
@@ -103,19 +98,25 @@
     <key name="CreateTestDialog.Recents.Supers">
       <recent name="" />
     </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\AllProjects\Java\Einux\src\main\java\hardware" />
+      <recent name="D:\AllProjects\Java\Einux\src\main\java\os\process" />
+      <recent name="D:\AllProjects\Java\Einux\src\main\java\os" />
+      <recent name="D:\AllProjects\Java\Einux\src\main\java\disk" />
+    </key>
   </component>
-  <component name="RunManager" selected="JUnit.JobManageTest.createNewJob">
-    <configuration name="DiskTest.readData" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="JUnit.ResolveConfigTest.resolve">
+    <configuration name="ConfigTest.resolve" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="Einux" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="disk.*" />
+          <option name="PATTERN" value="config.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
-      <option name="PACKAGE_NAME" value="disk" />
-      <option name="MAIN_CLASS_NAME" value="disk.DiskTest" />
-      <option name="METHOD_NAME" value="readData" />
+      <option name="PACKAGE_NAME" value="config" />
+      <option name="MAIN_CLASS_NAME" value="config.ConfigTest" />
+      <option name="METHOD_NAME" value="resolve" />
       <option name="TEST_OBJECT" value="method" />
       <method v="2">
         <option name="Make" enabled="true" />
@@ -137,38 +138,6 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="MMUTest.searchPageTable" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="Einux" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="hardware.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <option name="PACKAGE_NAME" value="hardware" />
-      <option name="MAIN_CLASS_NAME" value="hardware.MMUTest" />
-      <option name="METHOD_NAME" value="searchPageTable" />
-      <option name="TEST_OBJECT" value="method" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="MemoryTest.writeData" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="Einux" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="hardware.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <option name="PACKAGE_NAME" value="hardware" />
-      <option name="MAIN_CLASS_NAME" value="hardware.MemoryTest" />
-      <option name="METHOD_NAME" value="writeData" />
-      <option name="TEST_OBJECT" value="method" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="ScheduleTest.run" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="Einux" />
       <extension name="coverage">
@@ -185,13 +154,45 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="SolutionTest.moveZeroes" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="Einux" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="config.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="utils" />
+      <option name="MAIN_CLASS_NAME" value="utils.SolutionTest" />
+      <option name="METHOD_NAME" value="moveZeroes" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="SolutionTest.reverseList" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="Einux" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="config.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="utils" />
+      <option name="MAIN_CLASS_NAME" value="utils.SolutionTest" />
+      <option name="METHOD_NAME" value="reverseList" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="JUnit.JobManageTest.createNewJob" />
+        <item itemvalue="JUnit.ResolveConfigTest.resolve" />
         <item itemvalue="JUnit.ScheduleTest.run" />
-        <item itemvalue="JUnit.MMUTest.searchPageTable" />
-        <item itemvalue="JUnit.DiskTest.readData" />
-        <item itemvalue="JUnit.MemoryTest.writeData" />
+        <item itemvalue="JUnit.SolutionTest.moveZeroes" />
+        <item itemvalue="JUnit.SolutionTest.reverseList" />
+        <item itemvalue="JUnit.JobManageTest.createNewJob" />
       </list>
     </recent_temporary>
   </component>
@@ -214,7 +215,9 @@
       <workItem from="1614950113023" duration="59488000" />
       <workItem from="1615188748750" duration="156000" />
       <workItem from="1615189192071" duration="60979000" />
-      <workItem from="1615379325620" duration="2035000" />
+      <workItem from="1615379325620" duration="5571000" />
+      <workItem from="1616088317315" duration="823000" />
+      <workItem from="1616215615752" duration="16508000" />
     </task>
     <servers />
   </component>
@@ -246,18 +249,19 @@
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state x="297" y="131" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1280.689@0.0.1280.689" timestamp="1615213693979" />
-    <state x="402" y="0" key="#com.intellij.ide.util.MemberChooser" timestamp="1615223862576">
+    <state x="402" y="0" key="#com.intellij.ide.util.MemberChooser" timestamp="1616297779196">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
-    <state x="402" y="0" key="#com.intellij.ide.util.MemberChooser/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1615223862576" />
+    <state x="402" y="0" key="#com.intellij.ide.util.MemberChooser/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1616297779196" />
     <state x="402" y="0" key="#com.intellij.ide.util.MemberChooser/0.0.1280.689@0.0.1280.689" timestamp="1615195568652" />
     <state x="388" y="180" width="505" height="342" key="#com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesDialog.classes" timestamp="1614868476860">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state x="388" y="180" width="505" height="342" key="#com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesDialog.classes/0.0.1280.689@0.0.1280.689" timestamp="1614868476860" />
-    <state x="0" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog" timestamp="1615132664654">
+    <state x="0" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog" timestamp="1616299377691">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
+    <state x="0" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1616299377691" />
     <state x="0" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog/0.0.1280.689@0.0.1280.689" timestamp="1615132664654" />
     <state x="309" y="34" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog" timestamp="1615096636943">
       <screen x="0" y="0" width="1280" height="689" />
@@ -267,12 +271,12 @@
       <screen x="0" y="0" width="1280" height="720" />
     </state>
     <state x="367" y="155" key="#com.intellij.tools.ToolEditorDialog/0.0.1280.720@0.0.1280.720" timestamp="1614945005739" />
-    <state x="-1535" y="0" key="#xdebugger.evaluate" timestamp="1615357576442">
-      <screen x="-1920" y="0" width="1280" height="689" />
+    <state x="376" y="0" key="#xdebugger.evaluate" timestamp="1616215816275">
+      <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state x="-1535" y="0" key="#xdebugger.evaluate/0.0.1280.689/-1920.0.1280.689@-1920.0.1280.689" timestamp="1615357576442" />
     <state x="438" y="0" key="#xdebugger.evaluate/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1614841656839" />
-    <state x="376" y="0" key="#xdebugger.evaluate/0.0.1280.689@0.0.1280.689" timestamp="1615095828004" />
+    <state x="376" y="0" key="#xdebugger.evaluate/0.0.1280.689@0.0.1280.689" timestamp="1616215816275" />
     <state x="335" y="8" key="ANALYSIS_DLG_com.intellij.analysis.BaseAnalysisAction$1" timestamp="1615342748314">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
@@ -289,57 +293,58 @@
     <state x="345" y="16" key="FileChooserDialogImpl/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1615347862373" />
     <state x="345" y="27" key="FileChooserDialogImpl/0.0.1280.689@0.0.1280.689" timestamp="1614950984624" />
     <state x="518" y="42" key="FileChooserDialogImpl/0.0.1920.1080@0.0.1920.1080" timestamp="1614946090690" />
-    <state width="1227" height="497" key="GridCell.Tab.0.bottom" timestamp="1615381513622">
+    <state width="1227" height="374" key="GridCell.Tab.0.bottom" timestamp="1616343507734">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state width="1227" height="265" key="GridCell.Tab.0.bottom/0.0.1280.689/-1920.0.1280.689@-1920.0.1280.689" timestamp="1615377971549" />
-    <state width="1227" height="337" key="GridCell.Tab.0.bottom/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1615220281064" />
-    <state width="1227" height="497" key="GridCell.Tab.0.bottom/0.0.1280.689@0.0.1280.689" timestamp="1615381513622" />
-    <state width="1227" height="497" key="GridCell.Tab.0.center" timestamp="1615381513622">
+    <state width="1227" height="269" key="GridCell.Tab.0.bottom/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1616298898200" />
+    <state width="1227" height="374" key="GridCell.Tab.0.bottom/0.0.1280.689@0.0.1280.689" timestamp="1616343507734" />
+    <state width="1227" height="374" key="GridCell.Tab.0.center" timestamp="1616343507734">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state width="1227" height="265" key="GridCell.Tab.0.center/0.0.1280.689/-1920.0.1280.689@-1920.0.1280.689" timestamp="1615377971549" />
-    <state width="1227" height="337" key="GridCell.Tab.0.center/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1615220281064" />
-    <state width="1227" height="497" key="GridCell.Tab.0.center/0.0.1280.689@0.0.1280.689" timestamp="1615381513622" />
-    <state width="1227" height="497" key="GridCell.Tab.0.left" timestamp="1615381513621">
+    <state width="1227" height="269" key="GridCell.Tab.0.center/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1616298898200" />
+    <state width="1227" height="374" key="GridCell.Tab.0.center/0.0.1280.689@0.0.1280.689" timestamp="1616343507734" />
+    <state width="1227" height="374" key="GridCell.Tab.0.left" timestamp="1616343507734">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state width="1227" height="265" key="GridCell.Tab.0.left/0.0.1280.689/-1920.0.1280.689@-1920.0.1280.689" timestamp="1615377971549" />
-    <state width="1227" height="337" key="GridCell.Tab.0.left/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1615220281063" />
-    <state width="1227" height="497" key="GridCell.Tab.0.left/0.0.1280.689@0.0.1280.689" timestamp="1615381513621" />
-    <state width="1227" height="497" key="GridCell.Tab.0.right" timestamp="1615381513622">
+    <state width="1227" height="269" key="GridCell.Tab.0.left/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1616298898200" />
+    <state width="1227" height="374" key="GridCell.Tab.0.left/0.0.1280.689@0.0.1280.689" timestamp="1616343507734" />
+    <state width="1227" height="374" key="GridCell.Tab.0.right" timestamp="1616343507734">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state width="1227" height="265" key="GridCell.Tab.0.right/0.0.1280.689/-1920.0.1280.689@-1920.0.1280.689" timestamp="1615377971549" />
-    <state width="1227" height="337" key="GridCell.Tab.0.right/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1615220281064" />
-    <state width="1227" height="497" key="GridCell.Tab.0.right/0.0.1280.689@0.0.1280.689" timestamp="1615381513622" />
-    <state width="1227" height="497" key="GridCell.Tab.1.bottom" timestamp="1615381513622">
+    <state width="1227" height="269" key="GridCell.Tab.0.right/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1616298898200" />
+    <state width="1227" height="374" key="GridCell.Tab.0.right/0.0.1280.689@0.0.1280.689" timestamp="1616343507734" />
+    <state width="1227" height="269" key="GridCell.Tab.1.bottom" timestamp="1616298898201">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state width="1227" height="265" key="GridCell.Tab.1.bottom/0.0.1280.689/-1920.0.1280.689@-1920.0.1280.689" timestamp="1615377971550" />
-    <state width="1227" height="337" key="GridCell.Tab.1.bottom/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1615220281064" />
-    <state width="1227" height="497" key="GridCell.Tab.1.bottom/0.0.1280.689@0.0.1280.689" timestamp="1615381513622" />
-    <state width="1227" height="497" key="GridCell.Tab.1.center" timestamp="1615381513622">
+    <state width="1227" height="269" key="GridCell.Tab.1.bottom/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1616298898201" />
+    <state width="1227" height="269" key="GridCell.Tab.1.bottom/0.0.1280.689@0.0.1280.689" timestamp="1616292152028" />
+    <state width="1227" height="269" key="GridCell.Tab.1.center" timestamp="1616298898201">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state width="1227" height="265" key="GridCell.Tab.1.center/0.0.1280.689/-1920.0.1280.689@-1920.0.1280.689" timestamp="1615377971549" />
-    <state width="1227" height="337" key="GridCell.Tab.1.center/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1615220281064" />
-    <state width="1227" height="497" key="GridCell.Tab.1.center/0.0.1280.689@0.0.1280.689" timestamp="1615381513622" />
-    <state width="1227" height="497" key="GridCell.Tab.1.left" timestamp="1615381513622">
+    <state width="1227" height="269" key="GridCell.Tab.1.center/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1616298898201" />
+    <state width="1227" height="269" key="GridCell.Tab.1.center/0.0.1280.689@0.0.1280.689" timestamp="1616292152028" />
+    <state width="1227" height="269" key="GridCell.Tab.1.left" timestamp="1616298898201">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state width="1227" height="265" key="GridCell.Tab.1.left/0.0.1280.689/-1920.0.1280.689@-1920.0.1280.689" timestamp="1615377971549" />
-    <state width="1227" height="337" key="GridCell.Tab.1.left/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1615220281064" />
-    <state width="1227" height="497" key="GridCell.Tab.1.left/0.0.1280.689@0.0.1280.689" timestamp="1615381513622" />
-    <state width="1227" height="497" key="GridCell.Tab.1.right" timestamp="1615381513622">
+    <state width="1227" height="269" key="GridCell.Tab.1.left/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1616298898201" />
+    <state width="1227" height="269" key="GridCell.Tab.1.left/0.0.1280.689@0.0.1280.689" timestamp="1616292152028" />
+    <state width="1227" height="269" key="GridCell.Tab.1.right" timestamp="1616298898201">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state width="1227" height="265" key="GridCell.Tab.1.right/0.0.1280.689/-1920.0.1280.689@-1920.0.1280.689" timestamp="1615377971549" />
-    <state width="1227" height="337" key="GridCell.Tab.1.right/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1615220281064" />
-    <state width="1227" height="497" key="GridCell.Tab.1.right/0.0.1280.689@0.0.1280.689" timestamp="1615381513622" />
-    <state x="59" y="0" key="Maven.ArtifactSearchDialog" timestamp="1615039291470">
+    <state width="1227" height="269" key="GridCell.Tab.1.right/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1616298898201" />
+    <state width="1227" height="269" key="GridCell.Tab.1.right/0.0.1280.689@0.0.1280.689" timestamp="1616292152028" />
+    <state x="59" y="0" key="Maven.ArtifactSearchDialog" timestamp="1616299392615">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
+    <state x="59" y="0" key="Maven.ArtifactSearchDialog/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1616299392615" />
     <state x="59" y="0" key="Maven.ArtifactSearchDialog/0.0.1280.689@0.0.1280.689" timestamp="1615039291470" />
     <state x="0" y="0" key="SettingsEditor" timestamp="1615189472261">
       <screen x="0" y="0" width="1280" height="689" />
@@ -348,11 +353,11 @@
     <state x="0" y="0" key="SettingsEditor/0.0.1280.720@0.0.1280.720" timestamp="1614945010427" />
     <state x="0" y="0" key="SettingsEditor/0.0.1536.864@0.0.1536.864" timestamp="1614945081229" />
     <state x="262" y="16" key="SettingsEditor/0.0.1920.1080@0.0.1920.1080" timestamp="1614946657916" />
-    <state x="410" y="0" key="com.intellij.testIntegration.createTest.CreateTestDialog" timestamp="1615220013978">
+    <state x="410" y="0" key="com.intellij.testIntegration.createTest.CreateTestDialog" timestamp="1616298403730">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
-    <state x="410" y="0" key="com.intellij.testIntegration.createTest.CreateTestDialog/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1615220013978" />
-    <state x="410" y="0" key="com.intellij.testIntegration.createTest.CreateTestDialog/0.0.1280.689@0.0.1280.689" timestamp="1615212380868" />
+    <state x="410" y="0" key="com.intellij.testIntegration.createTest.CreateTestDialog/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1616298403730" />
+    <state x="410" y="0" key="com.intellij.testIntegration.createTest.CreateTestDialog/0.0.1280.689@0.0.1280.689" timestamp="1616215650872" />
     <state x="309" y="62" key="extract.method.dialog" timestamp="1614687778337">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
@@ -390,11 +395,6 @@
           <url>file://$PROJECT_DIR$/src/test/java/disk/DiskTest.java</url>
           <line>13</line>
           <option name="timeStamp" value="88" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/test/java/os/job/JobManageTest.java</url>
-          <line>19</line>
-          <option name="timeStamp" value="89" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

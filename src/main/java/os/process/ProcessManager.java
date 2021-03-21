@@ -111,6 +111,10 @@ public class ProcessManager {
         }
 
         //-----------------------进程调度队列基本操作--------------
+        synchronized public void joinAllQueue(PCB pcb) {
+            this.allPCB.add(pcb);
+        }
+
         // 加入就绪队列
         synchronized public void joinReadQueue(PCB pcb) {
             this.readyQueue.add(pcb);
@@ -204,6 +208,7 @@ public class ProcessManager {
         public PCB createPCB(JCB jcb) {
             PCB pcb = new PCB();
             pcb.createProcess(jcb);
+            ProcessManager.pm.queueManager.joinAllQueue(pcb);
             return pcb;
         }
 
@@ -228,17 +233,19 @@ public class ProcessManager {
             // 进程阻塞原语
             pcb.blockProcess();
             // 加入阻塞队列
-            queueManager.blockQueue.add(pcb);
+            queueManager.joinBlockQueue(pcb);
         }
 
         // 申请资源阻塞进程
         public void blockPCB(PCB pcb, int resource) {
+            Log.Info("申请资源阻塞", String.format("进程id:%d,因申请资源:%d，被阻塞", pcb.getID(), resource));
             pcb.blockProcess();
             queueManager.joinResourceBlockQueue(pcb, resource);
         }
 
         // 申请缓冲区阻塞进程
         public void blockPCB(PCB pcb, int devNo, int bufferNo) {
+            Log.Info("申请磁盘缓冲区阻塞", String.format("进程id:%d,设备号:%d,因申请缓冲区头部:%d，被阻塞", pcb.getID(), devNo, bufferNo));
             // 阻塞进程原语
             pcb.blockProcess();
             // 设置进程阻塞等待的缓冲区号
