@@ -3,11 +3,12 @@ package os.filesystem;
 public class DataMapZone implements BlockZone {
     int blockNo;
     Block block;
-
+    boolean[] blockBitMap = new boolean[FileSystem.BLOCK_NUM];
     DataMapZone(int blockNo) {
         this.blockNo = blockNo;
         initZoneBlocks();
     }
+
 
     @Override
     public void writeBlock(Block block) {

@@ -1,5 +1,7 @@
 package os.filesystem;
 
+import disk.DevConfig;
+
 public class FileSystem implements VFS {
     public static FileSystem fs = new FileSystem();
 
@@ -16,6 +18,8 @@ public class FileSystem implements VFS {
     public static final int JCB_ZONE_SIZE = 256;                // jcb区大小
     public static final int SWAP_ZONE_INDEX = 20224;            // 交换区下标
     public static final int SWAP_ZONE_SIZE = 256;               // 交换区大小
+
+    public static final int MAX_INODE_NUM = INODE_ZONE_SIZE * DevConfig.BLOCK_SIZE / Inode.INODE_SIZE;
 
     SuperBlock superBlock;      //磁盘超级块
     InodeMapZone inodeMapZone;  //inode位示图区
@@ -118,4 +122,23 @@ public class FileSystem implements VFS {
         }
     }
 
+    @Override
+    public void createFile() {
+
+    }
+
+    @Override
+    public void openFile() {
+
+    }
+
+    @Override
+    public void readFile() {
+
+    }
+
+    @Override
+    public void deleteFile() {
+
+    }
 }

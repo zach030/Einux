@@ -66,6 +66,11 @@ public class PCB {
         this.setTimeSlice();
     }
 
+    public PCB(int id){
+        this.setID(id);
+        this.setTimeSlice();
+    }
+
     //-----------------进程原语-----------------------
     // 创建进程原语
     public void createProcess(JCB jcb) {

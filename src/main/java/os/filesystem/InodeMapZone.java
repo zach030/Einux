@@ -3,10 +3,15 @@ package os.filesystem;
 public class InodeMapZone implements BlockZone {
     int blockNo;
     Block block;
+    boolean[] inodeBitMap = new boolean[FileSystem.MAX_INODE_NUM];
 
     InodeMapZone(int blockNo) {
         this.blockNo = blockNo;
         initZoneBlocks();
+    }
+
+    void scanDisk(){
+        //todo 扫描磁盘inode区，更新bitmap
     }
 
     @Override

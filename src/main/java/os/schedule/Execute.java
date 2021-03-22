@@ -3,6 +3,7 @@ package os.schedule;
 import hardware.CPU;
 import hardware.MMU;
 import hardware.memory.Memory;
+import os.process.DeadLock;
 import os.process.Instruction;
 import os.process.ProcessManager;
 import os.storage.StorageManager;
@@ -143,12 +144,8 @@ public class Execute {
 
     // 请求资源
     void execApplyResource(Instruction instruction) {
-        // 1. pc指针自增
-        CPU.cpu.autoAddPC();
-        // 2. cpu核心态
-        CPU.cpu.setState(CPU.KERNAL_STATE);
-        //todo 如果无资源则阻塞
-        ProcessManager.pm.processOperator.blockPCB(CPU.cpu.getCurrent(), instruction.getArg());
+        // 申请资源
+        DeadLock.deadLock.applyResource(CPU.cpu.getCurrent(), instruction.getArg(), 1);
     }
 
     // 释放资源

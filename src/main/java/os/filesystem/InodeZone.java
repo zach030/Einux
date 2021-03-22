@@ -6,6 +6,7 @@ public class InodeZone implements BlockZone {
     int startBlockNo;
     int zoneSize;
     ArrayList<Block> blocks;
+    Inode[] inodes = new Inode[FileSystem.MAX_INODE_NUM];
 
     InodeZone(int start, int size) {
         this.startBlockNo = start;

@@ -1,10 +1,18 @@
 package os.process;
 
 import utils.Log;
+import utils.SysConst;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class DeadLock {
     public static DeadLock deadLock = new DeadLock();
     public static Banker banker;
+
+    DeadLock() {
+        banker = new Banker();
+    }
 
     /*资源类型0,1,2*/
     enum ResourceType {
@@ -12,17 +20,19 @@ public class DeadLock {
     }
 
     public static final int PROCESS_NUM = 15;
-    public static final int RESOURCE_CATEGORY = 3;
+    public static final int RESOURCE_NUM = 3;
 
     class Banker {
         Banker() {
             initMaxMatrix();
             initAllocationMatrix();
             initNeedMatrix();
+            initSafeSeries();
         }
 
         // 初始化最大需求矩阵，假设都需求全部资源
         void initMaxMatrix() {
+            //todo 改成随机数
             for (int p = 0; p < PROCESS_NUM; p++) {
                 Max[p][0] = 1;
                 Max[p][1] = 1;
@@ -50,7 +60,7 @@ public class DeadLock {
 
         // 初始化工作向量
         void initWorkVector() {
-            System.arraycopy(Available, 0, Work, 0, RESOURCE_CATEGORY);
+            System.arraycopy(Available, 0, Work, 0, RESOURCE_NUM);
         }
 
         // 初始化标志位向量
@@ -67,32 +77,54 @@ public class DeadLock {
             }
         }
 
-        int[] Available = new int[]{1, 1, 2};                         // 各资源当前可申请数目
-        int[][] Max = new int[PROCESS_NUM][RESOURCE_CATEGORY];        // 最大需求矩阵
-        int[][] Allocation = new int[PROCESS_NUM][RESOURCE_CATEGORY]; // 已分配矩阵
-        int[][] Need = new int[PROCESS_NUM][RESOURCE_CATEGORY];       // 需求矩阵
-
-        int[][] Request = new int[PROCESS_NUM][RESOURCE_CATEGORY];    // 资源请求矩阵
-        int[] Work = new int[RESOURCE_CATEGORY];    // 系统可提供给进程继续运行所需的各类资源数目
-        boolean[] Finish = new boolean[PROCESS_NUM]; //它表示系统是否有足够的资源分配给进程，使之运行完成
-        int[] Rest = new int[PROCESS_NUM];
-        int[] Mutex = new int[]{1, 1, 2};
-
-        private void P(int resource) {
-            this.Mutex[resource]--;
+        void initSafeSeries() {
+            Arrays.fill(safeSeries, 0);
         }
 
-        private void V(int resource) {
-            this.Mutex[resource]++;
+        int[] Available = new int[]{1, 1, 2};                         // 各资源当前可申请数目
+        int[][] Max = new int[PROCESS_NUM][RESOURCE_NUM];        // 最大需求矩阵
+        int[][] Allocation = new int[PROCESS_NUM][RESOURCE_NUM]; // 已分配矩阵
+        int[][] Need = new int[PROCESS_NUM][RESOURCE_NUM];       // 需求矩阵
+        boolean[] Finish = new boolean[PROCESS_NUM]; //它表示系统是否有足够的资源分配给进程，使之运行完成
+        int[] safeSeries = new int[PROCESS_NUM];
+        int[][] Request = new int[PROCESS_NUM][RESOURCE_NUM];    // 资源请求矩阵
+        int[] Work = new int[RESOURCE_NUM];    // 系统可提供给进程继续运行所需的各类资源数目
+        int[] Rest = new int[PROCESS_NUM];
+
+        void display() {
+            System.out.println("当前系统各类资源剩余: ");
+            for (int i = 0; i < RESOURCE_NUM; i++) {
+                System.out.print(String.format("%d\t", Available[i]));
+            }
+            System.out.println("\n");
+            System.out.println("PID\t\tMAX\t\tAllocation\tNeed\n");
+            for (int i = 0; i < PROCESS_NUM; i++) {
+                System.out.print(String.format("P%d\t\t", i));
+                for (int j = 0; j < RESOURCE_NUM; j++) {
+                    System.out.print(String.format("%d ", Max[i][j]));
+                }
+                System.out.print("\t");
+                for (int j = 0; j < RESOURCE_NUM; j++) {
+                    System.out.print(String.format("%d ", Allocation[i][j]));
+                }
+                System.out.print("\t");
+                for (int j = 0; j < RESOURCE_NUM; j++) {
+                    System.out.print(String.format("%d ", Need[i][j]));
+                }
+                System.out.println("\n");
+            }
+            System.out.println("\n");
         }
     }
 
-    public void makeApplyRequest(PCB pcb, int resource, int num) {
+    private void makeApplyRequest(PCB pcb, int resource, int num) {
+        System.out.print(String.format("进程：%d,申请资源:%d, %d个\n", pcb.getID(), resource, num));
         banker.Request[pcb.getID()][resource] = num;
     }
 
     public void applyResource(PCB pcb, int resource, int num) {
-        //todo 银行家算法实现
+        banker.display();
+        this.makeApplyRequest(pcb, resource, num);
         //0 比较request与need，如果超过need，则出错，需求资源数已超过最大申请
         int requestNum = banker.Request[pcb.getID()][resource];
         int needNum = banker.Need[pcb.getID()][resource];
@@ -120,13 +152,19 @@ public class DeadLock {
             banker.Available = availableCopy;
             banker.Need = needCopy;
             banker.Request = requestCopy;
+            System.out.println("成功分配");
+            banker.display();
+            return;
         }
         //todo 不通过分配
         // 进程等待分配
+        banker.display();
+        System.out.println("failed...");
     }
 
     // 试探性分配
     public boolean attemptAllot(int pid, int rid, int[] available, int[][] request, int[][] allot, int[][] need) {
+        System.out.println(String.format("已尝试给进程:%d,分配资源%d", pid, rid));
         allot[pid][rid] += request[pid][rid];
         available[rid] -= request[pid][rid];
         need[pid][rid] -= request[pid][rid];
@@ -138,15 +176,15 @@ public class DeadLock {
         boolean find = false;
         for (int i = 0; i < PROCESS_NUM; i++) {
             int p = banker.Rest[i];
-            if (need[p][rid] <= banker.Work[p]) {
+            if (need[p][rid] <= banker.Work[rid]) {
                 // 释放pi占用的资源
                 banker.Work[rid] += allot[p][rid];
                 banker.Rest[p] = -1;
                 find = true;
             }
         }
-        if(find){
-            banker.Finish[pid]=false;
+        if (find) {
+            banker.Finish[pid] = false;
             //todo 停止算法
         }
         for (int i = 0; i < banker.Rest.length; i++) {
@@ -157,13 +195,37 @@ public class DeadLock {
         return true;
     }
 
-    public void Run() {
-        new Thread(new Detect()).start();
+    // 释放pcb所占用资源
+    public void releasePCBResource(PCB pcb) {
+        // 从资源阻塞队列中移除被阻塞进程
+        for (int i = 0; i < RESOURCE_NUM; i++) {
+            if (ProcessManager.pm.queueManager.resourceBlockQueue.get(i).contains(pcb)) {
+                ProcessManager.pm.queueManager.resourceBlockQueue.get(i).remove(pcb);
+                banker.Request[pcb.getID()][i] = 0;
+            }
+        }
+        // 释放此进程占用的资源
+        for (int i = 0; i < RESOURCE_NUM; i++) {
+            if (banker.Allocation[pcb.getID()][i] > 0) {
+                int num = banker.Allocation[pcb.getID()][i];
+                banker.Available[i] += num;
+                banker.Allocation[pcb.getID()][i] = 0;
+                Log.Info("死锁检测--释放资源", String.format("成功释放进程:%d，所占用的资源类型:%d，资源数目:%d", pcb.getID(), i, num));
+                //todo 唤醒被阻塞的资源
+                notifyPCB(i);
+            }
+        }
     }
 
-    public class Detect extends Thread {
-        public void run() {
-            //todo 资源的死锁检测
+    // 唤醒被资源类型为rid所阻塞的进程
+    void notifyPCB(int rid) {
+        ArrayList<PCB> blockQueue = ProcessManager.pm.queueManager.resourceBlockQueue.get(rid);
+        for (PCB p : blockQueue) {
+            // 从阻塞队列中移除
+            if (ProcessManager.pm.queueManager.removeFromResourceBlockQueue(p, rid)) {
+                // 加入就绪队列
+                ProcessManager.pm.queueManager.joinReadQueue(p);
+            }
         }
     }
 }

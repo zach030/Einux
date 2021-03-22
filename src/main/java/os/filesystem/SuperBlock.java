@@ -4,6 +4,11 @@ public class SuperBlock implements BlockZone {
     int blockNo;
     Block block;
 
+    int inodeNum;            // inode数量
+    int availableInodeNum;   // 可用inode数
+    int blockNum;            // 块数
+    int availableBlockNum;   // 可用块数
+
     SuperBlock(int blockNo) {
         this.blockNo = blockNo;
         initZoneBlocks();

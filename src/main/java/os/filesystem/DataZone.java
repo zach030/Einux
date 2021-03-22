@@ -6,7 +6,7 @@ public class DataZone implements BlockZone {
     int startBlockNo;
     int zoneSize;
     ArrayList<Block> blocks;
-
+    //todo 数据区存放的是目录项或文件数据
     DataZone(int start, int size) {
         this.startBlockNo = start;
         this.zoneSize = size;

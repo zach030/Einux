@@ -140,6 +140,11 @@ public class ProcessManager {
             this.resourceBlockQueue.get(resource).add(pcb);
         }
 
+        // 移出资源阻塞队列
+        synchronized public boolean removeFromResourceBlockQueue(PCB pcb, int resource) {
+            return this.resourceBlockQueue.get(resource).remove(pcb);
+        }
+
         // 加入缓冲区阻塞队列
         synchronized public void joinBufferBlockQueue(PCB pcb, int devNo) {
             this.bufferBlockQueue.get(devNo).add(pcb);
@@ -219,6 +224,8 @@ public class ProcessManager {
             queueManager.removeFromAllQueue(pcb);
             // 加入完成队列
             queueManager.finishQueue.add(pcb);
+            // 释放资源
+            DeadLock.deadLock.releasePCBResource(pcb);
         }
 
         // 唤醒进程
