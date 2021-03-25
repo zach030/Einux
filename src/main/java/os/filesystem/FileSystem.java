@@ -1,6 +1,8 @@
 package os.filesystem;
 
 import disk.DevConfig;
+import hardware.memory.Memory;
+import utils.SysConst;
 
 public class FileSystem implements VFS {
     public static FileSystem fs = new FileSystem();
@@ -21,6 +23,17 @@ public class FileSystem implements VFS {
 
     public static final int MAX_INODE_NUM = INODE_ZONE_SIZE * DevConfig.BLOCK_SIZE / Inode.INODE_SIZE;
 
+    Inode root;   // 根目录
+    Inode pwd;    // 当前目录
+    Inode parent; // 父目录
+
+    // 内存活动inode
+    Inode[] activeINodeList = new Inode[Memory.memory.getBufferPool().getActiveInodeNum()];          // 内存缓冲区存放的活动inode
+    // 磁盘inode
+    Inode[] diskInodeList = new Inode[MAX_INODE_NUM];
+    // 系统打开文件表
+    SysFile[] sysOpenSysFileTable = new SysFile[]{};
+
     SuperBlock superBlock;      //磁盘超级块
     InodeMapZone inodeMapZone;  //inode位示图区
     DataMapZone dataMapZone;    //数据块位示图区
@@ -30,6 +43,7 @@ public class FileSystem implements VFS {
     SwapZone swapZone;          //交换区
 
     public FileSystem() {
+        initInodeList();
         initSuperBlock();
         initInodeMapZone();
         initDataMapZone();
@@ -37,11 +51,32 @@ public class FileSystem implements VFS {
         initDataZone();
         initJCBZone();
         initSwapZone();
+        initRootDir();
     }
 
-    //----------初始化磁盘各分区---------------
+    //----------初始化文件系统---------------
+    void initInodeList() {
+        for (int i = 0; i < activeINodeList.length; i++) {
+            activeINodeList[i] = new Inode();
+        }
+        for (int i = 0; i < diskInodeList.length; i++) {
+            diskInodeList[i] = new Inode();
+        }
+    }
+
+    void initRootDir() {
+        root = allocInode(SysConst.DEFAULT_DISK);
+        root.setFileType(Inode.FileType.DIR);
+        root.setAuthority(Inode.Authority.READ, Inode.Authority.WRITE, Inode.Authority.EXEC);
+        pwd = root;
+    }
+
     void initSuperBlock() {
         superBlock = new SuperBlock(SUPER_BLOCK_INDEX);
+        //todo 应该从磁盘中读
+        superBlock.setAvailableInodeNum(MAX_INODE_NUM);   // 初始化可用inode数目
+        superBlock.setBlockNum(DATA_ZONE_SIZE);           // 设置数据块大小
+        superBlock.setAvailableBlockNum(DATA_ZONE_SIZE);  // 设置可用磁盘块数目
     }
 
     void initInodeMapZone() {
@@ -67,6 +102,44 @@ public class FileSystem implements VFS {
     void initSwapZone() {
         swapZone = new SwapZone(SWAP_ZONE_INDEX, SWAP_ZONE_SIZE);
     }
+
+    //--------------------文件系统API------------------
+    public Inode getInodeByPath(String path) {
+        //0 根目录
+        if (path.equals("/")) {
+            return getInodeByNo(SysConst.DEFAULT_DISK, 0);
+        }
+        return null;
+    }
+
+    public Inode getInodeByNo(int devNo, int inodeNo) {
+        Inode newInode = null;
+        for (int i = 0; i < activeINodeList.length; i++) {
+            // 如果找到，返回内存活动inode
+            if (activeINodeList[i].devNo == devNo && activeINodeList[i].inodeNo == inodeNo) {
+                activeINodeList[i].referCnt++;
+                return activeINodeList[i];
+            }
+            //
+            if (newInode == null && activeINodeList[i].referCnt == 0) {
+                newInode = activeINodeList[i];
+            }
+        }
+        return null;
+    }
+
+    // 分配inode，即分配块设备中inode区域的未分配inode以及活动inode表里的inode
+    public Inode allocInode(int devNo) {
+        if (superBlock.availableInodeNum > 0) {
+            int freeInodeNo = superBlock.getFreeInode();
+            if (freeInodeNo == -1) {
+                // todo not-found
+            }
+            return getInodeByNo(devNo, freeInodeNo);
+        }
+        return null;
+    }
+
 
     //---------------------磁盘的读写API---------------
     // 15块号 + 9块内偏移
@@ -120,25 +193,5 @@ public class FileSystem implements VFS {
         } else {
             return null;
         }
-    }
-
-    @Override
-    public void createFile() {
-
-    }
-
-    @Override
-    public void openFile() {
-
-    }
-
-    @Override
-    public void readFile() {
-
-    }
-
-    @Override
-    public void deleteFile() {
-
     }
 }

@@ -1,5 +1,6 @@
 package hardware.memory;
 
+import os.filesystem.Inode;
 import utils.SysConst;
 
 import java.util.LinkedList;
@@ -10,8 +11,7 @@ public class BufferPool implements MemoryZone {
     int size;
     Page[] pages;
     int activeInodeZonePages = 2;            // 分配缓冲区的前两页给内存的活动inode
-    int activeInodeSize = 32;                // 活动inode大小 32B
-    int activeInodeNum = 2 * SysConst.PAGE_FRAME_SIZE / activeInodeSize; //总共的活动inode数
+    int activeInodeNum = 2 * SysConst.PAGE_FRAME_SIZE / Inode.INODE_SIZE; //总共的活动inode数
 
     public BufferPool() {
         index = Memory.BUFFER_START;

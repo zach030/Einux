@@ -4,6 +4,7 @@ import hardware.CPU;
 import hardware.Clock;
 import hardware.memory.Page;
 import hardware.memory.Memory;
+import os.filesystem.SysFile;
 import os.job.JCB;
 
 import java.util.ArrayList;
@@ -61,12 +62,14 @@ public class PCB {
     static final int DATA_SEG_NO = 1;  //数据段段号
     static final int CODE_SEG_NO = 2;  //代码段段号
     static final int STACK_SEG_NO = 3; //栈段段号
+    //---------用户打开文件表-----------------------
+    SysFile[] userOpenFileTable = new SysFile[]{};
 
     public PCB() {
         this.setTimeSlice();
     }
 
-    public PCB(int id){
+    public PCB(int id) {
         this.setID(id);
         this.setTimeSlice();
     }
@@ -188,15 +191,15 @@ public class PCB {
         this.pcbHasPages.add(page);
     }
 
-    public void freePCBPage(){
+    public void freePCBPage() {
         Page page = this.pcbHasPages.get(0);
         page.clearPage();
         page.syncPage();
     }
 
     //----------------进程时间操作-------------
-    public int getCurrentPageNumOfIR(){
-        return PC/64 + codeLogicalPageNo;
+    public int getCurrentPageNumOfIR() {
+        return PC / 64 + codeLogicalPageNo;
     }
 
     public void subTimeSlice() {

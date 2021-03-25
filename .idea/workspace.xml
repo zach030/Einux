@@ -2,22 +2,17 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="c0bfff17-3919-431a-87e2-290f6591f1c4" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/log/debug.log.2021-03-21" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/log/error.log.2021-03-21" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/Inode.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/java/os/process/DeadLockTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/Directory.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/SysFile.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/os/systemcall/SystemCall.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/os/filesystem/DataMapZone.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/DataMapZone.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/os/filesystem/DataZone.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/DataZone.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/hardware/memory/BufferPool.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hardware/memory/BufferPool.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/os/filesystem/FileSystem.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/FileSystem.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/os/filesystem/InodeMapZone.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/InodeMapZone.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/os/filesystem/InodeZone.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/InodeZone.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/filesystem/Inode.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/Inode.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/os/filesystem/SuperBlock.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/SuperBlock.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/os/filesystem/VFS.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/VFS.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/os/process/DeadLock.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/process/DeadLock.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/os/process/PCB.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/process/PCB.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/os/process/ProcessManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/process/ProcessManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/os/schedule/Execute.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/schedule/Execute.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/os/filesystem/FileSystemTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/os/filesystem/SysFileSystemTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -108,19 +103,16 @@
       <recent name="D:\AllProjects\Java\Einux\src\main\java\disk" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.DeadLockTest.applyResource">
-    <configuration name="ConfigTest.resolve" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="Application.ConsoleTest">
+    <configuration name="ConsoleTest" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="ui.ConsoleTest" />
       <module name="Einux" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="config.*" />
+          <option name="PATTERN" value="ui.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
-      <option name="PACKAGE_NAME" value="config" />
-      <option name="MAIN_CLASS_NAME" value="config.ConfigTest" />
-      <option name="METHOD_NAME" value="resolve" />
-      <option name="TEST_OBJECT" value="method" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -191,8 +183,8 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.ConsoleTest" />
         <item itemvalue="JUnit.DeadLockTest.applyResource" />
-        <item itemvalue="JUnit.ResolveConfigTest.resolve" />
         <item itemvalue="JUnit.ScheduleTest.run" />
         <item itemvalue="JUnit.SolutionTest.moveZeroes" />
         <item itemvalue="JUnit.SolutionTest.reverseList" />
@@ -220,7 +212,9 @@
       <workItem from="1615189192071" duration="60979000" />
       <workItem from="1615379325620" duration="5571000" />
       <workItem from="1616088317315" duration="823000" />
-      <workItem from="1616215615752" duration="24894000" />
+      <workItem from="1616215615752" duration="27141000" />
+      <workItem from="1616637621051" duration="9000" />
+      <workItem from="1616671047243" duration="7837000" />
     </task>
     <servers />
   </component>
@@ -252,20 +246,20 @@
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state x="297" y="131" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1280.689@0.0.1280.689" timestamp="1615213693979" />
-    <state x="402" y="0" key="#com.intellij.ide.util.MemberChooser" timestamp="1616425316255">
+    <state x="402" y="0" key="#com.intellij.ide.util.MemberChooser" timestamp="1616685144949">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state x="402" y="0" key="#com.intellij.ide.util.MemberChooser/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1616297779196" />
-    <state x="402" y="0" key="#com.intellij.ide.util.MemberChooser/0.0.1280.689@0.0.1280.689" timestamp="1616425316255" />
+    <state x="402" y="0" key="#com.intellij.ide.util.MemberChooser/0.0.1280.689@0.0.1280.689" timestamp="1616685144949" />
     <state x="388" y="180" width="505" height="342" key="#com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesDialog.classes" timestamp="1616426034293">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state x="388" y="180" width="505" height="342" key="#com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesDialog.classes/0.0.1280.689@0.0.1280.689" timestamp="1616426034293" />
-    <state x="0" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog" timestamp="1616299377691">
+    <state x="0" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog" timestamp="1616673108644">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state x="0" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1616299377691" />
-    <state x="0" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog/0.0.1280.689@0.0.1280.689" timestamp="1615132664654" />
+    <state x="0" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog/0.0.1280.689@0.0.1280.689" timestamp="1616673108644" />
     <state x="309" y="34" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog" timestamp="1615096636943">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
@@ -296,30 +290,30 @@
     <state x="345" y="16" key="FileChooserDialogImpl/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1615347862373" />
     <state x="345" y="27" key="FileChooserDialogImpl/0.0.1280.689@0.0.1280.689" timestamp="1614950984624" />
     <state x="518" y="42" key="FileChooserDialogImpl/0.0.1920.1080@0.0.1920.1080" timestamp="1614946090690" />
-    <state width="1227" height="401" key="GridCell.Tab.0.bottom" timestamp="1616422834889">
+    <state width="1227" height="401" key="GridCell.Tab.0.bottom" timestamp="1616671182209">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state width="1227" height="265" key="GridCell.Tab.0.bottom/0.0.1280.689/-1920.0.1280.689@-1920.0.1280.689" timestamp="1615377971549" />
     <state width="1227" height="269" key="GridCell.Tab.0.bottom/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1616298898200" />
-    <state width="1227" height="401" key="GridCell.Tab.0.bottom/0.0.1280.689@0.0.1280.689" timestamp="1616422834889" />
-    <state width="1227" height="401" key="GridCell.Tab.0.center" timestamp="1616422834887">
+    <state width="1227" height="401" key="GridCell.Tab.0.bottom/0.0.1280.689@0.0.1280.689" timestamp="1616671182209" />
+    <state width="1227" height="401" key="GridCell.Tab.0.center" timestamp="1616671182209">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state width="1227" height="265" key="GridCell.Tab.0.center/0.0.1280.689/-1920.0.1280.689@-1920.0.1280.689" timestamp="1615377971549" />
     <state width="1227" height="269" key="GridCell.Tab.0.center/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1616298898200" />
-    <state width="1227" height="401" key="GridCell.Tab.0.center/0.0.1280.689@0.0.1280.689" timestamp="1616422834887" />
-    <state width="1227" height="401" key="GridCell.Tab.0.left" timestamp="1616422834885">
+    <state width="1227" height="401" key="GridCell.Tab.0.center/0.0.1280.689@0.0.1280.689" timestamp="1616671182209" />
+    <state width="1227" height="401" key="GridCell.Tab.0.left" timestamp="1616671182208">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state width="1227" height="265" key="GridCell.Tab.0.left/0.0.1280.689/-1920.0.1280.689@-1920.0.1280.689" timestamp="1615377971549" />
     <state width="1227" height="269" key="GridCell.Tab.0.left/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1616298898200" />
-    <state width="1227" height="401" key="GridCell.Tab.0.left/0.0.1280.689@0.0.1280.689" timestamp="1616422834885" />
-    <state width="1227" height="401" key="GridCell.Tab.0.right" timestamp="1616422834888">
+    <state width="1227" height="401" key="GridCell.Tab.0.left/0.0.1280.689@0.0.1280.689" timestamp="1616671182208" />
+    <state width="1227" height="401" key="GridCell.Tab.0.right" timestamp="1616671182209">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
     <state width="1227" height="265" key="GridCell.Tab.0.right/0.0.1280.689/-1920.0.1280.689@-1920.0.1280.689" timestamp="1615377971549" />
     <state width="1227" height="269" key="GridCell.Tab.0.right/0.0.1280.689/-1920.0.1280.689@0.0.1280.689" timestamp="1616298898200" />
-    <state width="1227" height="401" key="GridCell.Tab.0.right/0.0.1280.689@0.0.1280.689" timestamp="1616422834888" />
+    <state width="1227" height="401" key="GridCell.Tab.0.right/0.0.1280.689@0.0.1280.689" timestamp="1616671182209" />
     <state width="1227" height="392" key="GridCell.Tab.1.bottom" timestamp="1616422326001">
       <screen x="0" y="0" width="1280" height="689" />
     </state>
@@ -356,6 +350,10 @@
     <state x="0" y="0" key="SettingsEditor/0.0.1280.720@0.0.1280.720" timestamp="1614945010427" />
     <state x="0" y="0" key="SettingsEditor/0.0.1536.864@0.0.1536.864" timestamp="1614945081229" />
     <state x="262" y="16" key="SettingsEditor/0.0.1920.1080@0.0.1920.1080" timestamp="1614946657916" />
+    <state x="401" y="243" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1616684007573">
+      <screen x="0" y="0" width="1280" height="689" />
+    </state>
+    <state x="401" y="243" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.0.1280.689@0.0.1280.689" timestamp="1616684007573" />
     <state x="410" y="0" key="com.intellij.testIntegration.createTest.CreateTestDialog" timestamp="1616373986331">
       <screen x="0" y="0" width="1280" height="689" />
     </state>

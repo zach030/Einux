@@ -1,11 +1,15 @@
 package os.filesystem;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 public class SuperBlock implements BlockZone {
     int blockNo;
     Block block;
 
-    int inodeNum;            // inode数量
-    int availableInodeNum;   // 可用inode数
+    ArrayList<Integer> freeInode;   // 空闲inode列表
+    boolean[] inodeBitMap;
+    int availableInodeNum;                            // 可用inode数
     int blockNum;            // 块数
     int availableBlockNum;   // 可用块数
 
@@ -43,5 +47,74 @@ public class SuperBlock implements BlockZone {
 
     public void initZoneBlocks() {
         this.block = new Block(blockNo);
+    }
+
+    synchronized public void modifyBitMap(int no, boolean status) {
+        this.inodeBitMap[no] = status;
+    }
+
+    //todo
+    public int getFreeInode() {
+        if (availableInodeNum > 0) {
+            // 从空闲inode链表中取头一个
+            int nodeNo = freeInode.get(0);
+            // 分配磁盘inode
+            return allocInode(nodeNo);
+        }
+        return -1;
+    }
+
+    // 分配磁盘inode的原子操作
+    public int allocInode(int no){
+        modifyBitMap(no,true);
+        this.availableInodeNum--;
+        return no;
+    }
+
+    public int getBlockNo() {
+        return blockNo;
+    }
+
+    public void setBlockNo(int blockNo) {
+        this.blockNo = blockNo;
+    }
+
+    public Block getBlock() {
+        return block;
+    }
+
+    public void setBlock(Block block) {
+        this.block = block;
+    }
+
+    public int getAvailableInodeNum() {
+        return availableInodeNum;
+    }
+
+    public void setAvailableInodeNum(int availableInodeNum) {
+        // 设置位示图
+        Arrays.fill(inodeBitMap, false);
+        // 设置空闲inode链表
+        freeInode = new ArrayList<>(availableInodeNum);
+        for (int i = 0; i < availableInodeNum; i++) {
+            freeInode.add(i);
+        }
+        this.availableInodeNum = availableInodeNum;
+    }
+
+    public int getBlockNum() {
+        return blockNum;
+    }
+
+    public void setBlockNum(int blockNum) {
+        this.blockNum = blockNum;
+    }
+
+    public int getAvailableBlockNum() {
+        return availableBlockNum;
+    }
+
+    public void setAvailableBlockNum(int availableBlockNum) {
+        this.availableBlockNum = availableBlockNum;
     }
 }
