@@ -2,17 +2,14 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="c0bfff17-3919-431a-87e2-290f6591f1c4" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/Directory.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/SysFile.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/os/systemcall/SystemCall.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/os/job/Program.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/hardware/memory/BufferPool.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/hardware/memory/BufferPool.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/filesystem/Directory.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/Directory.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/os/filesystem/FileSystem.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/FileSystem.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/os/filesystem/Inode.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/Inode.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/os/filesystem/SuperBlock.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/SuperBlock.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/os/filesystem/VFS.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/VFS.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/filesystem/SysFile.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/filesystem/SysFile.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/os/process/PCB.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/process/PCB.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/os/filesystem/FileSystemTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/os/filesystem/SysFileSystemTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/os/systemcall/SystemCall.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/os/systemcall/SystemCall.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -214,7 +211,7 @@
       <workItem from="1616088317315" duration="823000" />
       <workItem from="1616215615752" duration="27141000" />
       <workItem from="1616637621051" duration="9000" />
-      <workItem from="1616671047243" duration="7837000" />
+      <workItem from="1616671047243" duration="10995000" />
     </task>
     <servers />
   </component>

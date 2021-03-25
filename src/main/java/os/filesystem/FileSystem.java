@@ -4,6 +4,7 @@ import disk.DevConfig;
 import hardware.memory.Memory;
 import utils.SysConst;
 
+// todo 将文件系统与磁盘拆分
 public class FileSystem implements VFS {
     public static FileSystem fs = new FileSystem();
 
@@ -32,7 +33,7 @@ public class FileSystem implements VFS {
     // 磁盘inode
     Inode[] diskInodeList = new Inode[MAX_INODE_NUM];
     // 系统打开文件表
-    SysFile[] sysOpenSysFileTable = new SysFile[]{};
+    SysFile[] sysOpenFileTable = new SysFile[Memory.memory.getBufferPool().getActiveInodeNum()];
 
     SuperBlock superBlock;      //磁盘超级块
     InodeMapZone inodeMapZone;  //inode位示图区
@@ -43,7 +44,6 @@ public class FileSystem implements VFS {
     SwapZone swapZone;          //交换区
 
     public FileSystem() {
-        initInodeList();
         initSuperBlock();
         initInodeMapZone();
         initDataMapZone();
@@ -51,7 +51,10 @@ public class FileSystem implements VFS {
         initDataZone();
         initJCBZone();
         initSwapZone();
+
+        initInodeList();
         initRootDir();
+        initSysFileOpenTable();
     }
 
     //----------初始化文件系统---------------
@@ -69,6 +72,12 @@ public class FileSystem implements VFS {
         root.setFileType(Inode.FileType.DIR);
         root.setAuthority(Inode.Authority.READ, Inode.Authority.WRITE, Inode.Authority.EXEC);
         pwd = root;
+    }
+
+    void initSysFileOpenTable() {
+        for (SysFile sysFile : sysOpenFileTable) {
+            sysFile.count = 0;
+        }
     }
 
     void initSuperBlock() {
@@ -104,7 +113,7 @@ public class FileSystem implements VFS {
     }
 
     //--------------------文件系统API------------------
-    public Inode getInodeByPath(String path) {
+    public Inode nameI(String path,int mode) {
         //0 根目录
         if (path.equals("/")) {
             return getInodeByNo(SysConst.DEFAULT_DISK, 0);
@@ -140,6 +149,16 @@ public class FileSystem implements VFS {
         return null;
     }
 
+    // 为inode分配系统打开文件表
+    public int allocSysFileOpenTable(Inode inode) {
+        for (int i = 0; i < sysOpenFileTable.length; i++) {
+            if (sysOpenFileTable[i].count == 0) {
+                sysOpenFileTable[i].setInode(inode);
+                return i;
+            }
+        }
+        return -1;
+    }
 
     //---------------------磁盘的读写API---------------
     // 15块号 + 9块内偏移

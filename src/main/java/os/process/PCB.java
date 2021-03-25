@@ -8,6 +8,7 @@ import os.filesystem.SysFile;
 import os.job.JCB;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class PCB {
     //----------进程基本信息--------------------------
@@ -63,10 +64,12 @@ public class PCB {
     static final int CODE_SEG_NO = 2;  //代码段段号
     static final int STACK_SEG_NO = 3; //栈段段号
     //---------用户打开文件表-----------------------
-    SysFile[] userOpenFileTable = new SysFile[]{};
+    public static int USER_MAX_FILE_NUM = 20;
+    int[] userOpenFileTable = new int[]{USER_MAX_FILE_NUM};
 
     public PCB() {
         this.setTimeSlice();
+        initUserOpenFileTable();
     }
 
     public PCB(int id) {
@@ -137,7 +140,7 @@ public class PCB {
         this.stackSegPageNums = stackSeg.getPageNums();
     }
 
-    //----------------------初始化进程内外页表表----------------
+    //----------------------初始化进程页表表----------------
     // 初始化进程页表
     void initPageTable(int[] blockNo) {
         internalPageTable = new PageTableEntry[pageNums];
@@ -195,6 +198,20 @@ public class PCB {
         Page page = this.pcbHasPages.get(0);
         page.clearPage();
         page.syncPage();
+    }
+
+    public void initUserOpenFileTable() {
+        Arrays.fill(userOpenFileTable, -1);
+    }
+
+    public int addUserOpenFileTable(int sysFd) {
+        for (int i = 0; i < userOpenFileTable.length; i++) {
+            if (userOpenFileTable[i] != -1) {
+                userOpenFileTable[i] = sysFd;
+                return i;
+            }
+        }
+        return -1;
     }
 
     //----------------进程时间操作-------------

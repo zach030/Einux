@@ -1,5 +1,8 @@
 package os.filesystem;
 
+import hardware.CPU;
+import utils.SysConst;
+
 import java.util.ArrayList;
 
 public class Inode {
@@ -17,6 +20,9 @@ public class Inode {
     public Inode() {
         this.directories = new ArrayList<>();
         this.dataBlocks = new ArrayList<>();
+        this.hardLink = 1;
+        this.devNo = SysConst.DEFAULT_DISK;
+        this.createTime = CPU.cpu.clock.getCurrentTime();
     }
 
     int inodeNo;
@@ -24,12 +30,12 @@ public class Inode {
     ArrayList<Integer> dataBlocks;
     ArrayList<Directory> directories;   // 目录项
     int referCnt;                       // 引用数
+    int hardLink;                       // 硬链接
     int fileSize;                       // 文件大小
     int createTime;                     // 创建时间
     int updateTime;                     // 更新时间
     int authority;       // 文件权限
     int blockIndex;      // 所在数据块
-    int filenameLength;  // 文件名大小
     FileType fileType;        // 文件类型
 
     public FileType getFileType() {
@@ -57,4 +63,18 @@ public class Inode {
         }
         this.authority = auth;
     }
+
+    public boolean canRead() {
+        return this.authority == 4 || this.authority == 5 || this.authority == 6 || this.authority == 7;
+    }
+
+    public boolean canWrite() {
+        //todo 可写就一定可读? right?
+        return this.authority == 6 || this.authority == 7;
+    }
+
+    public boolean canExec() {
+        return this.authority == 1 || this.authority == 7 || this.authority == 6 || this.authority == 3;
+    }
+
 }
