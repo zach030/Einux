@@ -441,7 +441,7 @@ public class StorageManager {
             }
             // 将块号blockNo的数据写入pageFrameNo的页内
             // 根据块号查到物理块
-            Block block = FileSystem.fs.getCurrentBootDisk().getBlockInDisk(blockNo);
+            Block block = FileSystem.getCurrentBootDisk().getBlockInDisk(blockNo);
             //todo 加内存缓冲区处理，不是直接从磁盘写到内存
             // 转化为内存页
             Page page = Transfer.transfer.transferBlockToPage(block, virtualPageNo, pageFrameNo);
@@ -460,7 +460,7 @@ public class StorageManager {
 
         public void writeDiskToBuffer(int blockNo, int logicalNo, int frameNo) {
             // 读出磁盘块
-            Block block = FileSystem.fs.getCurrentBootDisk().getBlockInDisk(blockNo);
+            Block block = FileSystem.getCurrentBootDisk().getBlockInDisk(blockNo);
             Page page = Transfer.transfer.transferBlockToPage(block, logicalNo, frameNo);
             page.syncPage();
         }
@@ -474,7 +474,7 @@ public class StorageManager {
 
         // 向磁盘内写入一块
         public void writeBlockToDisk(Block block) {
-            FileSystem.fs.getCurrentBootDisk().writeBlock(block);
+            FileSystem.getCurrentBootDisk().writeBlock(block);
         }
 
         // 向缓冲区数据写入磁盘

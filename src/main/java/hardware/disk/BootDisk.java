@@ -3,7 +3,7 @@ package hardware.disk;
 import disk.DevConfig;
 import disk.DiskHelper;
 import disk.RealBlock;
-import os.filesystem.Inode;
+import os.filesystem.DiskInode;
 import utils.Log;
 
 public class BootDisk implements disk.BootDisk {
@@ -22,7 +22,7 @@ public class BootDisk implements disk.BootDisk {
     public static final int JCB_ZONE_SIZE = 256;                // jcb区大小
     public static final int SWAP_ZONE_INDEX = 20224;            // 交换区下标
     public static final int SWAP_ZONE_SIZE = 256;               // 交换区大小
-    public static final int DISK_MAX_INODE_NUM = INODE_ZONE_SIZE * DevConfig.BLOCK_SIZE / Inode.INODE_SIZE;
+    public static final int DISK_MAX_INODE_NUM = INODE_ZONE_SIZE * DevConfig.BLOCK_SIZE / DiskInode.INODE_SIZE;
     static final int OTHER_BLOCK_NUM = 20479;
 
     //-----------------------错误常量-------------------

@@ -1,15 +1,26 @@
 package hardware.disk;
 
-import os.filesystem.FileSystem;
+import java.util.Arrays;
 
 public class InodeMapZone implements BlockZone {
+
     int blockNo;
     Block block;
     boolean[] inodeBitMap = new boolean[BootDisk.DISK_MAX_INODE_NUM];
 
     InodeMapZone(int blockNo) {
         this.blockNo = blockNo;
+        inodeBitMap = new boolean[BootDisk.DISK_MAX_INODE_NUM];
         initZoneBlocks();
+        initInodeBitMap();
+    }
+
+    public void initInodeBitMap(){
+        Arrays.fill(inodeBitMap,false);
+    }
+
+    synchronized public void modifyBitMap(int no, boolean status) {
+        this.inodeBitMap[no] = status;
     }
 
     void scanDisk(){

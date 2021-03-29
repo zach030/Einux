@@ -4,8 +4,8 @@ public class MemoryInode extends DiskInode {
     public int devNo;            // 设备编号
     public int referenceCount;      // 引用计数
 
-    public MemoryInode(int inodeNo) {
-        super(inodeNo);
+    public MemoryInode(int inodeNo,int blockNo) {
+        super(inodeNo,blockNo);
     }
 
     // todo 查找目录项，把每个目录项加入内存
@@ -16,12 +16,5 @@ public class MemoryInode extends DiskInode {
             }
         }
         return -1;
-    }
-    /**
-        * @description: 从内存移到磁盘
-        * @author: zach
-     **/
-    public void freeInodeFromMemory(){
-
     }
 }

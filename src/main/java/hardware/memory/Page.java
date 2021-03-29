@@ -21,6 +21,10 @@ public class Page {
         this.stay = stay;
     }
 
+    public Page(int frameNo){
+        this.frameNo = frameNo;
+    }
+
     int R; //引用位，被访问则置1
 
     // clock-mmu refer page

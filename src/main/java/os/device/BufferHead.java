@@ -1,5 +1,6 @@
 package os.device;
 
+import hardware.memory.Memory;
 import os.process.PCB;
 
 import java.util.ArrayList;
@@ -57,11 +58,19 @@ public class BufferHead {
         return blockWaitBufferQueue;
     }
 
+    /**
+        * @description: 将因争夺此缓冲区而阻塞的进程加入队列
+        * @author: zach
+     **/
     synchronized public void blockPCBToThis(PCB pcb) {
         pcb.setBufferNo(this.getBufferNo());
         this.blockWaitBufferQueue.add(pcb);
     }
 
+    /**
+        * @description: 当此缓冲区头部释放时,返回被阻塞的进程列表
+        * @author: zach
+     **/
     synchronized public ArrayList<PCB> wakePCBToThis() {
         ArrayList<PCB> allBlockPCB = this.blockWaitBufferQueue;
         this.blockWaitBufferQueue.clear();

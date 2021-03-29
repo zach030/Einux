@@ -19,7 +19,7 @@ public class DeviceManager {
     public static final int LACK_FREE_BUFFER = -1;
     public static final int BH_EMPTY = 0;    // 空闲缓冲块
     public static final int BH_BUSY = 1;     // 表示缓冲区正使用，无第三方申请
-    public static final int BH_UPDATE = 4;   // 缓冲区数据最新
+    public static final int BH_UPDATE = 4;   // 缓冲区数据与磁盘保持一致
 
     //----------成员-----------------
     public BufferQueueManager bufferQueueManager;
@@ -37,6 +37,10 @@ public class DeviceManager {
         // 一个设备对应一个list
         ArrayList<ArrayList<BufferHead>> hashQueue = new ArrayList<>();  // 已分配缓冲区
 
+        /**
+         * @description: 将缓冲区头部加入空闲队列
+         * @author: zach
+         **/
         synchronized public void joinFreeQueue(BufferHead bufferHead) {
             freeQueue.add(bufferHead);
         }
@@ -45,14 +49,26 @@ public class DeviceManager {
             return freeQueue.isEmpty();
         }
 
-        synchronized public void joinAllottedQueue(int index, BufferHead bh) {
-            hashQueue.get(index).add(bh);
+        /**
+         * @description: 某设备获得缓冲区头部后, 加入此设备的缓冲区散列队列
+         * @author: zach
+         **/
+        synchronized public void joinAllottedQueue(int devNo, BufferHead bh) {
+            hashQueue.get(devNo).add(bh);
         }
 
+        /**
+         * @description: 获取此设备的缓冲区散列队列
+         * @author: zach
+         **/
         synchronized public ArrayList<BufferHead> getDevAllottedBhQueue(int devNo) {
             return hashQueue.get(devNo);
         }
 
+        /**
+         * @description: 申请一个空闲缓冲区
+         * @author: zach
+         **/
         synchronized public BufferHead getFreeBh() {
             return freeQueue.remove(0);
         }
@@ -63,7 +79,10 @@ public class DeviceManager {
             initBuffer();
         }
 
-        // 初始化缓冲区
+        /**
+         * @description: 初始化缓冲区, 设置所有缓冲区都未被占用
+         * @author: zach
+         **/
         public void initBuffer() {
             for (int i = 0; i < bufferHeads.length; i++) {
                 BufferHead bh = new BufferHead();
@@ -78,30 +97,40 @@ public class DeviceManager {
             bufferQueueManager.hashQueue.add(new ArrayList<>());
         }
 
+        /**
+         * @description: 修改缓冲区头部位示图
+         * @author: zach
+         **/
         public synchronized void modifyStorageBitMap(int bufferNo, boolean status) {
             StorageManager.sm.bitMapManager.modifyBufferAreaBitMap(bufferNo, status);
         }
 
-        // 获取缓冲区
-        public BufferHead getRandomBuffer(int devNo) {
-            // 0. 判断空闲缓冲队列是否为空
-            if (bufferQueueManager.freeQueue.isEmpty()) {
-                // 0.1 空闲缓冲区不足，进程被阻塞
-                ProcessManager.pm.processOperator.blockPCB(CPU.cpu.getCurrent(), devNo, LACK_FREE_BUFFER);
-                return null;
-            }
-            // 1. 从空闲队列获取队头
-            BufferHead bh = bufferQueueManager.getFreeBh();
-            // 2. 设置此缓冲区正在使用
-            bh.setFlag(BH_BUSY);
-            // 3. 修改内存位示图
-            modifyStorageBitMap(bh.getBufferNo(), true);
-            // 4. 插入到已分配缓冲区
-            bufferQueueManager.joinAllottedQueue(devNo, bh);
-            return bh;
-        }
+        /**
+         * @description: 给设备分配一个缓冲区头部
+         * @author: zach
+         **/
+//        public BufferHead getRandomBuffer(int devNo) {
+//            // 0. 判断空闲缓冲队列是否为空
+//            if (bufferQueueManager.freeQueue.isEmpty()) {
+//                // 0.1 空闲缓冲区不足，进程被阻塞
+//                ProcessManager.pm.processOperator.blockPCB(CPU.cpu.getCurrent(), devNo, LACK_FREE_BUFFER);
+//                return null;
+//            }
+//            // 1. 从空闲队列获取队头
+//            BufferHead bh = bufferQueueManager.getFreeBh();
+//            // 2. 设置此缓冲区正在使用
+//            bh.setFlag(BH_BUSY);
+//            // 3. 修改内存位示图
+//            modifyStorageBitMap(bh.getBufferNo(), true);
+//            // 4. 插入到已分配缓冲区
+//            bufferQueueManager.joinAllottedQueue(devNo, bh);
+//            return bh;
+//        }
 
-        // 获取指定缓冲区
+        /**
+         * @description: 获取此设备的指定块号对应的缓冲区头部
+         * @author: zach
+         **/
         private BufferHead getBuffer(int devNo, int blockNo) {
             // 0. 从散列队列里取
             // 0.1 获取此设备的缓冲队列
@@ -130,7 +159,10 @@ public class DeviceManager {
             return allotBufferHead(devNo, blockNo);
         }
 
-        // 申请缓冲区
+        /**
+         * @description: 为此设备指定块号分配一个内存缓冲区头部
+         * @author: zach
+         **/
         private BufferHead allotBufferHead(int devNo, int blockNo) {
             // 0. 判断空闲队列是否有空
             if (bufferQueueManager.isFreeQueueEmpty()) {
@@ -144,13 +176,17 @@ public class DeviceManager {
             freeBh.setBlockNo(blockNo);
             freeBh.setDevNo(devNo);
             freeBh.setFlag(BH_BUSY);
+            // 3.占用此bh
             modifyStorageBitMap(freeBh.getBufferNo(), true);
             bufferQueueManager.joinAllottedQueue(devNo, freeBh);
             Log.Info(bufferOp, String.format("从缓冲空闲队列中取出:%d,对应内存块号:%d,对应外存块号:%d", freeBh.getBufferNo(), freeBh.getFrameNo(), freeBh.getBlockNo()));
             return freeBh;
         }
 
-        // 释放缓冲区
+        /**
+         * @description: 释放缓冲区头部
+         * @author: zach
+         **/
         public void freeBuffer(BufferHead bh) {
             // 0. 清除bh的标志位
             bh.setFlag(BH_EMPTY);
@@ -165,27 +201,39 @@ public class DeviceManager {
             }
         }
 
-        // 设备写入缓冲区(分为：数据已经在缓冲区和数据还未写入缓冲区)
+        /**
+         * @description: 将磁盘块内的信息写到对应的缓冲区中
+         * @author: zach
+         **/
         public BufferHead writeDevToBuffer(int devNo, int blockNo) {
             BufferHead bh = getBuffer(devNo, blockNo);
             // 如果缓冲区数据最新
             if (bh == null) {
+                Log.Error("写磁盘失败", String.format("将缓冲区头部数据写入磁盘失败,写入磁盘块号:%d", blockNo));
                 return null;
             }
+            // 缓冲区数据与磁盘一致,不用写
             if (bh.getFlag() == BH_UPDATE) {
+                Log.Info("磁盘写入缓冲区", String.format("磁盘块:%d,与缓冲区:%d,数据一致,无需写回", blockNo, bh.getFrameNo()));
                 return bh;
             }
-            // 不是最新，需要从磁盘读取
+            // 不是最新，需要将磁盘的数据写入缓冲区
             StorageManager.sm.memoryManager.writeDiskToBuffer(blockNo, bh.getBufferNo(), bh.getFrameNo());
             bh.setFlag(BH_UPDATE);
             return bh;
         }
 
-        // 缓冲区数据写入设备
+        /**
+         * @description: 将缓冲区中的信息写回对应的磁盘物理块
+         * @author: zach
+         **/
         public void writeBufferToDev(BufferHead bh) {
             // 将缓冲区数据写入设备
+            if (bh.getFlag() == BH_UPDATE) {
+                Log.Info("缓冲区写入磁盘", String.format("磁盘块:%d,与缓冲区:%d,数据一致,无需写回", bh.getBlockNo(), bh.getFrameNo()));
+                return;
+            }
             StorageManager.sm.diskManager.writeBufferToDisk(bh.getBlockNo(), bh.getFrameNo());
-            // 设置缓冲区在进行写入设备
             // 清空缓冲区
             freeBuffer(bh);
         }

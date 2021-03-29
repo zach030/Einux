@@ -2,6 +2,8 @@ package os.filesystem;
 
 import hardware.disk.*;
 import hardware.memory.Memory;
+import os.device.BufferHead;
+import os.device.DeviceManager;
 import utils.Log;
 
 import java.util.ArrayList;
@@ -15,29 +17,27 @@ import java.util.Map;
  * fd:      inode在用户打开文件表中的下标
  * @author: zach
  **/
-// disk Inode :   0,1,2,3,4,5,.......(real inode no)
-// active inode:  0,2,4,6,7,.........
-// sysOpenTable:  Inode(0), Inode(2),Inode(4),......
-// fd:            0,1,2,3,4,.........(index of sysOpenTable)
 public class FileSystem implements VFS {
     public static FileSystem fs = new FileSystem();
 
     //--------------成员-------------------
-    disk.BootDisk currentBootDisk;
+    static disk.BootDisk currentBootDisk;
     HashMap<Integer, disk.BootDisk> bootDiskMap = new HashMap<>();
+    HashMap<Integer, String> allFileMap = new HashMap<>();
     public BootDiskManager bootDiskManager;
     public InodeManager inodeManager;
     public SysOpenFileManager sysOpenFileManager;
+
     //--------------文件系统常量------------------------
     public static final int ROOT_INODE_NO = 0;
     public static final int HOME_INODE_NO = 1;
     public static final int DEV_INODE_NO = 2;
     public static final int ETC_INODE_NO = 3;
     public static final int MEM_INODE_MAX_NUM = Memory.memory.getBufferPool().getActiveInodeNum();
+
     //--------------基本inode--------------------
     MemoryInode root;   // 根目录
     MemoryInode pwd;    // 当前目录
-    MemoryInode parent; // 父目录
 
     /**
      * @description: 管理当前系统的启动盘
@@ -62,7 +62,7 @@ public class FileSystem implements VFS {
      * @description: 管理系统中的inode
      * @author: zach
      **/
-    class InodeManager {
+    public static class InodeManager {
         public InodeManager() {
             loadDiskInodeList();
         }
@@ -78,14 +78,8 @@ public class FileSystem implements VFS {
          **/
         private void loadDiskInodeList() {
             //todo 初始化root,home,dev,etc
-            DiskInode root = new DiskInode(ROOT_INODE_NO);
+            DiskInode root = new DiskInode(ROOT_INODE_NO, BootDisk.DATA_ZONE_INDEX);
             joinDiskInodeList(root);
-            DiskInode home = new DiskInode(HOME_INODE_NO);
-            joinDiskInodeList(home);
-            DiskInode dev = new DiskInode(DEV_INODE_NO);
-            joinDiskInodeList(dev);
-            DiskInode etc = new DiskInode(ETC_INODE_NO);
-            joinDiskInodeList(etc);
         }
 
         /**
@@ -110,7 +104,8 @@ public class FileSystem implements VFS {
                 }
             }
             // 放回磁盘
-            this.activeInodeList.get(index).freeInodeFromMemory();
+            MemoryInode failInode = activeInodeList.get(index);
+            this.inodeInDisk(failInode);
             this.activeInodeList.remove(index);
             Log.Info("淘汰内存inode", String.format("已淘汰内存inode:%d", index));
         }
@@ -155,6 +150,31 @@ public class FileSystem implements VFS {
         public DiskInode getDiskInodeByNo(int inodeNo) {
             return this.diskInodeList[inodeNo];
         }
+
+        /**
+         * @description: 将inode从内存中移除，放回磁盘
+         * @author: zach
+         **/
+        public void inodeInDisk(MemoryInode memoryInode) {
+
+        }
+
+        /**
+         * @description: 将磁盘中的inode加入内存
+         * @author: zach
+         **/
+        public void inodeInMemory(MemoryInode memoryInode) {
+            if (this.isActiveInodeFull()) {
+                Log.Error("内存inode区已满", "当前内存inode区已满,需要释放inode");
+                this.freeOneActiveInode();
+            }
+            this.joinActiveInodeList(memoryInode);
+            //todo 写入内存
+            for (int blockNo : memoryInode.blockNoList) {
+                BufferHead bh = DeviceManager.dm.bufferOperator.writeDevToBuffer(currentBootDisk.getBootDiskNo(), blockNo);
+                memoryInode.syncToMemory(bh);
+            }
+        }
     }
 
     /**
@@ -176,7 +196,7 @@ public class FileSystem implements VFS {
             for (int i = 0; i < sysOpenFileTable.length; i++) {
                 SysFile sysFile = new SysFile();
                 sysFile.init();
-                sysOpenFileTable[i] =sysFile;
+                sysOpenFileTable[i] = sysFile;
             }
         }
 
@@ -195,19 +215,30 @@ public class FileSystem implements VFS {
         }
 
         /**
-            * @description: 根据inodeNo查找系统打开文件表，返回下标sysFd
-            * @author: zach
+         * @description: 根据inodeNo查找系统打开文件表，返回下标sysFd
+         * @author: zach
          **/
-        public int getSysFdByInodeNo(int inodeNo){
+        public int getSysFdByInodeNo(int inodeNo) {
             for (int i = 0; i < sysOpenFileTable.length; i++) {
-                if(sysOpenFileTable[i].inodeNo==inodeNo){
+                if (sysOpenFileTable[i].inodeNo == inodeNo) {
                     return i;
                 }
             }
             return -1;
         }
 
-        // 减少对系统打开文件表中一个文件的引用计数
+        /**
+         * @description: 根据系统打开文件表下标, 返回打开文件sysFile
+         * @author: zach
+         **/
+        public SysFile getSysFileBySysFd(int sysFd) {
+            return sysOpenFileTable[sysFd];
+        }
+
+        /**
+         * @description: 减少对系统打开文件表中一个文件的引用计数
+         * @author: zach
+         **/
         public void freeOneOpenFileCount(int sysFd) {
             this.sysOpenFileTable[sysFd].count--;
         }
@@ -218,6 +249,7 @@ public class FileSystem implements VFS {
          **/
         public MemoryInode getMemoryInodeBySysFd(int sysFd) {
             int inodeNo = sysOpenFileTable[sysFd].inodeNo;
+            sysOpenFileTable[sysFd].count++;
             return inodeManager.getActiveInodeByNo(currentBootDisk.getBootDiskNo(), inodeNo);
         }
     }
@@ -238,10 +270,10 @@ public class FileSystem implements VFS {
     }
 
     /**
-        * @description: 启动盘启动程序
-        * @author: zach
+     * @description: 启动盘启动程序
+     * @author: zach
      **/
-    public void bootLoader(){
+    public void bootLoader() {
         // 获取当前使用的磁盘
         currentBootDisk = bootDiskManager.getBootDisk(BootDisk.DEVICE_NO);
         // 初始化文件系统
@@ -261,12 +293,13 @@ public class FileSystem implements VFS {
      * @author: zach
      **/
     void initRootDir() {
-        root = allocRootInode();
+        root = allocInode(getFreeInodeNo(), getFreeDataBlockNo());
+        // 设置root属性
+        root.setFileType(DiskInode.FileType.DIR);
+        root.setAuthority(MemoryInode.Authority.READ, MemoryInode.Authority.WRITE, MemoryInode.Authority.EXEC);
         pwd = root;
+        allFileMap.put(ROOT_INODE_NO, "/");
         initBaseDir();
-        root.addDirEntry("home", HOME_INODE_NO);
-        root.addDirEntry("dev", DEV_INODE_NO);
-        root.addDirEntry("etc", ETC_INODE_NO);
     }
 
     /**
@@ -274,9 +307,13 @@ public class FileSystem implements VFS {
      * @author: zach
      **/
     void initBaseDir() {
-        MemoryInode home = allocInode(HOME_INODE_NO);
-        MemoryInode dev = allocInode(DEV_INODE_NO);
-        MemoryInode etc = allocInode(ETC_INODE_NO);
+        MemoryInode home = addNewFileToDir(root, "home");
+        MemoryInode dev = addNewFileToDir(root, "dev");
+        MemoryInode etc = addNewFileToDir(root, "etc");
+        addNewFileToDir(home, "zach");
+        addNewFileToDir(dev, "block");
+        addNewFileToDir(dev, "tty");
+        addNewFileToDir(etc, "ssh");
     }
 
     //--------------------文件系统API------------------
@@ -292,20 +329,35 @@ public class FileSystem implements VFS {
      * 4.遍历
      * @author: zach
      **/
-    public MemoryInode nameI(String path, int mode) {
-        //第一步是dir_namei（），找到文件所在的目录的inode，
+    public MemoryInode getInodeWithPath(String path, int mode) {
+        // 第一步是dir_namei（），找到文件所在的目录的inode，
         // 第二步是find_entry（），即在dir目录中，找到文件对应的目录项，并返回目录项的指针de，
         // 如果要找的文件对应的目录项不存在，就申请一个节点，
         // 并通过add_entry()将节点对应的res_dir目录项加入目录dir
         // iget（）
-        MemoryInode node = dirNameI(path);
+        MemoryInode node = getFileParentDir(path);
         if (node == root) {
             return root;
         }
         int sysFd = -1;
         if (node != null) {
-            sysFd = node.findEntry(fileNameI(path));
+            sysFd = node.findEntry(getFileNameWithPath(path));
         }
+        if (sysFd == -1) {
+            //todo 文件还不存在,创建一个新的文件
+            MemoryInode memoryInode = addNewFileToDir(node, getFileNameWithPath(path));
+            sysFd = node.findEntry(getFileNameWithPath(path));
+        }
+        return sysOpenFileManager.getMemoryInodeBySysFd(sysFd);
+    }
+
+    /**
+     * @description: 返回内存活动inode
+     * @author: zach
+     **/
+    public MemoryInode getInode(String path) {
+        MemoryInode memoryInode = getFileParentDir(path);
+        int sysFd = memoryInode.findEntry(getFileNameWithPath(path));
         return sysOpenFileManager.getMemoryInodeBySysFd(sysFd);
     }
 
@@ -313,7 +365,7 @@ public class FileSystem implements VFS {
      * @description: 根据文件路径找出文件名
      * @author: zach
      **/
-    private String fileNameI(String path) {
+    private String getFileNameWithPath(String path) {
         String[] files = path.split("/");
         return files[files.length - 1];
     }
@@ -322,8 +374,8 @@ public class FileSystem implements VFS {
      * @description: 根据文件路径找出文件所在父级目录
      * example: /home/go/main.go --> home,go ,返回go对应的inode
      * @author: zach
-     **/
-    MemoryInode dirNameI(String path) {
+     **///todo bad code
+    MemoryInode getFileParentDir(String path) {
         if (path.equals("/")) {
             return root;
         }
@@ -331,100 +383,99 @@ public class FileSystem implements VFS {
             pwd = root;
         }
         String[] paths = path.split("/");
-        for (int i = 0; i < paths.length; i++) {
+        for (int i = 0; i < paths.length - 2; i++) {
             if (!pwd.canAccess()) {
                 Log.Error("进入文件失败", String.format("对于文件:%s，无访问权限", paths[i]));
                 return null;
             }
-            String fileName = paths[i];
+            // 获得下一级目录名
+            String fileName = paths[i + 1];
+            // 通过查询目录项,找到inodeNo
             int inodeNo = pwd.findEntry(fileName);
+            // 根据inodeNo查询内存活动列表,返回内存inode
             MemoryInode memoryInode = inodeManager.getActiveInodeByNo(currentBootDisk.getBootDiskNo(), inodeNo);
             if (memoryInode == null) {
                 // exist in disk
-
+                memoryInode = addNewFileToDir(pwd, fileName);
             }
+            pwd = memoryInode;
         }
-        return null;
+        return pwd;
     }
 
     /**
-     * @description: 从磁盘的inode区的未分配inode中找出一个空闲的inodeNo，加入
+     * @description: 在当前目录下创建一个新的文件
+     * 从超级块中分配空闲inodeNo
+     * 加入磁盘inode列表
+     * 从磁盘inode列表中找出diskInode
+     * 放入内存，得到memoryInode
      * @author: zach
      **/
-//    public MemoryInode allocInode(int devNo) {
-//        if (BootDisk.bootDisk.getSuperBlock().getAvailableBlockNum() > 0) {
-//            // freeInode 是磁盘inodeNo
-//            int freeInodeNo = BootDisk.bootDisk.getSuperBlock().getFreeInode();
-//            if (freeInodeNo == -1) {
-//                // todo not-found
-//                Log.Error("分配磁盘inode失败", String.format("为设备:%d，分配inode失败，磁盘inode已满！", devNo));
-//                return null;
-//            }
-//            return inodeManager.getActiveInodeByNo(devNo, freeInodeNo);
-//        }
-//        Log.Error("分配磁盘inode失败", String.format("为设备:%d，分配inode失败，磁盘inode已满！", devNo));
-//        return null;
-//    }
-
-    // 为inode分配系统打开文件表
-    public void releaseInode(Inode inode) {
-        if (inode.referCnt == 1) {
-
-        }
-    }
-
-    /**
-     * @description: 从超级块中找到空闲inodeNo，从磁盘inode列表中找出diskInode，放入内存，得到memoryInode
-     * @author: zach
-     **/
-    public MemoryInode allocRootInode() {
-        // 获取磁盘inode
-        DiskInode diskInode = inodeManager.getDiskInodeByNo(ROOT_INODE_NO);
-        MemoryInode memoryInode = new MemoryInode(diskInode.inodeNo);
-        root = memoryInode;
-        // 设置root属性
-        root.setFileType(DiskInode.FileType.DIR);
-        root.setAuthority(Inode.Authority.READ, Inode.Authority.WRITE, Inode.Authority.EXEC);
-        // 将minode放入内存
-        inodeInMemory(memoryInode);
-        // 分配系统打开文件表
-        sysOpenFileManager.allocSysFileOpenTable(memoryInode.inodeNo);
-        // 返回内存inode
+    public MemoryInode addNewFileToDir(MemoryInode dir, String name) {
+        // 申请磁盘空闲inode
+        int inodeNo = currentBootDisk.getSuperBlock().getFreeInode();
+        DiskInode diskInode = newDiskInode(inodeNo);
+        // 得到内存活动inode
+        MemoryInode memoryInode = allocInode(inodeNo, getFreeDataBlockNo());
+        // 加入子目录
+        dir.addDirEntry(name, inodeNo);
+        // 更新统计map
+        allFileMap.put(inodeNo, name);
         return memoryInode;
     }
 
+    //-------------------------分配磁盘与内存inode---------
+
     /**
-     * @description: 根据inodeNo，获取磁盘inode，加入内存，分配打开文件表
+     * @description: 已知inodeNo时, 根据inodeNo，获取磁盘inode，加入内存，分配打开文件表
      * @author: zach
      **/
-    public MemoryInode allocInode(int inodeNo) {
+    private MemoryInode allocInode(int inodeNo, int blockNo) {
         DiskInode diskInode = inodeManager.getDiskInodeByNo(inodeNo);
-        MemoryInode memoryInode = new MemoryInode(diskInode.inodeNo);
-        inodeInMemory(memoryInode);
+        MemoryInode memoryInode = new MemoryInode(diskInode.inodeNo, blockNo);
+        inodeManager.inodeInMemory(memoryInode);
         sysOpenFileManager.allocSysFileOpenTable(inodeNo);
         return memoryInode;
     }
+
+    /**
+     * @description: 创建磁盘新文件
+     * @author: zach
+     **/
+    public DiskInode newDiskInode(int inodeNo) {
+        int blockNo = currentBootDisk.getSuperBlock().getFreeDataBlock();
+        DiskInode diskInode = new DiskInode(inodeNo, blockNo);
+        inodeManager.joinDiskInodeList(diskInode);
+        return diskInode;
+    }
+
+    /**
+     * @description: 获得当前系统中的空闲inodeNo
+     * @author: zach
+     **/
+    public int getFreeInodeNo() {
+        return currentBootDisk.getSuperBlock().getFreeInode();
+    }
+
+    /**
+     * @description: 获得当前系统空闲数据块
+     * @author: zach
+     **/
+    public int getFreeDataBlockNo() {
+        return currentBootDisk.getSuperBlock().getFreeDataBlock();
+    }
+
+    /**
+     * @description: 释放内存inode
+     * @author: zach
+     **/
+    public void freeInode(int inodeNo) {
+        currentBootDisk.getSuperBlock().addFreeInode(inodeNo);
+    }
+
     //--------------文件系统存储API--------------------
 
-    /**
-     * @description: 将inode从内存中移除，放回磁盘
-     * @author: zach
-     **/
-    public void inodeInDisk(MemoryInode memoryInode) {
-
-    }
-
-    /**
-     * @description: 将磁盘中的inode加入内存
-     * @author: zach
-     **/
-    public void inodeInMemory(MemoryInode memoryInode) {
-        this.inodeManager.joinActiveInodeList(memoryInode);
-        //todo 写入内存
-        memoryInode.syncToMemory();
-    }
-
-    public disk.BootDisk getCurrentBootDisk() {
+    public static disk.BootDisk getCurrentBootDisk() {
         return currentBootDisk;
     }
 

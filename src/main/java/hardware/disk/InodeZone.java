@@ -1,7 +1,7 @@
 package hardware.disk;
 
+import os.filesystem.DiskInode;
 import os.filesystem.FileSystem;
-import os.filesystem.Inode;
 
 import java.util.ArrayList;
 
@@ -9,7 +9,7 @@ public class InodeZone implements BlockZone {
     int startBlockNo;
     int zoneSize;
     ArrayList<Block> blocks;
-    Inode[] inodes = new Inode[FileSystem.MEM_INODE_MAX_NUM];
+    DiskInode[] inodes = new DiskInode[FileSystem.MEM_INODE_MAX_NUM];
 
     InodeZone(int start, int size) {
         this.startBlockNo = start;
