@@ -1,4 +1,4 @@
-package os.filesystem;
+package hardware.disk;
 
 public interface BlockZone {
     void writeBlock(Block block);

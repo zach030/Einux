@@ -4,9 +4,6 @@
 
 package ui;
 
-import disk.Disk;
-import os.schedule.Schedule;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
@@ -31,7 +28,6 @@ public class Console extends JFrame {
 
     private void button1MouseClicked(MouseEvent e) {
         // TODO add your code here
-        Disk.disk.loadDisk();
     }
 
     private void button1ActionPerformed(ActionEvent e) {

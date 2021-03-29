@@ -1,13 +1,13 @@
-package os.filesystem;
+package hardware.disk;
 
 import java.util.ArrayList;
 
-public class SwapZone implements BlockZone {
+public class JCBZone implements BlockZone {
     int startBlockNo;
     int zoneSize;
     ArrayList<Block> blocks;
 
-    SwapZone(int start, int size) {
+    JCBZone(int start, int size) {
         this.startBlockNo = start;
         this.zoneSize = size;
         blocks = new ArrayList<>(size);
@@ -46,4 +46,5 @@ public class SwapZone implements BlockZone {
             blocks.add(block);
         }
     }
+
 }

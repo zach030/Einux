@@ -6,12 +6,12 @@ class DiskTest {
 
     @org.junit.jupiter.api.Test
     void readData() {
-        BootDisk bootDisk = new Disk();
-        bootDisk.setDiskHelper(10, 32, 64);
-        bootDisk.loadDisk();
-        // addr: 15位块号 + 9位块内偏移
-        bootDisk.writeData(10, (short) 0X08);
-        System.out.println(bootDisk.readData(10));
+//        BootDisk bootDisk = new Disk();
+//        bootDisk.setDiskHelper(10, 32, 64);
+//        bootDisk.loadDisk();
+//        // addr: 15位块号 + 9位块内偏移
+//        bootDisk.writeData(10, (short) 0X08);
+//        System.out.println(bootDisk.readData(10));
     }
 
     @org.junit.jupiter.api.Test

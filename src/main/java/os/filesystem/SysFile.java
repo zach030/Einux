@@ -4,10 +4,14 @@ public class SysFile {
     public int flag;
     public int count;
     public int offset;
-    public Inode inode;
+    public int inodeNo;
 
-    public void setInode(Inode inode) {
+    public void setInode(int inodeNo){
+        this.inodeNo=inodeNo;
         this.count++;
-        this.inode = inode;
+    }
+
+    public void init() {
+        this.count = 0;
     }
 }

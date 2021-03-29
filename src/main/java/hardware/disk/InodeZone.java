@@ -1,19 +1,24 @@
-package os.filesystem;
+package hardware.disk;
+
+import os.filesystem.FileSystem;
+import os.filesystem.Inode;
 
 import java.util.ArrayList;
 
-public class JCBZone implements BlockZone {
+public class InodeZone implements BlockZone {
     int startBlockNo;
     int zoneSize;
     ArrayList<Block> blocks;
+    Inode[] inodes = new Inode[FileSystem.MEM_INODE_MAX_NUM];
 
-    JCBZone(int start, int size) {
+    InodeZone(int start, int size) {
         this.startBlockNo = start;
         this.zoneSize = size;
         blocks = new ArrayList<>(size);
         initZoneBlocks();
     }
 
+    @Override
     public void writeBlock(Block block) {
         this.blocks.set(getRelativeBlockNo(block.getBlockNo()), block);
         this.blocks.get(getRelativeBlockNo(block.getBlockNo())).syncBlock();

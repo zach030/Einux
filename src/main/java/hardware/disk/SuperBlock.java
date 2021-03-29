@@ -1,4 +1,4 @@
-package os.filesystem;
+package hardware.disk;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,7 +14,9 @@ public class SuperBlock implements BlockZone {
     int availableBlockNum;   // 可用块数
 
     SuperBlock(int blockNo) {
+        this.blockNum = BootDisk.DATA_ZONE_SIZE;
         this.blockNo = blockNo;
+        inodeBitMap = new boolean[BootDisk.DISK_MAX_INODE_NUM];
         initZoneBlocks();
     }
 
@@ -53,7 +55,7 @@ public class SuperBlock implements BlockZone {
         this.inodeBitMap[no] = status;
     }
 
-    //todo
+    //todo 获取磁盘空闲inode
     public int getFreeInode() {
         if (availableInodeNum > 0) {
             // 从空闲inode链表中取头一个
@@ -65,8 +67,8 @@ public class SuperBlock implements BlockZone {
     }
 
     // 分配磁盘inode的原子操作
-    public int allocInode(int no){
-        modifyBitMap(no,true);
+    public int allocInode(int no) {
+        modifyBitMap(no, true);
         this.availableInodeNum--;
         return no;
     }
@@ -89,6 +91,12 @@ public class SuperBlock implements BlockZone {
 
     public int getAvailableInodeNum() {
         return availableInodeNum;
+    }
+
+    //todo 全部改为从磁盘读
+    public void loadSuperBlockData() {
+        this.setAvailableBlockNum(BootDisk.DATA_ZONE_SIZE);
+        this.setAvailableInodeNum(BootDisk.DISK_MAX_INODE_NUM);
     }
 
     public void setAvailableInodeNum(int availableInodeNum) {

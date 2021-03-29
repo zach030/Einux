@@ -1,7 +1,7 @@
 package os.storage;
 
 import hardware.memory.Page;
-import os.filesystem.Block;
+import hardware.disk.Block;
 
 //负责内存数据结构与磁盘的数据结构之间的转换
 public class Transfer {

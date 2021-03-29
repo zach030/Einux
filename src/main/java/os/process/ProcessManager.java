@@ -2,7 +2,7 @@ package os.process;
 
 import hardware.memory.Memory;
 import hardware.memory.Page;
-import os.filesystem.Block;
+import hardware.disk.Block;
 import os.filesystem.FileSystem;
 import os.job.JCB;
 import os.storage.StorageManager;
@@ -278,7 +278,7 @@ public class ProcessManager {
             // 2. 查询页表找到pcb存放在外存数据的起始块号
             int swapBlockNo = pcb.searchPageTable(pageNo);
             // 3. 获取此块数据
-            Block block = FileSystem.fs.getBlockInDisk(swapBlockNo);
+            Block block = FileSystem.fs.getCurrentBootDisk().getBlockInDisk(swapBlockNo);
             // 4. 重写页表
             Page page = Transfer.transfer.transferBlockToPage(block, pageNo, pageFrame);
             pcb.writePageTableEntry(pageNo, page);

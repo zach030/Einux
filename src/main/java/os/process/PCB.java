@@ -4,7 +4,6 @@ import hardware.CPU;
 import hardware.Clock;
 import hardware.memory.Page;
 import hardware.memory.Memory;
-import os.filesystem.SysFile;
 import os.job.JCB;
 
 import java.util.ArrayList;
@@ -204,6 +203,10 @@ public class PCB {
         Arrays.fill(userOpenFileTable, -1);
     }
 
+    /**
+        * @description: 加入用户打开文件表，并返回fd
+        * @author: zach
+     **/
     public int addUserOpenFileTable(int sysFd) {
         for (int i = 0; i < userOpenFileTable.length; i++) {
             if (userOpenFileTable[i] != -1) {
@@ -212,6 +215,14 @@ public class PCB {
             }
         }
         return -1;
+    }
+
+    public int getUserOpenFileTable(int fd) {
+        return userOpenFileTable[fd];
+    }
+
+    public void releaseUserOpenFileTable(int fd) {
+        this.userOpenFileTable[fd] = -1;
     }
 
     //----------------进程时间操作-------------

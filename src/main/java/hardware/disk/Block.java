@@ -1,7 +1,7 @@
-package os.filesystem;
+package hardware.disk;
 
 import disk.DevConfig;
-import disk.Disk;
+import os.filesystem.FileSystem;
 
 // 磁盘管理单元 ：块
 public class Block {
@@ -21,7 +21,7 @@ public class Block {
 
     // 从磁盘加载数据
     void loadBlockData() {
-        this.data = Disk.disk.getBlock(blockNo).getAllData();
+        this.data = BootDisk.bootDisk.getBlock(blockNo).getAllData();
     }
 
     public void write(int offset, short data) {
@@ -47,7 +47,7 @@ public class Block {
     // 同步到磁盘real block
     public void syncBlock() {
         this.modify = true;
-        Disk.disk.getBlock(this.blockNo).writeBlock(this.data);
+        FileSystem.fs.getCurrentBootDisk().getBlock(this.blockNo).writeBlock(this.data);
     }
 
     public int getBlockNo() {

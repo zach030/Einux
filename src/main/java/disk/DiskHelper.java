@@ -112,7 +112,7 @@ public class DiskHelper {
     private int sector;
 
     // create virtual disk
-    void createVirtualDisk() {
+    public void createVirtualDisk() {
         int count = 0;
         for (int i = 0; i < cylinder; i++) {
             String cPath = createCylinder(i);
@@ -129,12 +129,12 @@ public class DiskHelper {
         }
     }
 
-    RealBlock getBlock(int index) {
+    public RealBlock getBlock(int index) {
         return blockEntries.get(index);
     }
 
     // TODO: traverse directory to set block entry map
-    void loadBlockEntries() {
+    public void loadBlockEntries() {
         int count = 0;
         for (int i = 0; i < cylinder; i++) {
             String cPath = loadCylinder(i);
@@ -187,7 +187,7 @@ public class DiskHelper {
     }
 
     // init block
-    void initBlock(int start, int end) {
+    public void initBlock(int start, int end) {
         // init single block
         if (end == DevConfig.END_FLAG) {
             writeBlock(start, 0, false);
@@ -241,7 +241,7 @@ public class DiskHelper {
         }
     }
 
-    void updateBlock(int index, int offset, short data) {
+    public void updateBlock(int index, int offset, short data) {
         int row = offset / 15;
         int column = offset % 15;
         int rowStart = row * 49;
@@ -256,7 +256,7 @@ public class DiskHelper {
         }
     }
 
-    short readBlock(int index, int offset) {
+    public short readBlock(int index, int offset) {
         int row = offset / 15;
         int column = offset % 15;
         int rowStart = row * 49;

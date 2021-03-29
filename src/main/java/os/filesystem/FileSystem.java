@@ -1,216 +1,439 @@
 package os.filesystem;
 
-import disk.DevConfig;
+import hardware.disk.*;
 import hardware.memory.Memory;
-import utils.SysConst;
+import utils.Log;
 
-// todo 将文件系统与磁盘拆分
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * @description: 文件系统中三个标识：inodeNo, sysFd, fd
+ * inodeNo：inode的物理编号，是diskInodeList中的下标
+ * sysFd:   inode在系统打开文件表中的下标
+ * fd:      inode在用户打开文件表中的下标
+ * @author: zach
+ **/
+// disk Inode :   0,1,2,3,4,5,.......(real inode no)
+// active inode:  0,2,4,6,7,.........
+// sysOpenTable:  Inode(0), Inode(2),Inode(4),......
+// fd:            0,1,2,3,4,.........(index of sysOpenTable)
 public class FileSystem implements VFS {
     public static FileSystem fs = new FileSystem();
 
-    //-------------磁盘分区信息-------------------------------
-    public static final int BLOCK_NUM = 19898;                  // 数据块总块数
-    public static final int SUPER_BLOCK_INDEX = 1;              // 超级块在磁盘中的下标
-    public static final int INODE_MAP_INDEX = 2;                // Inode map在磁盘中的下标
-    public static final int DATA_MAP_INDEX = 3;                 // block map在磁盘中的下标
-    public static final int INODE_ZONE_INDEX = 4;               // inode区在磁盘的下标
-    public static final int INODE_ZONE_SIZE = 64;               // inode节点数
-    public static final int DATA_ZONE_INDEX = 68;               // 数据区起始下标
-    public static final int DATA_ZONE_SIZE = 19898;             // 数据区大小
-    public static final int JCB_ZONE_INDEX = 19966;             // jcb区下标
-    public static final int JCB_ZONE_SIZE = 256;                // jcb区大小
-    public static final int SWAP_ZONE_INDEX = 20224;            // 交换区下标
-    public static final int SWAP_ZONE_SIZE = 256;               // 交换区大小
+    //--------------成员-------------------
+    disk.BootDisk currentBootDisk;
+    HashMap<Integer, disk.BootDisk> bootDiskMap = new HashMap<>();
+    public BootDiskManager bootDiskManager;
+    public InodeManager inodeManager;
+    public SysOpenFileManager sysOpenFileManager;
+    //--------------文件系统常量------------------------
+    public static final int ROOT_INODE_NO = 0;
+    public static final int HOME_INODE_NO = 1;
+    public static final int DEV_INODE_NO = 2;
+    public static final int ETC_INODE_NO = 3;
+    public static final int MEM_INODE_MAX_NUM = Memory.memory.getBufferPool().getActiveInodeNum();
+    //--------------基本inode--------------------
+    MemoryInode root;   // 根目录
+    MemoryInode pwd;    // 当前目录
+    MemoryInode parent; // 父目录
 
-    public static final int MAX_INODE_NUM = INODE_ZONE_SIZE * DevConfig.BLOCK_SIZE / Inode.INODE_SIZE;
-
-    Inode root;   // 根目录
-    Inode pwd;    // 当前目录
-    Inode parent; // 父目录
-
-    // 内存活动inode
-    Inode[] activeINodeList = new Inode[Memory.memory.getBufferPool().getActiveInodeNum()];          // 内存缓冲区存放的活动inode
-    // 磁盘inode
-    Inode[] diskInodeList = new Inode[MAX_INODE_NUM];
-    // 系统打开文件表
-    SysFile[] sysOpenFileTable = new SysFile[Memory.memory.getBufferPool().getActiveInodeNum()];
-
-    SuperBlock superBlock;      //磁盘超级块
-    InodeMapZone inodeMapZone;  //inode位示图区
-    DataMapZone dataMapZone;    //数据块位示图区
-    InodeZone inodeZone;        //inode区
-    DataZone dataZone;          //数据区
-    JCBZone jcbZone;            //jcb区
-    SwapZone swapZone;          //交换区
-
-    public FileSystem() {
-        initSuperBlock();
-        initInodeMapZone();
-        initDataMapZone();
-        initInodeZone();
-        initDataZone();
-        initJCBZone();
-        initSwapZone();
-
-        initInodeList();
-        initRootDir();
-        initSysFileOpenTable();
-    }
-
-    //----------初始化文件系统---------------
-    void initInodeList() {
-        for (int i = 0; i < activeINodeList.length; i++) {
-            activeINodeList[i] = new Inode();
-        }
-        for (int i = 0; i < diskInodeList.length; i++) {
-            diskInodeList[i] = new Inode();
-        }
-    }
-
-    void initRootDir() {
-        root = allocInode(SysConst.DEFAULT_DISK);
-        root.setFileType(Inode.FileType.DIR);
-        root.setAuthority(Inode.Authority.READ, Inode.Authority.WRITE, Inode.Authority.EXEC);
-        pwd = root;
-    }
-
-    void initSysFileOpenTable() {
-        for (SysFile sysFile : sysOpenFileTable) {
-            sysFile.count = 0;
-        }
-    }
-
-    void initSuperBlock() {
-        superBlock = new SuperBlock(SUPER_BLOCK_INDEX);
-        //todo 应该从磁盘中读
-        superBlock.setAvailableInodeNum(MAX_INODE_NUM);   // 初始化可用inode数目
-        superBlock.setBlockNum(DATA_ZONE_SIZE);           // 设置数据块大小
-        superBlock.setAvailableBlockNum(DATA_ZONE_SIZE);  // 设置可用磁盘块数目
-    }
-
-    void initInodeMapZone() {
-        inodeMapZone = new InodeMapZone(INODE_MAP_INDEX);
-    }
-
-    void initDataMapZone() {
-        dataMapZone = new DataMapZone(DATA_MAP_INDEX);
-    }
-
-    void initInodeZone() {
-        inodeZone = new InodeZone(INODE_ZONE_INDEX, INODE_ZONE_SIZE);
-    }
-
-    void initDataZone() {
-        dataZone = new DataZone(DATA_ZONE_INDEX, DATA_ZONE_SIZE);
-    }
-
-    void initJCBZone() {
-        jcbZone = new JCBZone(JCB_ZONE_INDEX, JCB_ZONE_SIZE);
-    }
-
-    void initSwapZone() {
-        swapZone = new SwapZone(SWAP_ZONE_INDEX, SWAP_ZONE_SIZE);
-    }
-
-    //--------------------文件系统API------------------
-    public Inode nameI(String path,int mode) {
-        //0 根目录
-        if (path.equals("/")) {
-            return getInodeByNo(SysConst.DEFAULT_DISK, 0);
-        }
-        return null;
-    }
-
-    public Inode getInodeByNo(int devNo, int inodeNo) {
-        Inode newInode = null;
-        for (int i = 0; i < activeINodeList.length; i++) {
-            // 如果找到，返回内存活动inode
-            if (activeINodeList[i].devNo == devNo && activeINodeList[i].inodeNo == inodeNo) {
-                activeINodeList[i].referCnt++;
-                return activeINodeList[i];
+    /**
+     * @description: 管理当前系统的启动盘
+     * @author: zach
+     **/
+    class BootDiskManager {
+        /**
+         * @description: 搜索系统当前挂载的启动盘
+         * @author: zach
+         **/
+        public disk.BootDisk getBootDisk(int devNo) {
+            for (Map.Entry<Integer, disk.BootDisk> map : bootDiskMap.entrySet()) {
+                if (map.getKey().equals(devNo)) {
+                    return map.getValue();
+                }
             }
-            //
-            if (newInode == null && activeINodeList[i].referCnt == 0) {
-                newInode = activeINodeList[i];
-            }
-        }
-        return null;
-    }
-
-    // 分配inode，即分配块设备中inode区域的未分配inode以及活动inode表里的inode
-    public Inode allocInode(int devNo) {
-        if (superBlock.availableInodeNum > 0) {
-            int freeInodeNo = superBlock.getFreeInode();
-            if (freeInodeNo == -1) {
-                // todo not-found
-            }
-            return getInodeByNo(devNo, freeInodeNo);
-        }
-        return null;
-    }
-
-    // 为inode分配系统打开文件表
-    public int allocSysFileOpenTable(Inode inode) {
-        for (int i = 0; i < sysOpenFileTable.length; i++) {
-            if (sysOpenFileTable[i].count == 0) {
-                sysOpenFileTable[i].setInode(inode);
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    //---------------------磁盘的读写API---------------
-    // 15块号 + 9块内偏移
-    public void write(int addr, short data) {
-        int block = (addr >> 9) & 0X07FFF;
-        int offset = (addr & 0X01FF);
-        BlockZone blockZone = switchZone(block);
-        blockZone.write(block, offset, data);
-    }
-
-    public short read(int addr) {
-        int block = (addr >> 9) & 0X07FFF;
-        int offset = (addr & 0X01FF);
-        BlockZone blockZone = switchZone(block);
-        return blockZone.read(block, offset);
-    }
-
-    public void writeBlock(Block block) {
-        int blockNo = block.getBlockNo();
-        BlockZone blockZone = switchZone(blockNo);
-        blockZone.writeBlock(block);
-    }
-
-    // 获取磁盘内的物理块
-    public Block getBlockInDisk(int blockNo) {
-        BlockZone blockZone = switchZone(blockNo);
-        return blockZone.getBlock(blockNo);
-    }
-
-    BlockZone switchZone(int block) {
-        if (block == 1) {
-            return superBlock;
-        }
-        if (block == 2) {
-            return inodeMapZone;
-        }
-        if (block == 3) {
-            return dataMapZone;
-        }
-        if (block >= 4 && block <= 67) {
-            return inodeZone;
-        }
-        if (block >= 68 && block <= 19965) {
-            return dataZone;
-        }
-        if (block >= 19966 && block <= 20223) {
-            return jcbZone;
-        }
-        if (block >= 20224 && block <= 20479) {
-            return swapZone;
-        } else {
             return null;
         }
     }
+
+    /**
+     * @description: 管理系统中的inode
+     * @author: zach
+     **/
+    class InodeManager {
+        public InodeManager() {
+            loadDiskInodeList();
+        }
+
+        // 存放当前内存活动inode列表, 容量是内存缓冲区中可以存放最多的inode数目256个
+        private ArrayList<MemoryInode> activeInodeList = new ArrayList<>();
+        // 存放磁盘中所有的inode（与超级块中的位示图保持一致）
+        private DiskInode[] diskInodeList = new DiskInode[BootDisk.DISK_MAX_INODE_NUM];
+
+        /**
+         * @description: 从磁盘加载全部inode
+         * @author: zach
+         **/
+        private void loadDiskInodeList() {
+            //todo 初始化root,home,dev,etc
+            DiskInode root = new DiskInode(ROOT_INODE_NO);
+            joinDiskInodeList(root);
+            DiskInode home = new DiskInode(HOME_INODE_NO);
+            joinDiskInodeList(home);
+            DiskInode dev = new DiskInode(DEV_INODE_NO);
+            joinDiskInodeList(dev);
+            DiskInode etc = new DiskInode(ETC_INODE_NO);
+            joinDiskInodeList(etc);
+        }
+
+        /**
+         * @description: 将inode加入内存活动inode列表
+         * @author: zach
+         **/
+        public void joinActiveInodeList(MemoryInode inode) {
+            this.activeInodeList.add(inode);
+        }
+
+        /**
+         * @description: lru淘汰最久未用内存活动inode
+         * @author: zach
+         **/
+        public void freeOneActiveInode() {
+            int oldest = this.activeInodeList.get(0).lastUpdateTime;
+            int index = 0;
+            for (int i = 0; i < this.activeInodeList.size(); i++) {
+                if (this.activeInodeList.get(i).lastUpdateTime < oldest) {
+                    oldest = this.activeInodeList.get(i).lastUpdateTime;
+                    index = i;
+                }
+            }
+            // 放回磁盘
+            this.activeInodeList.get(index).freeInodeFromMemory();
+            this.activeInodeList.remove(index);
+            Log.Info("淘汰内存inode", String.format("已淘汰内存inode:%d", index));
+        }
+
+        /**
+         * @description: 加入磁盘inode列表
+         * @author: zach
+         **/
+        public void joinDiskInodeList(DiskInode diskInode) {
+            this.diskInodeList[diskInode.inodeNo] = diskInode;
+            // todo 将inode写入磁盘
+            diskInode.syncToDisk();
+        }
+
+        /**
+         * @description: 判断内存活动inode区是否已满
+         * @author: zach
+         **/
+        public boolean isActiveInodeFull() {
+            return this.activeInodeList.size() == MEM_INODE_MAX_NUM;
+        }
+
+        /**
+         * @description: 根据inodeNo查找内存中的活动inode
+         * @author: zach
+         **/
+        public MemoryInode getActiveInodeByNo(int devNo, int inodeNo) {
+            for (MemoryInode memoryInode : this.activeInodeList) {
+                // 先查内存活动inode，如果找到，返回inode
+                if (memoryInode.devNo == devNo && memoryInode.inodeNo == inodeNo) {
+                    memoryInode.referenceCount++;
+                    return memoryInode;
+                }
+            }
+            return null;
+        }
+
+        /**
+         * @description: 根据inodeNo查找磁盘中的inode
+         * @author: zach
+         **/
+        public DiskInode getDiskInodeByNo(int inodeNo) {
+            return this.diskInodeList[inodeNo];
+        }
+    }
+
+    /**
+     * @description: 管理当前系统的打开文件表
+     * @author: zach
+     **/
+    public class SysOpenFileManager {
+        SysFile[] sysOpenFileTable = new SysFile[Memory.memory.getBufferPool().getActiveInodeNum()];
+
+        public SysOpenFileManager() {
+            initSysFileOpenTable();
+        }
+
+        /**
+         * @description: 初始化系统打开文件表
+         * @author: zach
+         **/
+        void initSysFileOpenTable() {
+            for (int i = 0; i < sysOpenFileTable.length; i++) {
+                SysFile sysFile = new SysFile();
+                sysFile.init();
+                sysOpenFileTable[i] =sysFile;
+            }
+        }
+
+        /**
+         * @description: 分配系统打开文件表项
+         * @author: zach
+         **/
+        public int allocSysFileOpenTable(int inodeNo) {
+            for (int i = 0; i < sysOpenFileTable.length; i++) {
+                if (sysOpenFileTable[i].count == 0) {
+                    sysOpenFileTable[i].setInode(inodeNo);
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        /**
+            * @description: 根据inodeNo查找系统打开文件表，返回下标sysFd
+            * @author: zach
+         **/
+        public int getSysFdByInodeNo(int inodeNo){
+            for (int i = 0; i < sysOpenFileTable.length; i++) {
+                if(sysOpenFileTable[i].inodeNo==inodeNo){
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        // 减少对系统打开文件表中一个文件的引用计数
+        public void freeOneOpenFileCount(int sysFd) {
+            this.sysOpenFileTable[sysFd].count--;
+        }
+
+        /**
+         * @description: 根据系统打开文件表下标，返回inode
+         * @author: zach
+         **/
+        public MemoryInode getMemoryInodeBySysFd(int sysFd) {
+            int inodeNo = sysOpenFileTable[sysFd].inodeNo;
+            return inodeManager.getActiveInodeByNo(currentBootDisk.getBootDiskNo(), inodeNo);
+        }
+    }
+
+    /**
+     * @description: 文件系统初始化工作：
+     * 加载启动盘
+     * 初始化inode管理与打开文件表管理
+     * 初始化root节点
+     * @author: zach
+     **/
+    public FileSystem() {
+        // 挂载启动盘
+        BootDisk bootDisk = BootDisk.bootDisk;
+        bootDiskMap.put(BootDisk.DEVICE_NO, bootDisk);
+        bootDiskManager = new BootDiskManager();
+        bootLoader();
+    }
+
+    /**
+        * @description: 启动盘启动程序
+        * @author: zach
+     **/
+    public void bootLoader(){
+        // 获取当前使用的磁盘
+        currentBootDisk = bootDiskManager.getBootDisk(BootDisk.DEVICE_NO);
+        // 初始化文件系统
+        currentBootDisk.initBootDisk();
+        initFileSystem();
+    }
+
+    //----------初始化文件系统---------------
+    private void initFileSystem() {
+        inodeManager = new InodeManager();
+        sysOpenFileManager = new SysOpenFileManager();
+        initRootDir();
+    }
+
+    /**
+     * @description: 初始化root节点，root节点应该文件系统初始化的时候就建好
+     * @author: zach
+     **/
+    void initRootDir() {
+        root = allocRootInode();
+        pwd = root;
+        initBaseDir();
+        root.addDirEntry("home", HOME_INODE_NO);
+        root.addDirEntry("dev", DEV_INODE_NO);
+        root.addDirEntry("etc", ETC_INODE_NO);
+    }
+
+    /**
+     * @description: 初始化基本的文件
+     * @author: zach
+     **/
+    void initBaseDir() {
+        MemoryInode home = allocInode(HOME_INODE_NO);
+        MemoryInode dev = allocInode(DEV_INODE_NO);
+        MemoryInode etc = allocInode(ETC_INODE_NO);
+    }
+
+    //--------------------文件系统API------------------
+    // 先是从文件全名映射到 inode number ( map<string, int32_t>)，再从 inode number 映射到文件内容(map<int32_t, string>)
+
+    /**
+     * @description: 根据文件路径得到文件inode
+     * 1.查找父级目录 dirNameI()
+     * 2.父级目录搜索 findEntry()
+     * 2.1 如果不存在，申请一个inode
+     * 2.2 调用addEntry()，加入目录
+     * 3.返回文件inodeNo
+     * 4.遍历
+     * @author: zach
+     **/
+    public MemoryInode nameI(String path, int mode) {
+        //第一步是dir_namei（），找到文件所在的目录的inode，
+        // 第二步是find_entry（），即在dir目录中，找到文件对应的目录项，并返回目录项的指针de，
+        // 如果要找的文件对应的目录项不存在，就申请一个节点，
+        // 并通过add_entry()将节点对应的res_dir目录项加入目录dir
+        // iget（）
+        MemoryInode node = dirNameI(path);
+        if (node == root) {
+            return root;
+        }
+        int sysFd = -1;
+        if (node != null) {
+            sysFd = node.findEntry(fileNameI(path));
+        }
+        return sysOpenFileManager.getMemoryInodeBySysFd(sysFd);
+    }
+
+    /**
+     * @description: 根据文件路径找出文件名
+     * @author: zach
+     **/
+    private String fileNameI(String path) {
+        String[] files = path.split("/");
+        return files[files.length - 1];
+    }
+
+    /**
+     * @description: 根据文件路径找出文件所在父级目录
+     * example: /home/go/main.go --> home,go ,返回go对应的inode
+     * @author: zach
+     **/
+    MemoryInode dirNameI(String path) {
+        if (path.equals("/")) {
+            return root;
+        }
+        if (path.charAt(0) == '/') {
+            pwd = root;
+        }
+        String[] paths = path.split("/");
+        for (int i = 0; i < paths.length; i++) {
+            if (!pwd.canAccess()) {
+                Log.Error("进入文件失败", String.format("对于文件:%s，无访问权限", paths[i]));
+                return null;
+            }
+            String fileName = paths[i];
+            int inodeNo = pwd.findEntry(fileName);
+            MemoryInode memoryInode = inodeManager.getActiveInodeByNo(currentBootDisk.getBootDiskNo(), inodeNo);
+            if (memoryInode == null) {
+                // exist in disk
+
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @description: 从磁盘的inode区的未分配inode中找出一个空闲的inodeNo，加入
+     * @author: zach
+     **/
+//    public MemoryInode allocInode(int devNo) {
+//        if (BootDisk.bootDisk.getSuperBlock().getAvailableBlockNum() > 0) {
+//            // freeInode 是磁盘inodeNo
+//            int freeInodeNo = BootDisk.bootDisk.getSuperBlock().getFreeInode();
+//            if (freeInodeNo == -1) {
+//                // todo not-found
+//                Log.Error("分配磁盘inode失败", String.format("为设备:%d，分配inode失败，磁盘inode已满！", devNo));
+//                return null;
+//            }
+//            return inodeManager.getActiveInodeByNo(devNo, freeInodeNo);
+//        }
+//        Log.Error("分配磁盘inode失败", String.format("为设备:%d，分配inode失败，磁盘inode已满！", devNo));
+//        return null;
+//    }
+
+    // 为inode分配系统打开文件表
+    public void releaseInode(Inode inode) {
+        if (inode.referCnt == 1) {
+
+        }
+    }
+
+    /**
+     * @description: 从超级块中找到空闲inodeNo，从磁盘inode列表中找出diskInode，放入内存，得到memoryInode
+     * @author: zach
+     **/
+    public MemoryInode allocRootInode() {
+        // 获取磁盘inode
+        DiskInode diskInode = inodeManager.getDiskInodeByNo(ROOT_INODE_NO);
+        MemoryInode memoryInode = new MemoryInode(diskInode.inodeNo);
+        root = memoryInode;
+        // 设置root属性
+        root.setFileType(DiskInode.FileType.DIR);
+        root.setAuthority(Inode.Authority.READ, Inode.Authority.WRITE, Inode.Authority.EXEC);
+        // 将minode放入内存
+        inodeInMemory(memoryInode);
+        // 分配系统打开文件表
+        sysOpenFileManager.allocSysFileOpenTable(memoryInode.inodeNo);
+        // 返回内存inode
+        return memoryInode;
+    }
+
+    /**
+     * @description: 根据inodeNo，获取磁盘inode，加入内存，分配打开文件表
+     * @author: zach
+     **/
+    public MemoryInode allocInode(int inodeNo) {
+        DiskInode diskInode = inodeManager.getDiskInodeByNo(inodeNo);
+        MemoryInode memoryInode = new MemoryInode(diskInode.inodeNo);
+        inodeInMemory(memoryInode);
+        sysOpenFileManager.allocSysFileOpenTable(inodeNo);
+        return memoryInode;
+    }
+    //--------------文件系统存储API--------------------
+
+    /**
+     * @description: 将inode从内存中移除，放回磁盘
+     * @author: zach
+     **/
+    public void inodeInDisk(MemoryInode memoryInode) {
+
+    }
+
+    /**
+     * @description: 将磁盘中的inode加入内存
+     * @author: zach
+     **/
+    public void inodeInMemory(MemoryInode memoryInode) {
+        this.inodeManager.joinActiveInodeList(memoryInode);
+        //todo 写入内存
+        memoryInode.syncToMemory();
+    }
+
+    public disk.BootDisk getCurrentBootDisk() {
+        return currentBootDisk;
+    }
+
+    public InodeManager getInodeManager() {
+        return inodeManager;
+    }
+
+    public SysOpenFileManager getSysOpenFileManager() {
+        return sysOpenFileManager;
+    }
 }
+

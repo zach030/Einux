@@ -1,20 +1,19 @@
-package os.filesystem;
+package hardware.disk;
 
 import java.util.ArrayList;
 
-public class DataZone implements BlockZone {
+public class SwapZone implements BlockZone {
     int startBlockNo;
     int zoneSize;
     ArrayList<Block> blocks;
-    //todo 数据区存放的是目录项或文件数据
-    DataZone(int start, int size) {
+
+    SwapZone(int start, int size) {
         this.startBlockNo = start;
         this.zoneSize = size;
         blocks = new ArrayList<>(size);
         initZoneBlocks();
     }
 
-    @Override
     public void writeBlock(Block block) {
         this.blocks.set(getRelativeBlockNo(block.getBlockNo()), block);
         this.blocks.get(getRelativeBlockNo(block.getBlockNo())).syncBlock();
@@ -43,10 +42,8 @@ public class DataZone implements BlockZone {
 
     public void initZoneBlocks() {
         for (int i = 0; i < zoneSize; i++) {
-            // 物理块号
             Block block = new Block(i + startBlockNo);
             blocks.add(block);
         }
     }
-
 }

@@ -1,14 +1,20 @@
-package os.filesystem;
+package hardware.disk;
 
-public class DataMapZone implements BlockZone {
+import os.filesystem.FileSystem;
+
+public class InodeMapZone implements BlockZone {
     int blockNo;
     Block block;
-    boolean[] blockBitMap = new boolean[FileSystem.BLOCK_NUM];
-    DataMapZone(int blockNo) {
+    boolean[] inodeBitMap = new boolean[BootDisk.DISK_MAX_INODE_NUM];
+
+    InodeMapZone(int blockNo) {
         this.blockNo = blockNo;
         initZoneBlocks();
     }
 
+    void scanDisk(){
+        //todo 扫描磁盘inode区，更新bitmap
+    }
 
     @Override
     public void writeBlock(Block block) {
@@ -18,12 +24,13 @@ public class DataMapZone implements BlockZone {
 
     @Override
     public void write(int blockNo, int offset, short data) {
-        this.block.write(offset, data);
+        block.write(offset, data);
+        block.syncBlock();
     }
 
     @Override
     public short read(int blockNo, int offset) {
-        return this.block.read(offset);
+        return block.read(offset);
     }
 
     @Override

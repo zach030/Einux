@@ -1,14 +1,14 @@
 package os.storage;
 
 import hardware.CPU;
+import hardware.disk.BootDisk;
 import hardware.memory.Page;
 import hardware.memory.Memory;
-import os.filesystem.Block;
+import hardware.disk.Block;
 import os.filesystem.FileSystem;
 import os.job.JCB;
 import os.process.PCB;
 import os.process.ProcessManager;
-import utils.Log;
 import utils.SysConst;
 
 import java.util.*;
@@ -66,9 +66,9 @@ public class StorageManager {
         // 内存缓冲区位示图(16页)
         boolean[] memoryBufferBitMap = new boolean[Memory.BUFFER_SIZE];
         // 交换区使用情况位示图(256块)
-        boolean[] swapZoneBitmap = new boolean[FileSystem.SWAP_ZONE_SIZE];
+        boolean[] swapZoneBitmap = new boolean[BootDisk.SWAP_ZONE_SIZE];
         // 磁盘JCB区使用位示图(256块)
-        boolean[] jcbZoneBitMap = new boolean[FileSystem.JCB_ZONE_SIZE];
+        boolean[] jcbZoneBitMap = new boolean[BootDisk.JCB_ZONE_SIZE];
 
         // 管理位示图
         //----------------------修改位示图---------------
@@ -225,7 +225,7 @@ public class StorageManager {
                     break;
                 }
             }
-            return new Block(blockNo + FileSystem.JCB_ZONE_INDEX);
+            return new Block(blockNo + BootDisk.JCB_ZONE_INDEX);
         }
 
         // 从磁盘交换区分配出空闲的交换块bit
@@ -238,7 +238,7 @@ public class StorageManager {
                     break;
                 }
             }
-            return new Block(blockNo + FileSystem.SWAP_ZONE_INDEX);
+            return new Block(blockNo + BootDisk.SWAP_ZONE_INDEX);
         }
 
     }
@@ -441,7 +441,7 @@ public class StorageManager {
             }
             // 将块号blockNo的数据写入pageFrameNo的页内
             // 根据块号查到物理块
-            Block block = FileSystem.fs.getBlockInDisk(blockNo);
+            Block block = FileSystem.fs.getCurrentBootDisk().getBlockInDisk(blockNo);
             //todo 加内存缓冲区处理，不是直接从磁盘写到内存
             // 转化为内存页
             Page page = Transfer.transfer.transferBlockToPage(block, virtualPageNo, pageFrameNo);
@@ -460,7 +460,7 @@ public class StorageManager {
 
         public void writeDiskToBuffer(int blockNo, int logicalNo, int frameNo) {
             // 读出磁盘块
-            Block block = FileSystem.fs.getBlockInDisk(blockNo);
+            Block block = FileSystem.fs.getCurrentBootDisk().getBlockInDisk(blockNo);
             Page page = Transfer.transfer.transferBlockToPage(block, logicalNo, frameNo);
             page.syncPage();
         }
@@ -474,7 +474,7 @@ public class StorageManager {
 
         // 向磁盘内写入一块
         public void writeBlockToDisk(Block block) {
-            FileSystem.fs.writeBlock(block);
+            FileSystem.fs.getCurrentBootDisk().writeBlock(block);
         }
 
         // 向缓冲区数据写入磁盘
