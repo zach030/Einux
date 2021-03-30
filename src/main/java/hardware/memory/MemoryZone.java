@@ -14,5 +14,7 @@ public interface MemoryZone {
 
     void clearZone();
 
+    void clearPage(int pageNo);
+
     void initPages();
 }

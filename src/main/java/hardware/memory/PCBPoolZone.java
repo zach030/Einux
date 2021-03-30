@@ -52,6 +52,11 @@ public class PCBPoolZone implements MemoryZone {
     }
 
     @Override
+    public void clearPage(int pageNo) {
+        pages[getRelativePageNo(pageNo)].clearPage();
+    }
+
+    @Override
     public void initPages() {
         for (int i = 0; i < size; i++) {
             Page page = new Page();

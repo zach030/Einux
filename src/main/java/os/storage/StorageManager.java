@@ -8,6 +8,7 @@ import hardware.disk.Block;
 import os.filesystem.FileSystem;
 import os.job.JCB;
 import os.process.PCB;
+import os.process.PageTableEntry;
 import os.process.ProcessManager;
 import utils.Log;
 import utils.SysConst;
@@ -89,7 +90,7 @@ public class StorageManager {
             this.modifyMemoryPageBitMap(pageNo + Memory.PCB_POOL_START, status);
         }
 
-        // 修改内存pcb池位示图
+        // 修改内存pcb数据区位示图
         synchronized public void modifyPCBDataAreaBitMap(int pageNo, boolean status) {
             this.memoryPCBDataBitMap[pageNo] = true;
             this.modifyMemoryPageBitMap(pageNo + Memory.PCB_ZONE_START, status);
@@ -248,18 +249,30 @@ public class StorageManager {
     public class ReleaseManager {
         // 将内存占用的内存数据区释放
         public void releasePCBData(PCB pcb) {
-            syncFreeMemoryPCBData();
-            syncFreePCBDataBitMap();
+            syncFreeMemoryPCBData(pcb);
+            syncFreePCBDataBitMap(pcb);
         }
 
         // 同步清除进程内存数据区
-        private void syncFreeMemoryPCBData() {
-
+        private void syncFreeMemoryPCBData(PCB pcb) {
+            for (int i = 0; i < pcb.getInternalPageTable().length; i++) {
+                PageTableEntry p = pcb.getInternalPageTable()[i];
+                if (p.getPhysicPageNo() != -1) {
+                    int frameNo = p.getPhysicPageNo();
+                    Memory.memory.clearPage(frameNo);
+                }
+            }
         }
 
         // 同步清除进程内存数据区位示图
-        private void syncFreePCBDataBitMap() {
-
+        private void syncFreePCBDataBitMap(PCB pcb) {
+            for (int i = 0; i < pcb.getInternalPageTable().length; i++) {
+                PageTableEntry p = pcb.getInternalPageTable()[i];
+                if (p.getPhysicPageNo() != -1) {
+                    int frameNo = p.getPhysicPageNo();
+                    bitMapManager.modifyPCBDataAreaBitMap(frameNo, false);
+                }
+            }
         }
 
         // 将pcb占用的页表释放(最后清除)
@@ -377,43 +390,6 @@ public class StorageManager {
             int frameNo = (physicalAddr >> 9) & 0X003F;
             lruVisitPage(frameNo);
             return Memory.memory.readWordData((short) physicalAddr);
-        }
-
-        /**
-         * @description: 缺页中断：进程挂起，查进程页表，查到外存物理块号，内存pcb数据区分配空闲页
-         * 将物理块的数据写入内存空闲区，唤醒进程，设置进程状态
-         * @author: zach
-         **/
-        public void doPageFault(PCB pcb, int virtualPageNo) {
-            // cpu 进行保护现场
-            CPU.cpu.Protect();
-            pcb.setStatus(PCB.TASK_SUSPEND);
-            // 查页表得到外存磁盘号，进行调页
-            int blockNo = pcb.searchPageTable(virtualPageNo);
-            int pageFrameNo = allotManager.allotEmptyPCBDataPage();
-            // 查看内存是否有空闲页框，分配一个
-            if (pageFrameNo == NOT_ENOUGH) {
-                int frameNo = lruGetHeadPageNum();
-                //淘汰页面,如果没有则使用淘汰算法淘汰一个，将淘汰页写回磁盘
-                Log.Info("", String.format("当前内存无空闲页框，经过LRU算法，淘汰最久未使用的页框:%d", frameNo));
-                // 此进程将占用此页
-                pageFrameNo = frameNo;
-            }
-            // 将块号blockNo的数据写入pageFrameNo的页内
-            // 根据块号查到物理块
-            Block block = FileSystem.getCurrentBootDisk().getBlockInDisk(blockNo);
-            Page page = Transfer.transfer.transferBlockToPage(block, virtualPageNo, pageFrameNo);
-            // 将页写入内存指定位置
-            Memory.memory.writePage(page);
-            // 设置进程页表
-            pcb.writePageTableEntry(virtualPageNo, page);
-            // pcb就绪态
-            pcb.setStatus(PCB.TASK_READY);
-            // cpu恢复现场
-            CPU.cpu.Recovery(pcb);
-            // 设置pcb运行态
-            pcb.setStatus(PCB.TASK_RUNNING);
-            Log.Info("缺页中断", "已成功完成请求调页，结束缺页中断");
         }
 
         public void writeDiskToBuffer(int blockNo, int logicalNo, int frameNo) {

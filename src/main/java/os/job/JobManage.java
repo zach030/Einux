@@ -22,6 +22,7 @@ public class JobManage {
     public static final String inputJobPath = "D:/AllProjects/Java/Einux/test/input/19318123-jobs-input.txt";
     public static File jobFile = new File(inputJobPath);
 
+    public File chooseFile = null;
 
     public boolean isBackJobsEmpty() {
         return backJCBS.isEmpty();
@@ -68,6 +69,14 @@ public class JobManage {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public File getChooseFile() {
+        return chooseFile;
+    }
+
+    public void setChooseFile(File chooseFile) {
+        this.chooseFile = chooseFile;
     }
 
     void createNewJob() {

@@ -12,7 +12,7 @@ public class BufferHead {
     private int bufferNo;        // 缓冲区编号
     private int frameNo;   //​内存块号
     public int flag;             // 标志位
-    ArrayList<PCB> blockWaitBufferQueue; // 被此块阻塞的进程队列
+    ArrayList<PCB> blockWaitBufferQueue = new ArrayList<>(); // 被此块阻塞的进程队列
 
     public int getDevNo() {
         return devNo;

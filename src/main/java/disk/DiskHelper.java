@@ -99,7 +99,7 @@ public class DiskHelper {
     }
 
     // root dir for simulate disk
-    public static final String rootDir = "D:/AllProjects/Java/Simulation-Implementation-Of-Linux-System/disk";
+    public static String rootDir = "D:/AllProjects/Java/Simulation-Implementation-Of-Linux-System/disk";
     // simulate disk prefix
     public static final String cylinderPrefix = "cylinder";
     public static final String trackPrefix = "track";
@@ -299,5 +299,9 @@ public class DiskHelper {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void setRootDir(String rootDir) {
+        DiskHelper.rootDir = rootDir;
     }
 }

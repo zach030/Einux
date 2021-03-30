@@ -67,6 +67,7 @@ public class SystemCall {
                 return -1;
             }
             int sysFd = FileSystem.fs.getSysOpenFileManager().getSysFdByInodeNo(inode.inodeNo);
+            Log.Info("打开文件", String.format("系统打开文件表下标为:%d", sysFd));
             return CPU.cpu.getCurrent().addUserOpenFileTable(sysFd);
         }
 

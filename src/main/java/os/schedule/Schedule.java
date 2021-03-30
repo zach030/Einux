@@ -6,14 +6,16 @@ import os.filesystem.FileSystem;
 import os.job.JCB;
 import os.job.JobManage;
 import os.process.Instruction;
+import os.process.Interrupt;
 import os.process.PCB;
 import os.process.ProcessManager;
 import os.storage.StorageManager;
 import utils.Log;
 
-public class Schedule {
+public class Schedule extends Thread {
     public static Schedule schedule = new Schedule();
 
+    public static final Object systemStatus = false;
     // 内存缺页警示值
     public static final int MEMORY_LACK_WARN = 8;
     //------------------日志常量------------------
@@ -155,8 +157,12 @@ public class Schedule {
             // 2.1. 如果发生缺页，获取当前指令所在的页
             int pageNo = CPU.cpu.getCurrentIRPageNum();
             Log.Info("缺页中断", "查询到指令:" + CPU.cpu.getPC() + ",逻辑页号是：" + pageNo);
-            // 2.2. 进行缺页中断
-            StorageManager.sm.memoryManager.doPageFault(CPU.cpu.getCurrent(), pageNo);
+            // 保存缺页中断所需逻辑页号
+            CPU.cpu.setCr2(pageNo);
+            // 设置中断向量值
+            CPU.cpu.setInterrupt(Interrupt.PAGE_FAULT);
+            // 运行中断服务例程
+            Interrupt.interrupt.doInterrupt();
             // 2.3. 重新获得当前指令的物理地址
             physicalAddress = CPU.cpu.mmu.ResolveLogicalAddress((short) instructionLogicalAddr);
         }
@@ -192,32 +198,44 @@ public class Schedule {
     }
 
     // 调度线程开始
-    public void Run() {
+    public void init() {
         FileSystem.fs.start();
         // 0.开启系统计时器
         CPU.cpu.clock.start();
         // 1.开启高级、中级调度检测线程
         Detector.detector.StartDetector();
-        JobManage.jm.LoadJobFromFile(JobManage.jobFile);
+        JobManage.jm.LoadJobFromFile(JobManage.jm.chooseFile);
+    }
+
+    @Override
+    public void run() {
         while (true) {
-            // 如果发生时钟中断，开启调度
-            if (CPU.cpu.clock.GetIfInterrupt()) {
-                // 高级调度
-                if (needHighLevelScheduling) {
-                    // 由后备队列检测线程设置是否需要高级调度
-                    Log.Info(schedulePeriod, "正在进行高级调度");
-                    HighLevelScheduling();
-                    needHighLevelScheduling = false;
+            synchronized (systemStatus) {
+                try {
+                    systemStatus.wait();
+                    // 如果发生时钟中断，开启调度
+                    if (CPU.cpu.clock.GetIfInterrupt()) {
+                        // 高级调度
+                        if (needHighLevelScheduling) {
+                            // 由后备队列检测线程设置是否需要高级调度
+                            Log.Info(schedulePeriod, "正在进行高级调度");
+                            HighLevelScheduling();
+                            needHighLevelScheduling = false;
+                        }
+                        // 中级调度
+                        if (needMediumLevelScheduling) {
+                            Log.Info(schedulePeriod, "正在进行中级调度");
+                            MidLevelScheduling();
+                            needMediumLevelScheduling = false;
+                        }
+                        RunProcess(); // 运行进程
+                        CPU.cpu.clock.ResetIfInterrupt(); // 恢复中断
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
-                // 中级调度
-                if (needMediumLevelScheduling) {
-                    Log.Info(schedulePeriod, "正在进行中级调度");
-                    MidLevelScheduling();
-                    needMediumLevelScheduling = false;
-                }
-                RunProcess(); // 运行进程
-                CPU.cpu.clock.ResetIfInterrupt(); // 恢复中断
             }
+
         }
     }
 }

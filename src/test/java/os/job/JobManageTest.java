@@ -25,7 +25,7 @@ class JobManageTest {
     @Test
     void createNewJob() {
         //JobManage.jm.createNewJob();
-        JCB jcb = new JCB(10, 8);
+        JCB jcb = new JCB(10, 58);
         JobManage.jm.generateRandomInstruction(jcb);
         String fileName = "D:/AllProjects/Java/Einux/test/input/10.txt";
 

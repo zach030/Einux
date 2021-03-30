@@ -8,6 +8,6 @@ class ScheduleTest {
     void run() {
         //todo 就绪队列 debug
         // 死锁检测--银行家算法
-        Schedule.schedule.Run();
+        Schedule.schedule.init();
     }
 }

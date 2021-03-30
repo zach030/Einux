@@ -15,7 +15,7 @@ public class DeadLock {
         banker = new Banker();
     }
 
-    /*资源类型0,1,2*/
+    /*资源类型0,1,2 资源数目：1,1,5 */
     public enum ResourceType {
         KEYBOARD, SCREEN, OTHER
     }
@@ -69,6 +69,8 @@ public class DeadLock {
             for (int i = 0; i < PROCESS_NUM; i++) {
                 Finish[i] = false;
             }
+            //todo 因为无0号进程
+            Finish[0] = true;
         }
 
         // 加入rest集合
@@ -76,6 +78,8 @@ public class DeadLock {
             for (int i = 0; i < PROCESS_NUM; i++) {
                 Rest[i] = i;
             }
+            //todo 因为无0号进程
+            Rest[0] = -1;
         }
 
         void initSafeSeries() {
@@ -131,14 +135,13 @@ public class DeadLock {
         int requestNum = banker.Request[pcb.getID()][resource];
         int needNum = banker.Need[pcb.getID()][resource];
         if (requestNum > needNum) {
+            //todo 直接return or 阻塞？？
             Log.Error("死锁检测", String.format("当前进程:%d，对于资源:%d，的申请量:%d，已超过其所需值:%d", pcb.getID(), resource, requestNum, needNum));
             return;
         }
         //1 比较request与available，如果大于，则需要阻塞
         int availableNum = banker.Available[resource];
         if (requestNum > availableNum) {
-            Log.Error("死锁检测", String.format("当前进程:%d，对于资源:%d，的申请量:%d，已超过系统可用值:%d", pcb.getID(), resource, requestNum, availableNum));
-            //todo 阻塞进程
             ProcessManager.pm.processOperator.blockPCB(pcb, resource);
             return;
         }
@@ -165,7 +168,7 @@ public class DeadLock {
 
     // 试探性分配
     public boolean attemptAllot(int pid, int rid, int[] available, int[][] request, int[][] allot, int[][] need) {
-        Log.Info("银行家算法尝试分配", String.format("已尝试给进程:%d,分配资源%d", pid, rid));
+        Log.Info("银行家算法尝试分配", String.format("已尝试给进程:%d,分配资源%d, 数量:%d", pid, rid, request[pid][rid]));
         allot[pid][rid] += request[pid][rid];
         available[rid] -= request[pid][rid];
         need[pid][rid] -= request[pid][rid];
@@ -173,20 +176,14 @@ public class DeadLock {
         banker.initWorkVector();
         banker.initFinishVector();
         banker.initRestSet();
-        banker.Finish[pid] = true;
-        boolean find = false;
-        for (int i = 0; i < PROCESS_NUM; i++) {
+        for (int i = 1; i < PROCESS_NUM; i++) {
             int p = banker.Rest[i];
             if (need[p][rid] <= banker.Work[rid]) {
                 // 释放pi占用的资源
+                banker.Finish[i] = true;
                 banker.Work[rid] += allot[p][rid];
                 banker.Rest[p] = -1;
-                find = true;
             }
-        }
-        if (find) {
-            banker.Finish[pid] = false;
-            //todo 停止算法
         }
         for (int i = 0; i < banker.Rest.length; i++) {
             if (banker.Rest[i] != -1) {
@@ -197,11 +194,12 @@ public class DeadLock {
     }
 
     /**
-     * @description: ${description}
+     * @description: 进程释放资源
      * @author: zach
      **/
     public void releaseResource(PCB pcb, ResourceType resourceType, int num) {
-        //todo 释放资源
+        banker.Available[resourceType.ordinal()] += num;
+        banker.Allocation[pcb.getID()][resourceType.ordinal()] -= num;
     }
 
     // 释放pcb所占用资源
@@ -220,7 +218,6 @@ public class DeadLock {
                 banker.Available[i] += num;
                 banker.Allocation[pcb.getID()][i] = 0;
                 Log.Info("死锁检测--释放资源", String.format("成功释放进程:%d，所占用的资源类型:%d，资源数目:%d", pcb.getID(), i, num));
-                //todo 唤醒被阻塞的资源
                 notifyPCB(i);
             }
         }
@@ -229,12 +226,14 @@ public class DeadLock {
     // 唤醒被资源类型为rid所阻塞的进程
     synchronized void notifyPCB(int rid) {
         ArrayList<PCB> blockQueue = ProcessManager.pm.queueManager.resourceBlockQueue.get(rid);
-        for (PCB p : blockQueue) {
+        for (int i = 0; i < blockQueue.size(); i++) {
             // 从阻塞队列中移除
+            PCB p = blockQueue.get(0);
             if (ProcessManager.pm.queueManager.removeFromResourceBlockQueue(p, rid)) {
                 // 加入就绪队列
                 ProcessManager.pm.queueManager.joinReadQueue(p);
             }
         }
+        blockQueue.clear();
     }
 }

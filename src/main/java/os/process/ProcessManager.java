@@ -1,5 +1,6 @@
 package os.process;
 
+import hardware.CPU;
 import hardware.memory.Memory;
 import hardware.memory.Page;
 import hardware.disk.Block;
@@ -54,6 +55,9 @@ public class ProcessManager {
         ArrayList<PCB> suspendQueue;                //pcb挂起队列
         ArrayList<PCB> finishQueue;                 //pcb完成队列
         //todo 展示下面两个阻塞队列信息
+        // 系统调用被阻塞： 目前是文件操作后被阻塞，操作成功后即唤醒
+        // 申请资源被阻塞
+        // 申请缓冲区被阻塞
         ArrayList<ArrayList<PCB>> bufferBlockQueue; //设备缓冲区阻塞队列
         ArrayList<ArrayList<PCB>> resourceBlockQueue;//资源阻塞队列
 
@@ -61,8 +65,12 @@ public class ProcessManager {
         public synchronized void DisplayAllPCBQueue() {
             Log.Info("进程队列信息", "当前就绪队列:");
             displayReadyQueue();
-            Log.Info("进程队列信息", "当前阻塞队列:");
+            Log.Info("进程队列信息", "当前系统阻塞队列:");
             displayBlockQueue();
+            Log.Info("进程队列信息", "当前资源阻塞队列:");
+            displayResourceBlockQueue();
+            Log.Info("进程队列信息", "当前缓冲区阻塞队列:");
+            displayBufferBlockQueue();
             Log.Info("进程队列信息", "当前挂起队列:");
             displaySuspendQueue();
             Log.Info("进程队列信息", "当前完成队列:");
@@ -91,6 +99,45 @@ public class ProcessManager {
                 Log.Info("阻塞队列", content.toString());
             } else {
                 System.out.print("阻塞队列为空");
+            }
+            System.out.println();
+        }
+
+        synchronized void displayResourceBlockQueue() {
+            if (!this.resourceBlockQueue.isEmpty()) {
+                StringBuilder content = new StringBuilder();
+                ArrayList<PCB> r1 = resourceBlockQueue.get(0);
+                content.append("资源类型0：");
+                for (PCB pcb : r1) {
+                    content.append("进程: ").append(pcb.getID()).append("\t");
+                }
+                content.append("资源类型1：");
+                ArrayList<PCB> r2 = resourceBlockQueue.get(1);
+                for (PCB pcb : r2) {
+                    content.append("进程: ").append(pcb.getID()).append("\t");
+                }
+                content.append("资源类型2：");
+                ArrayList<PCB> r3 = resourceBlockQueue.get(2);
+                for (PCB pcb : r3) {
+                    content.append("进程: ").append(pcb.getID()).append("\t");
+                }
+                Log.Info("资源阻塞队列", content.toString());
+            } else {
+                System.out.print("阻塞队列为空");
+            }
+            System.out.println();
+        }
+
+        synchronized void displayBufferBlockQueue() {
+            if (!this.bufferBlockQueue.isEmpty()) {
+                ArrayList<PCB> current = bufferBlockQueue.get(0);
+                StringBuilder content = new StringBuilder();
+                for (PCB pcb : current) {
+                    content.append("进程: ").append(pcb.getID()).append("\t");
+                }
+                Log.Info("缓冲区阻塞队列", content.toString());
+            } else {
+                Log.Info("打印缓冲区阻塞队列", "当前阻塞队列为空");
             }
             System.out.println();
         }
@@ -162,6 +209,11 @@ public class ProcessManager {
             this.bufferBlockQueue.get(devNo).add(pcb);
         }
 
+        // 移除缓冲区阻塞队列
+        synchronized public void removeFromBufferBlockQueue(PCB pcb, int devNo) {
+            this.bufferBlockQueue.get(devNo).remove(pcb);
+        }
+
         // 获取就绪队列队头
         synchronized public PCB getFromReadyQueue() {
             PCB pcb = this.readyQueue.get(0);
@@ -188,6 +240,15 @@ public class ProcessManager {
             this.readyQueue.remove(pcb);
             this.suspendQueue.remove(pcb);
             this.blockQueue.remove(pcb);
+        }
+
+        synchronized public void removeFromBlockQueue(PCB pcb) {
+            // 资源阻塞队列
+            for (int i = 0; i < 3; i++) {
+                this.removeFromResourceBlockQueue(pcb, i);
+            }
+            // 缓冲区阻塞队列
+            this.removeFromBufferBlockQueue(pcb, FileSystem.getCurrentBootDisk().getBootDiskNo());
         }
     }
 
@@ -235,31 +296,24 @@ public class ProcessManager {
             // 将pcb从所有的队列中移除
             queueManager.removeFromAllQueue(pcb);
             // 加入完成队列
-            queueManager.finishQueue.add(pcb);
-            // 释放资源
-            DeadLock.deadLock.releasePCBResource(pcb);
+            queueManager.joinFinishedQueue(pcb);
         }
 
         // 唤醒进程
         public void wakePCB(PCB pcb) {
             pcb.wakeUpProcess();
-            queueManager.removeFromAllQueue(pcb);
+            queueManager.removeFromBlockQueue(pcb);
             queueManager.joinReadQueue(pcb);
-        }
-
-        // 阻塞进程
-        public void blockPCB(PCB pcb) {
-            Log.Info("系统调用阻塞", String.format("进程:%d,执行系统调用被阻塞", pcb.getID()));
-            // 进程阻塞原语
-            pcb.blockProcess();
-            // 加入阻塞队列
-            queueManager.joinBlockQueue(pcb);
         }
 
         // 申请资源阻塞进程
         public void blockPCB(PCB pcb, int resource) {
             Log.Info("申请资源阻塞", String.format("进程id:%d,因申请资源:%d，被阻塞", pcb.getID(), resource));
+            // 设置进程的状态为阻塞
             pcb.blockProcess();
+            // cpu保护现场
+            CPU.cpu.Protect();
+            // 加入阻塞队列
             queueManager.joinResourceBlockQueue(pcb, resource);
         }
 
@@ -270,6 +324,8 @@ public class ProcessManager {
             pcb.blockProcess();
             // 设置进程阻塞等待的缓冲区号
             pcb.setBufferNo(bufferNo);
+            // cpu保护现场
+            CPU.cpu.Protect();
             // 加入缓冲区阻塞队列
             queueManager.joinBufferBlockQueue(pcb, devNo);
         }

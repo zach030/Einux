@@ -11,7 +11,7 @@ public class Detector {
 
     public void StartDetector() {
         Log.Info("检测线程", "正在开启高级、中级调度检测线程...");
-        //new MidDetector().start();
+        new MidDetector().start();
         new JobDetector().start();
     }
 

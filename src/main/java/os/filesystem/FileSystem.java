@@ -173,9 +173,15 @@ public class FileSystem implements VFS {
             //todo 写入内存
             for (int blockNo : memoryInode.blockNoList) {
                 BufferHead bh = DeviceManager.dm.bufferOperator.writeDevToBuffer(currentBootDisk.getBootDiskNo(), blockNo);
+                if (bh == null) {
+                    Log.Error("将inode写入内存缓冲区", String.format("将inode:%d,写入内存缓冲区失败，无可用缓冲区，进程已被阻塞", memoryInode.inodeNo));
+                    return;
+                }
                 Log.Info("写入内存缓冲区", String.format("正在将BufferHeader对应的磁盘号:%d,写入内存缓冲区页号:%d,物理页框号:%d内",
                         bh.getBlockNo(), bh.getBufferNo(), bh.getFrameNo()));
                 memoryInode.syncToMemory(bh);
+                //todo 何时释放缓冲区？这里直接释放对吗？仿真文件数据被读取了
+                DeviceManager.dm.bufferOperator.freeBuffer(bh);
             }
         }
     }

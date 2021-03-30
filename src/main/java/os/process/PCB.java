@@ -5,6 +5,7 @@ import hardware.Clock;
 import hardware.memory.Page;
 import hardware.memory.Memory;
 import os.job.JCB;
+import os.storage.StorageManager;
 import utils.Log;
 
 import java.util.ArrayList;
@@ -101,10 +102,10 @@ public class PCB {
     public void cancelProcess() {
         setStatus(PCB.TASK_END);
         setEndTimes(CPU.cpu.clock.getCurrentTime());
-        //StorageManage.sm.RecyclePageFrame(this); // 回收该进程占有的所有页框
-        //StorageManage.sm.ClearPageTable(this); // 清空页表
-        //StorageManage.sm.DeletePCBFromPool(this); // 将该PCB从PCB池中删除
-        //Deadlock.l.ReleaseAllResource(this); // 释放所有资源
+        StorageManager.sm.releaseManager.releasePCBData(this);      // 释放此进程占用的数据区
+        StorageManager.sm.releaseManager.releasePCBPageTable(this); // 释放进程页表
+        StorageManager.sm.releaseManager.releasePCBPoolPage(this);  // 修改内存pcbPool数据
+        DeadLock.deadLock.releasePCBResource(this);                 // 释放此进程占有的资源
     }
 
     // 阻塞进程
@@ -210,6 +211,11 @@ public class PCB {
      * @author: zach
      **/
     public int addUserOpenFileTable(int sysFd) {
+        for (int i = 0; i < userOpenFileTable.length; i++) {
+            if (userOpenFileTable[i] == sysFd) {
+                return i;
+            }
+        }
         for (int i = 0; i < userOpenFileTable.length; i++) {
             if (userOpenFileTable[i] == -1) {
                 userOpenFileTable[i] = sysFd;
@@ -408,4 +414,11 @@ public class PCB {
         this.internPageTableBaseAddr = internPageTableBaseAddr;
     }
 
+    public PageTableEntry[] getInternalPageTable() {
+        return internalPageTable;
+    }
+
+    public void setInternalPageTable(PageTableEntry[] internalPageTable) {
+        this.internalPageTable = internalPageTable;
+    }
 }

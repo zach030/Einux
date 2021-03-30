@@ -42,6 +42,11 @@ public class KernalZone implements MemoryZone {
     }
 
     @Override
+    public void clearPage(int pageNo) {
+        page.clearPage();
+    }
+
+    @Override
     public void initPages() {
         page = new Page();
     }

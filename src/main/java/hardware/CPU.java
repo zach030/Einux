@@ -2,6 +2,7 @@ package hardware;
 
 import os.process.Instruction;
 import os.process.PCB;
+import utils.Log;
 import utils.SysConst;
 
 public class CPU {
@@ -26,15 +27,18 @@ public class CPU {
     private int IP;  // instruction pointer register
     private int IR;  // instruction pointer register
     private int PC;  // current exec instruction position register
-    //TODO implement cr0,32位寄存器,与int大小一致
     private int cr0;
     private int cr1; // cr1: not used
     private int cr2; // cr2: 页故障线性地址
     private int cr3;// cr3: 页目录基址寄存器，页目录表页面是页对齐的，所以该寄存器只有高20位是有效
     // 往CR3中加载一个新值时低12位必须设置为0
+    private int interrupt; // 当前中断向量值
+    //todo 不太对，临时写的
+    private String systemCallReg; //系统调用寄存器
 
     // 恢复进程
     public void Recovery(PCB pNew) {
+        Log.Info("恢复现场", String.format("CPU正在恢复现场,记录新进程的IR：%d，PC:%d", pNew.getIR(), pNew.getPC()));
         current = pNew;
         current.setTimeSlice();
         setIR(current.getIR());
@@ -44,6 +48,7 @@ public class CPU {
 
     // 保护现场：进程被阻塞时
     public void Protect() {
+        Log.Info("保护现场", String.format("CPU正在保护现场,将IR=%d,PC=%d 寄存器压栈", IR, PC));
         current.setIR(this.IR);
         current.setPC(this.PC);
         setRunning(false);
@@ -60,7 +65,7 @@ public class CPU {
     }
 
     // 判断当前进程是否执行结束
-    public boolean isCurrentPCBEnd(){
+    public boolean isCurrentPCBEnd() {
         return this.getPC() >= this.getCurrent().getInstructionsNum();
     }
 
@@ -114,5 +119,29 @@ public class CPU {
 
     public void setPC(int PC) {
         this.PC = PC;
+    }
+
+    public int getCr2() {
+        return cr2;
+    }
+
+    public void setCr2(int cr2) {
+        this.cr2 = cr2;
+    }
+
+    public int getInterrupt() {
+        return interrupt;
+    }
+
+    public void setInterrupt(int interrupt) {
+        this.interrupt = interrupt;
+    }
+
+    public String getSystemCallReg() {
+        return systemCallReg;
+    }
+
+    public void setSystemCallReg(String systemCallReg) {
+        this.systemCallReg = systemCallReg;
     }
 }

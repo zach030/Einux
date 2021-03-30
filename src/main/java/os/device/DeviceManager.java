@@ -144,7 +144,7 @@ public class DeviceManager {
                         Log.Info(bufferOp, String.format("缓冲区:%d,正在被进程:%d使用", bh.getBufferNo(), CPU.cpu.getCurrent().getID()));
                         // 阻塞此进程
                         bh.blockPCBToThis(CPU.cpu.getCurrent());
-                        ProcessManager.pm.processOperator.blockPCB(CPU.cpu.getCurrent(),devNo,bh.getBufferNo());
+                        ProcessManager.pm.processOperator.blockPCB(CPU.cpu.getCurrent(), devNo, bh.getBufferNo());
                         return null;
                     }
                     // 如果缓冲区未被占用
@@ -167,6 +167,7 @@ public class DeviceManager {
             // 0. 判断空闲队列是否有空
             if (bufferQueueManager.isFreeQueueEmpty()) {
                 // 0.1 因无空闲缓冲区而阻塞
+                Log.Error("申请缓冲区失败", String.format("为设备%d,物理块号:%d，申请缓冲区失败，当前内存已无空闲缓冲区", devNo, blockNo));
                 ProcessManager.pm.processOperator.blockPCB(CPU.cpu.getCurrent(), devNo, LACK_FREE_BUFFER);
                 return null;
             }

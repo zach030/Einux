@@ -5,6 +5,7 @@ import hardware.MMU;
 import hardware.memory.Memory;
 import os.process.DeadLock;
 import os.process.Instruction;
+import os.process.Interrupt;
 import os.process.ProcessManager;
 import os.storage.StorageManager;
 import os.systemcall.SystemCall;
@@ -59,17 +60,15 @@ public class Execute {
         CPU.cpu.autoAddPC();
         // 2. cpu进入内核态
         CPU.cpu.setState(CPU.KERNAL_STATE);
-        // 3. cpu保护现场
-        CPU.cpu.Protect();
-        // 4. 阻塞进程
-        ProcessManager.pm.processOperator.blockPCB(CPU.cpu.getCurrent());
         // 分解出文件路径
         int fileName = instruction.getArg();
         String path = "/home/zach/" + fileName + ".txt";
-        // 系统调用打开文件
-        int fd = SystemCall.systemCall.fileSystemCall.open(path, SystemCall.WRITE_ONLY);
-        Log.Info("打开文件", String.format("进程:%d,执行打开文件系统调用,打开文件:%s,返回文件描述符为:%d",
-                CPU.cpu.getCurrent().getID(), path, fd));
+        // 设置中断向量
+        CPU.cpu.setInterrupt(Interrupt.SYSTEM_CALL_OPEN);
+        // 系统调用寄存器压栈
+        CPU.cpu.setSystemCallReg(path);
+        // 执行中断程序
+        Interrupt.interrupt.doInterrupt();
     }
 
     // 写内存指令
@@ -86,8 +85,12 @@ public class Execute {
         if (physicAddr == MMU.NOT_FOUND_ERROR) {
             // 5.1 获取逻辑页号
             int logicalPageNo = logicalAddr / SysConst.PAGE_FRAME_SIZE;
-            // 5.2 进行缺页中断
-            StorageManager.sm.memoryManager.doPageFault(CPU.cpu.getCurrent(), logicalPageNo);
+            // 保存缺页中断所需逻辑页号
+            CPU.cpu.setCr2(logicalPageNo);
+            // 设置中断向量值
+            CPU.cpu.setInterrupt(Interrupt.PAGE_FAULT);
+            // 运行中断服务例程
+            Interrupt.interrupt.doInterrupt();
             // 5.3 查询到物理地址
             physicAddr = CPU.cpu.mmu.ResolveLogicalAddress((short) logicalAddr);
         }
@@ -113,8 +116,12 @@ public class Execute {
         if (physicAddr == MMU.NOT_FOUND_ERROR) {
             // 5.1 获取逻辑页号
             int logicalPageNo = logicalAddr / SysConst.PAGE_FRAME_SIZE;
-            // 5.2 进行缺页中断
-            StorageManager.sm.memoryManager.doPageFault(CPU.cpu.getCurrent(), logicalPageNo);
+            // 保存缺页中断所需逻辑页号
+            CPU.cpu.setCr2(logicalPageNo);
+            // 设置中断向量值
+            CPU.cpu.setInterrupt(Interrupt.PAGE_FAULT);
+            // 运行中断服务例程
+            Interrupt.interrupt.doInterrupt();
             // 5.3 查询到物理地址
             physicAddr = CPU.cpu.mmu.ResolveLogicalAddress((short) logicalAddr);
         }
