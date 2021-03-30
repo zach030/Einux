@@ -2,6 +2,7 @@ package os.filesystem;
 
 import hardware.memory.Page;
 import os.device.BufferHead;
+import utils.Log;
 
 import java.util.ArrayList;
 
@@ -29,6 +30,7 @@ public class DiskInode {
         this.groupID = 1;
         this.fileSize = 1;
 
+        this.authority = 7;
         this.hardLinkNum = 1;
         this.access = true;
         this.inodeNo = inodeNo;
@@ -130,6 +132,7 @@ public class DiskInode {
      * @author: zach
      **/
     public void addDirEntry(String name, int inodeNo) {
+        Log.Info("添加目录项", String.format("正在为inode:%d,添加目录项，文件名为:%s,inode号为:%d", this.inodeNo, name, inodeNo));
         Directory d = new Directory(name, inodeNo);
         this.dirEntry.add(d);
     }

@@ -5,6 +5,7 @@ import hardware.Clock;
 import hardware.memory.Page;
 import hardware.memory.Memory;
 import os.job.JCB;
+import utils.Log;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -170,6 +171,7 @@ public class PCB {
     public int searchPageTable(int pageNo) {
         for (PageTableEntry pageTableEntry : internalPageTable) {
             if (pageTableEntry.getVirtualPageNo() == pageNo) {
+                Log.Info("查页表", String.format("正在为进程:%d，逻辑页号:%d，查询页框号", this.getID(), pageNo));
                 return pageTableEntry.getDiskBlockNo();
             }
         }
@@ -204,12 +206,12 @@ public class PCB {
     }
 
     /**
-        * @description: 加入用户打开文件表，并返回fd
-        * @author: zach
+     * @description: 加入用户打开文件表，并返回fd
+     * @author: zach
      **/
     public int addUserOpenFileTable(int sysFd) {
         for (int i = 0; i < userOpenFileTable.length; i++) {
-            if (userOpenFileTable[i] != -1) {
+            if (userOpenFileTable[i] == -1) {
                 userOpenFileTable[i] = sysFd;
                 return i;
             }

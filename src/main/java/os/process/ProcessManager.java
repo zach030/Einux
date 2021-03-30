@@ -40,8 +40,11 @@ public class ProcessManager {
             this.suspendQueue = new ArrayList<>();
             this.finishQueue = new ArrayList<>();
             this.bufferBlockQueue = new ArrayList<>();
+            this.bufferBlockQueue.add(new ArrayList<>());
             this.resourceBlockQueue = new ArrayList<>();
-            this.DMABlockQueue = new ArrayList<>();
+            for (int i = 0; i < 3; i++) {
+                this.resourceBlockQueue.add(new ArrayList<>());
+            }
         }
 
         //----------进程调度的PCB队列-------------------
@@ -50,9 +53,9 @@ public class ProcessManager {
         ArrayList<PCB> blockQueue;                  //pcb阻塞队列
         ArrayList<PCB> suspendQueue;                //pcb挂起队列
         ArrayList<PCB> finishQueue;                 //pcb完成队列
+        //todo 展示下面两个阻塞队列信息
         ArrayList<ArrayList<PCB>> bufferBlockQueue; //设备缓冲区阻塞队列
         ArrayList<ArrayList<PCB>> resourceBlockQueue;//资源阻塞队列
-        ArrayList<PCB> DMABlockQueue;               //DMA阻塞队列
 
         //--------------展示进程队列信息----------------------
         public synchronized void DisplayAllPCBQueue() {
@@ -68,9 +71,11 @@ public class ProcessManager {
 
         synchronized void displayReadyQueue() {
             if (!this.readyQueue.isEmpty()) {
+                StringBuilder content = new StringBuilder();
                 for (PCB pcb : readyQueue) {
-                    System.out.print("进程：" + pcb.getID() + "\t");
+                    content.append("进程: ").append(pcb.getID()).append("\t");
                 }
+                Log.Info("就绪队列", content.toString());
             } else {
                 System.out.print("就绪队列为空");
             }
@@ -79,9 +84,11 @@ public class ProcessManager {
 
         synchronized void displayBlockQueue() {
             if (!this.blockQueue.isEmpty()) {
+                StringBuilder content = new StringBuilder();
                 for (PCB pcb : blockQueue) {
-                    System.out.print("进程：" + pcb.getID() + "\t");
+                    content.append("进程: ").append(pcb.getID()).append("\t");
                 }
+                Log.Info("阻塞队列", content.toString());
             } else {
                 System.out.print("阻塞队列为空");
             }
@@ -90,9 +97,11 @@ public class ProcessManager {
 
         synchronized void displaySuspendQueue() {
             if (!this.suspendQueue.isEmpty()) {
+                StringBuilder content = new StringBuilder();
                 for (PCB pcb : suspendQueue) {
-                    System.out.print("进程：" + pcb.getID() + "\t");
+                    content.append("进程: ").append(pcb.getID()).append("\t");
                 }
+                Log.Info("挂起队列", content.toString());
             } else {
                 System.out.print("挂起队列为空");
             }
@@ -101,9 +110,11 @@ public class ProcessManager {
 
         synchronized void displayFinishQueue() {
             if (!this.finishQueue.isEmpty()) {
+                StringBuilder content = new StringBuilder();
                 for (PCB pcb : finishQueue) {
-                    System.out.print("进程：" + pcb.getID() + "\t");
+                    content.append("进程: ").append(pcb.getID()).append("\t");
                 }
+                Log.Info("完成队列", content.toString());
             } else {
                 System.out.print("已完成队列为空");
             }
@@ -122,6 +133,7 @@ public class ProcessManager {
 
         // 加入挂起队列
         synchronized public void joinSuspendQueue(PCB pcb) {
+            Log.Info("挂起进程", String.format("正在将进程:%d，加入系统挂起队列", pcb.getID()));
             this.suspendQueue.add(pcb);
         }
 
@@ -237,6 +249,7 @@ public class ProcessManager {
 
         // 阻塞进程
         public void blockPCB(PCB pcb) {
+            Log.Info("系统调用阻塞", String.format("进程:%d,执行系统调用被阻塞", pcb.getID()));
             // 进程阻塞原语
             pcb.blockProcess();
             // 加入阻塞队列
@@ -278,7 +291,7 @@ public class ProcessManager {
             // 2. 查询页表找到pcb存放在外存数据的起始块号
             int swapBlockNo = pcb.searchPageTable(pageNo);
             // 3. 获取此块数据
-            Block block = FileSystem.fs.getCurrentBootDisk().getBlockInDisk(swapBlockNo);
+            Block block = FileSystem.getCurrentBootDisk().getBlockInDisk(swapBlockNo);
             // 4. 重写页表
             Page page = Transfer.transfer.transferBlockToPage(block, pageNo, pageFrame);
             pcb.writePageTableEntry(pageNo, page);

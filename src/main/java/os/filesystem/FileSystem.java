@@ -33,7 +33,7 @@ public class FileSystem implements VFS {
     public static final int HOME_INODE_NO = 1;
     public static final int DEV_INODE_NO = 2;
     public static final int ETC_INODE_NO = 3;
-    public static final int MEM_INODE_MAX_NUM = Memory.memory.getBufferPool().getActiveInodeNum();
+    public static final int MEM_INODE_MAX_NUM = 32;
 
     //--------------基本inode--------------------
     MemoryInode root;   // 根目录
@@ -168,10 +168,13 @@ public class FileSystem implements VFS {
                 Log.Error("内存inode区已满", "当前内存inode区已满,需要释放inode");
                 this.freeOneActiveInode();
             }
+            Log.Info("加入内存活动inode列表", String.format("正在将inode:%d，加入内存活动列表", memoryInode.inodeNo));
             this.joinActiveInodeList(memoryInode);
             //todo 写入内存
             for (int blockNo : memoryInode.blockNoList) {
                 BufferHead bh = DeviceManager.dm.bufferOperator.writeDevToBuffer(currentBootDisk.getBootDiskNo(), blockNo);
+                Log.Info("写入内存缓冲区", String.format("正在将BufferHeader对应的磁盘号:%d,写入内存缓冲区页号:%d,物理页框号:%d内",
+                        bh.getBlockNo(), bh.getBufferNo(), bh.getFrameNo()));
                 memoryInode.syncToMemory(bh);
             }
         }
@@ -207,6 +210,7 @@ public class FileSystem implements VFS {
         public int allocSysFileOpenTable(int inodeNo) {
             for (int i = 0; i < sysOpenFileTable.length; i++) {
                 if (sysOpenFileTable[i].count == 0) {
+                    Log.Info("正在分配系统打开文件表", String.format("为inode:%d，寻找到系统打开文件表下标:%d", inodeNo, i));
                     sysOpenFileTable[i].setInode(inodeNo);
                     return i;
                 }
@@ -265,6 +269,7 @@ public class FileSystem implements VFS {
         // 挂载启动盘
         BootDisk bootDisk = BootDisk.bootDisk;
         bootDiskMap.put(BootDisk.DEVICE_NO, bootDisk);
+        Log.Info("启动程序", String.format("检测设备，发现块号为:%d的启动盘，将其挂载到系统", BootDisk.DEVICE_NO));
         bootDiskManager = new BootDiskManager();
         bootLoader();
     }
@@ -276,9 +281,15 @@ public class FileSystem implements VFS {
     public void bootLoader() {
         // 获取当前使用的磁盘
         currentBootDisk = bootDiskManager.getBootDisk(BootDisk.DEVICE_NO);
+        Log.Info("挂载磁盘", String.format("检测到当前系统存在设备号为:%d的启动盘，正在装载...", BootDisk.DEVICE_NO));
         // 初始化文件系统
+        Log.Info("加载磁盘数据", String.format("正在加载设备号：%d的磁盘数据", BootDisk.DEVICE_NO));
         currentBootDisk.initBootDisk();
         initFileSystem();
+    }
+
+    public void start() {
+        Log.Info("文件系统启动", "系统已启动，正在初始化文件系统");
     }
 
     //----------初始化文件系统---------------
@@ -293,6 +304,7 @@ public class FileSystem implements VFS {
      * @author: zach
      **/
     void initRootDir() {
+        Log.Info("文件系统初始化", "正在初始化根节点root");
         root = allocInode(getFreeInodeNo(), getFreeDataBlockNo());
         // 设置root属性
         root.setFileType(DiskInode.FileType.DIR);
@@ -307,8 +319,11 @@ public class FileSystem implements VFS {
      * @author: zach
      **/
     void initBaseDir() {
+        Log.Info("文件系统初始化", "正在初始化home文件");
         MemoryInode home = addNewFileToDir(root, "home");
+        Log.Info("文件系统初始化", "正在初始化dev文件");
         MemoryInode dev = addNewFileToDir(root, "dev");
+        Log.Info("文件系统初始化", "正在初始化etc文件");
         MemoryInode etc = addNewFileToDir(root, "etc");
         addNewFileToDir(home, "zach");
         addNewFileToDir(dev, "block");
@@ -413,7 +428,7 @@ public class FileSystem implements VFS {
      **/
     public MemoryInode addNewFileToDir(MemoryInode dir, String name) {
         // 申请磁盘空闲inode
-        int inodeNo = currentBootDisk.getSuperBlock().getFreeInode();
+        int inodeNo = getFreeInodeNo();
         DiskInode diskInode = newDiskInode(inodeNo);
         // 得到内存活动inode
         MemoryInode memoryInode = allocInode(inodeNo, getFreeDataBlockNo());
@@ -454,7 +469,9 @@ public class FileSystem implements VFS {
      * @author: zach
      **/
     public int getFreeInodeNo() {
-        return currentBootDisk.getSuperBlock().getFreeInode();
+        int inodeNo = currentBootDisk.getSuperBlock().getFreeInode();
+        Log.Info("分配空闲inode块", String.format("当前系统正在请求分配空闲inode块:%d", inodeNo));
+        return inodeNo;
     }
 
     /**
@@ -462,7 +479,9 @@ public class FileSystem implements VFS {
      * @author: zach
      **/
     public int getFreeDataBlockNo() {
-        return currentBootDisk.getSuperBlock().getFreeDataBlock();
+        int blockNo = currentBootDisk.getSuperBlock().getFreeDataBlock();
+        Log.Info("分配空闲数据块", String.format("当前系统正在请求分配空闲数据块:%d", blockNo));
+        return blockNo;
     }
 
     /**

@@ -4,6 +4,7 @@ import hardware.Clock;
 import hardware.disk.Block;
 import os.process.Instruction;
 import os.storage.StorageManager;
+import utils.Log;
 import utils.SysConst;
 
 import java.util.ArrayList;
@@ -59,6 +60,7 @@ public class JCB {
         this.setJobPriority(Integer.parseInt(jobInfo[1]));
         this.setJobInTime(Integer.parseInt(jobInfo[2]));
         this.setJobInstructionNum(Integer.parseInt(jobInfo[3]));
+        Log.Info("检测后备作业", String.format("正在加载后备作业:%d,优先级:%d,进入时间:%d,指令数:%d", jobID, jobPriority, jobInTime, jobInstructionNum));
         instructions = new ArrayList<>(jobInstructionNum);
         this.data = new short[jobInstructionNum];
     }

@@ -41,24 +41,35 @@ public class BootDisk implements disk.BootDisk {
     public BootDisk() {
 
     }
+
     /**
-        * @description: 初始化启动盘
-        * @author: zach
+     * @description: 初始化启动盘
+     * @author: zach
      **/
-    public void initBootDisk(){
+    public void initBootDisk() {
+        Log.Info("加载磁盘", String.format("检测到外设柱面号:%d,磁道号:%d,扇区号:%d", DevConfig.CYLINDER_NUM, DevConfig.TRACK_NUM, DevConfig.SECTOR_NUM));
         setDiskHelper(DevConfig.CYLINDER_NUM, DevConfig.TRACK_NUM, DevConfig.SECTOR_NUM);
+        Log.Info("加载磁盘", "正在加载设备全部数据...");
         loadDisk();
+        Log.Info("初始化文件系统", "正在初始化超级块...");
         initSuperBlock();
+        Log.Info("初始化文件系统", "正在初始化inode位示图物理块...");
         initInodeMapZone();
+        Log.Info("初始化文件系统", "正在初始化数据块位示图块...");
         initDataMapZone();
+        Log.Info("初始化文件系统", "正在初始化磁盘inode区...");
         initInodeZone();
+        Log.Info("初始化文件系统", "正在初始化磁盘数据区...");
         initDataZone();
+        Log.Info("初始化文件系统", "正在初始化磁盘JCB区...");
         initJCBZone();
+        Log.Info("初始化文件系统", "正在初始化磁盘交换区...");
         initSwapZone();
     }
+
     /**
-        * @description: 初始化超级块：重点inode数据
-        * @author: zach
+     * @description: 初始化超级块：重点inode数据
+     * @author: zach
      **/
     void initSuperBlock() {
         superBlock = new SuperBlock(SUPER_BLOCK_INDEX);
@@ -186,6 +197,7 @@ public class BootDisk implements disk.BootDisk {
         }
     }
     //-----------------磁盘启动程序----------
+
     /**
      * @description: 设置磁盘引导程序
      * @author: zach
@@ -215,8 +227,8 @@ public class BootDisk implements disk.BootDisk {
     }
 
     /**
-        * @description: 开机启动加载磁盘全部数据
-        * @author: zach
+     * @description: 开机启动加载磁盘全部数据
+     * @author: zach
      **/
     @Override
     public void loadDisk() {

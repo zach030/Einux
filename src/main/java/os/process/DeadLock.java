@@ -1,5 +1,6 @@
 package os.process;
 
+import hardware.CPU;
 import utils.Log;
 import utils.SysConst;
 
@@ -15,8 +16,8 @@ public class DeadLock {
     }
 
     /*资源类型0,1,2*/
-    enum ResourceType {
-        KEYBOARD, SCREEN, PRINT
+    public enum ResourceType {
+        KEYBOARD, SCREEN, OTHER
     }
 
     public static final int PROCESS_NUM = 15;
@@ -36,7 +37,7 @@ public class DeadLock {
             for (int p = 0; p < PROCESS_NUM; p++) {
                 Max[p][0] = 1;
                 Max[p][1] = 1;
-                Max[p][2] = 2;
+                Max[p][2] = 5;
             }
         }
 
@@ -81,7 +82,7 @@ public class DeadLock {
             Arrays.fill(safeSeries, 0);
         }
 
-        int[] Available = new int[]{1, 1, 2};                         // 各资源当前可申请数目
+        int[] Available = new int[]{1, 1, 5};                         // 各资源当前可申请数目
         int[][] Max = new int[PROCESS_NUM][RESOURCE_NUM];        // 最大需求矩阵
         int[][] Allocation = new int[PROCESS_NUM][RESOURCE_NUM]; // 已分配矩阵
         int[][] Need = new int[PROCESS_NUM][RESOURCE_NUM];       // 需求矩阵
@@ -118,12 +119,13 @@ public class DeadLock {
     }
 
     private void makeApplyRequest(PCB pcb, int resource, int num) {
-        System.out.print(String.format("进程：%d,申请资源:%d, %d个\n", pcb.getID(), resource, num));
+        Log.Info("申请资源", String.format("进程：%d,申请资源:%d, %d个", pcb.getID(), resource, num));
         banker.Request[pcb.getID()][resource] = num;
     }
 
-    public void applyResource(PCB pcb, int resource, int num) {
+    public void applyResource(PCB pcb, ResourceType resourceType, int num) {
         banker.display();
+        int resource = resourceType.ordinal();
         this.makeApplyRequest(pcb, resource, num);
         //0 比较request与need，如果超过need，则出错，需求资源数已超过最大申请
         int requestNum = banker.Request[pcb.getID()][resource];
@@ -137,34 +139,33 @@ public class DeadLock {
         if (requestNum > availableNum) {
             Log.Error("死锁检测", String.format("当前进程:%d，对于资源:%d，的申请量:%d，已超过系统可用值:%d", pcb.getID(), resource, requestNum, availableNum));
             //todo 阻塞进程
+            ProcessManager.pm.processOperator.blockPCB(pcb, resource);
+            return;
         }
         int[][] allotCopy = banker.Allocation;
         int[] availableCopy = banker.Available;
         int[][] needCopy = banker.Need;
         int[][] requestCopy = banker.Request;
-        //2 尝试将资源分配给进程 Available[j] = Available[j] - Requesti[j];
-        //　　　　              Allocation[i,j] = Allocation[i,j] + Requesti[j];
-        //　　　　              Need[i,j] = Need[i,j] - Requesti[j];
-        //安全性算法
         if (attemptAllot(pcb.getID(), resource, availableCopy, requestCopy, allotCopy, needCopy)) {
             // 通过
             banker.Allocation = allotCopy;
             banker.Available = availableCopy;
             banker.Need = needCopy;
             banker.Request = requestCopy;
-            System.out.println("成功分配");
+            Log.Info("银行家算法尝试分配", "此次尝试分配后是安全序列，可以分配");
             banker.display();
             return;
         }
         //todo 不通过分配
         // 进程等待分配
         banker.display();
-        System.out.println("failed...");
+        Log.Error("银行家算法尝试分配", "此次尝试分配后不安全，放弃分配资源");
+        ProcessManager.pm.processOperator.blockPCB(pcb, resource);
     }
 
     // 试探性分配
     public boolean attemptAllot(int pid, int rid, int[] available, int[][] request, int[][] allot, int[][] need) {
-        System.out.println(String.format("已尝试给进程:%d,分配资源%d", pid, rid));
+        Log.Info("银行家算法尝试分配", String.format("已尝试给进程:%d,分配资源%d", pid, rid));
         allot[pid][rid] += request[pid][rid];
         available[rid] -= request[pid][rid];
         need[pid][rid] -= request[pid][rid];
@@ -195,6 +196,14 @@ public class DeadLock {
         return true;
     }
 
+    /**
+     * @description: ${description}
+     * @author: zach
+     **/
+    public void releaseResource(PCB pcb, ResourceType resourceType, int num) {
+        //todo 释放资源
+    }
+
     // 释放pcb所占用资源
     public void releasePCBResource(PCB pcb) {
         // 从资源阻塞队列中移除被阻塞进程
@@ -218,7 +227,7 @@ public class DeadLock {
     }
 
     // 唤醒被资源类型为rid所阻塞的进程
-    void notifyPCB(int rid) {
+    synchronized void notifyPCB(int rid) {
         ArrayList<PCB> blockQueue = ProcessManager.pm.queueManager.resourceBlockQueue.get(rid);
         for (PCB p : blockQueue) {
             // 从阻塞队列中移除

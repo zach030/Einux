@@ -2,6 +2,7 @@ package os.schedule;
 
 import hardware.CPU;
 import hardware.MMU;
+import os.filesystem.FileSystem;
 import os.job.JCB;
 import os.job.JobManage;
 import os.process.Instruction;
@@ -122,6 +123,7 @@ public class Schedule {
     public void RunProcess() {
         // 0.系统时间自增
         CPU.cpu.clock.systemTimeSelfAdd();
+        ProcessManager.pm.queueManager.DisplayAllPCBQueue();
         // 如果CPU空闲,需要低级调度
         if (!CPU.cpu.isRunning()) {
             Log.Info(schedulePeriod, "当前CPU空闲");
@@ -152,15 +154,17 @@ public class Schedule {
         if (physicalAddress == MMU.NOT_FOUND_ERROR) {
             // 2.1. 如果发生缺页，获取当前指令所在的页
             int pageNo = CPU.cpu.getCurrentIRPageNum();
-            Log.Error("缺页中断", "查询到指令:" + CPU.cpu.getPC() + ",逻辑页号是：" + pageNo);
+            Log.Info("缺页中断", "查询到指令:" + CPU.cpu.getPC() + ",逻辑页号是：" + pageNo);
             // 2.2. 进行缺页中断
             StorageManager.sm.memoryManager.doPageFault(CPU.cpu.getCurrent(), pageNo);
             // 2.3. 重新获得当前指令的物理地址
             physicalAddress = CPU.cpu.mmu.ResolveLogicalAddress((short) instructionLogicalAddr);
         }
         // 3.从内存取出这条指令
+        Log.Info("访问内存取指令", String.format("当前进程正在访问内存，指令的物理地址:%d", physicalAddress));
         int instructionData = StorageManager.sm.memoryManager.visitMemory(physicalAddress);
         Instruction instruction = ProcessManager.pm.processOperator.getInstructionByData(instructionData);
+        Log.Info("访问内存取指令", String.format("从内存:%d，取出指令:%d", physicalAddress, instruction.getId()));
         // 4.进程运行时间增加
         CPU.cpu.getCurrent().addRunTime(100);
         // 5. 进程时间片减少
@@ -189,12 +193,11 @@ public class Schedule {
 
     // 调度线程开始
     public void Run() {
+        FileSystem.fs.start();
         // 0.开启系统计时器
         CPU.cpu.clock.start();
         // 1.开启高级、中级调度检测线程
         Detector.detector.StartDetector();
-        Log.Info("系统启动", "正在装载磁盘......");
-        // todo(加载初始作业，后续可设置为按钮)
         JobManage.jm.LoadJobFromFile(JobManage.jobFile);
         while (true) {
             // 如果发生时钟中断，开启调度
@@ -212,7 +215,6 @@ public class Schedule {
                     MidLevelScheduling();
                     needMediumLevelScheduling = false;
                 }
-
                 RunProcess(); // 运行进程
                 CPU.cpu.clock.ResetIfInterrupt(); // 恢复中断
             }

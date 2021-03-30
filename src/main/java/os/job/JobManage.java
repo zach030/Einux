@@ -1,6 +1,7 @@
 package os.job;
 
 import os.process.Instruction;
+import utils.Log;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -136,6 +137,7 @@ public class JobManage {
     public void createSystemCallIns(Instruction instruction) {
         instruction.setType(0);
         int fileName = new Random().nextInt(32);
+        //todo 创建文件文件名: 1/2/3...txt
         instruction.setArg(fileName);
         instruction.setData((short) 0);
         instruction.setSize(Instruction.INSTRUCTION_SIZE);
@@ -173,7 +175,6 @@ public class JobManage {
     // 输入指令
     public void createInputIns(Instruction instruction) {
         instruction.setType(4);
-        // todo 访存地址
         instruction.setArg((short) 0);
         instruction.setData((short) 0);
         instruction.setSize(Instruction.INSTRUCTION_SIZE);
@@ -182,8 +183,7 @@ public class JobManage {
     // 输出指令
     public void createOutputIns(Instruction instruction) {
         instruction.setType(5);
-        // todo 访存地址
-        instruction.setArg((short) 0);
+        instruction.setArg((short) 1);
         instruction.setData((short) 0);
         instruction.setSize(Instruction.INSTRUCTION_SIZE);
     }
@@ -191,11 +191,8 @@ public class JobManage {
     // 申请资源指令
     public void createRequireResourceIns(Instruction instruction) {
         instruction.setType(6);
-        // todo 访存地址
-        // 资源类型1-3
-        int source = new Random().nextInt(3) + 1;
-        instruction.setArg((short) source);
-        instruction.setData((short) 0);
+        instruction.setArg((short) 2);
+        instruction.setData((short) new Random().nextInt(5));
         instruction.setSize(Instruction.INSTRUCTION_SIZE);
     }
 
@@ -222,17 +219,7 @@ public class JobManage {
             instruction.setType(type);
             instruction.setArg((short) instruction.getId() + 1);
         }
-        instruction.setData((short) 0);
+        instruction.setData((short) new Random().nextInt(5));
         instruction.setSize(Instruction.INSTRUCTION_SIZE);
     }
-
-    byte[] intToByteArray(int num) {
-        byte[] b = new byte[4];
-        b[0] = (byte) (num & 0xff);
-        b[1] = (byte) (num >> 8 & 0xff);
-        b[2] = (byte) (num >> 16 & 0xff);
-        b[3] = (byte) (num >> 24 & 0xff);
-        return b;
-    }
-
 }

@@ -6,10 +6,11 @@ import utils.Log;
 
 public class Detector {
     public static Detector detector = new Detector();
-    public static final int HIGH_DETECTOR_INTERVAL = 3000;
+    public static final int HIGH_DETECTOR_INTERVAL = 1000;
     public static final int MID_DETECTOR_INTERVAL = 2000;
 
     public void StartDetector() {
+        Log.Info("检测线程", "正在开启高级、中级调度检测线程...");
         //new MidDetector().start();
         new JobDetector().start();
     }

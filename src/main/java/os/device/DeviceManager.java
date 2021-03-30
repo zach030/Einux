@@ -144,7 +144,7 @@ public class DeviceManager {
                         Log.Info(bufferOp, String.format("缓冲区:%d,正在被进程:%d使用", bh.getBufferNo(), CPU.cpu.getCurrent().getID()));
                         // 阻塞此进程
                         bh.blockPCBToThis(CPU.cpu.getCurrent());
-                        ProcessManager.pm.processOperator.blockPCB(CPU.cpu.getCurrent());
+                        ProcessManager.pm.processOperator.blockPCB(CPU.cpu.getCurrent(),devNo,bh.getBufferNo());
                         return null;
                     }
                     // 如果缓冲区未被占用

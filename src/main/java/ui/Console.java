@@ -34,100 +34,62 @@ public class Console extends JFrame {
         // TODO add your code here
     }
 
+    private void consoleItemStateChanged(ItemEvent e) {
+        // TODO add your code here
+    }
+
     private void initComponents() {
         // JFormDesigner - Component initialization - DO NOT MODIFY  //GEN-BEGIN:initComponents
-        // Generated using JFormDesigner Evaluation license - zach
+        // Generated using JFormDesigner Evaluation license - unknown
         ResourceBundle bundle = ResourceBundle.getBundle("ui.setting");
-        dialogPane = new JPanel();
-        contentPanel = new JPanel();
-        panel1 = new JPanel();
-        label1 = new JLabel();
-        progressBar2 = new JProgressBar();
-        buttonBar = new JPanel();
-        button1 = new JButton();
+        frame1 = new JFrame();
+        系统菜单 = new JMenuBar();
+        console = new JMenuItem();
+        menuItem2 = new JMenuItem();
+        memory = new JMenuItem();
+        menuItem1 = new JMenuItem();
 
-        //======== this ========
-        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        setFont(new Font(Font.DIALOG_INPUT, Font.BOLD, 12));
-        Container contentPane = getContentPane();
-        contentPane.setLayout(new BorderLayout());
-
-        //======== dialogPane ========
+        //======== frame1 ========
         {
-            dialogPane.setBorder(new EmptyBorder(12, 12, 12, 12));
-            dialogPane.setBorder (new javax. swing. border. CompoundBorder( new javax .swing .border .TitledBorder (new javax
-            . swing. border. EmptyBorder( 0, 0, 0, 0) , "JF\u006frmDesi\u0067ner Ev\u0061luatio\u006e", javax. swing
-            . border. TitledBorder. CENTER, javax. swing. border. TitledBorder. BOTTOM, new java .awt .
-            Font ("Dialo\u0067" ,java .awt .Font .BOLD ,12 ), java. awt. Color. red
-            ) ,dialogPane. getBorder( )) ); dialogPane. addPropertyChangeListener (new java. beans. PropertyChangeListener( ){ @Override
-            public void propertyChange (java .beans .PropertyChangeEvent e) {if ("borde\u0072" .equals (e .getPropertyName (
-            ) )) throw new RuntimeException( ); }} );
-            dialogPane.setLayout(new BorderLayout());
+            frame1.setBackground(new Color(102, 102, 102));
+            frame1.setTitle("Einux");
+            Container frame1ContentPane = frame1.getContentPane();
+            frame1ContentPane.setLayout(new BorderLayout());
 
-            //======== contentPanel ========
+            //======== 系统菜单 ========
             {
-                contentPanel.setLayout(new CardLayout());
 
-                //======== panel1 ========
-                {
-                    panel1.setLayout(new BorderLayout());
+                //---- console ----
+                console.setText("\u63a7\u5236\u53f0");
+                console.addItemListener(e -> consoleItemStateChanged(e));
+                系统菜单.add(console);
 
-                    //---- label1 ----
-                    label1.setText(bundle.getString("label1.text"));
-                    label1.setFont(new Font("Arial", Font.BOLD, 40));
-                    label1.setHorizontalAlignment(SwingConstants.CENTER);
-                    panel1.add(label1, BorderLayout.CENTER);
+                //---- menuItem2 ----
+                menuItem2.setText(bundle.getString("menuItem2.text"));
+                系统菜单.add(menuItem2);
 
-                    //---- progressBar2 ----
-                    progressBar2.addComponentListener(new ComponentAdapter() {
-                        @Override
-                        public void componentShown(ComponentEvent e) {
-                            progressBar2ComponentShown(e);
-                        }
-                    });
-                    panel1.add(progressBar2, BorderLayout.SOUTH);
-                }
-                contentPanel.add(panel1, "card1");
+                //---- memory ----
+                memory.setText("\u5185\u5b58\u7ba1\u7406");
+                系统菜单.add(memory);
+
+                //---- menuItem1 ----
+                menuItem1.setText("\u78c1\u76d8\u7ba1\u7406");
+                系统菜单.add(menuItem1);
             }
-            dialogPane.add(contentPanel, BorderLayout.CENTER);
-
-            //======== buttonBar ========
-            {
-                buttonBar.setBorder(new EmptyBorder(12, 0, 0, 0));
-                buttonBar.setLayout(new GridBagLayout());
-                ((GridBagLayout)buttonBar.getLayout()).columnWidths = new int[] {85, 243, 80};
-                ((GridBagLayout)buttonBar.getLayout()).columnWeights = new double[] {0.0, 1.0, 0.0};
-
-                //---- button1 ----
-                button1.setText(bundle.getString("button1.text"));
-                button1.setIcon(null);
-                button1.addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseClicked(MouseEvent e) {
-                        button1MouseClicked(e);
-                    }
-                });
-                button1.addActionListener(e -> button1ActionPerformed(e));
-                buttonBar.add(button1, new GridBagConstraints(1, 0, 1, 1, 0.0, 0.0,
-                    GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL,
-                    new Insets(0, 0, 5, 5), 0, 0));
-            }
-            dialogPane.add(buttonBar, BorderLayout.SOUTH);
+            frame1ContentPane.add(系统菜单, BorderLayout.NORTH);
+            frame1.pack();
+            frame1.setLocationRelativeTo(null);
         }
-        contentPane.add(dialogPane, BorderLayout.CENTER);
-        setSize(820, 430);
-        setLocationRelativeTo(null);
         // JFormDesigner - End of component initialization  //GEN-END:initComponents
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables
-    // Generated using JFormDesigner Evaluation license - zach
-    private JPanel dialogPane;
-    private JPanel contentPanel;
-    private JPanel panel1;
-    private JLabel label1;
-    private JProgressBar progressBar2;
-    private JPanel buttonBar;
-    private JButton button1;
+    // Generated using JFormDesigner Evaluation license - unknown
+    private JFrame frame1;
+    private JMenuBar 系统菜单;
+    private JMenuItem console;
+    private JMenuItem menuItem2;
+    private JMenuItem memory;
+    private JMenuItem menuItem1;
     // JFormDesigner - End of variables declaration  //GEN-END:variables
 }

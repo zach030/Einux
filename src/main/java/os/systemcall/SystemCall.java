@@ -15,9 +15,9 @@ public class SystemCall {
     public static final int WRITE_ONLY = 2;
 
     // 文件系统调用
-    FileSystemCall fileSystemCall = new FileSystemCall();
+    public FileSystemCall fileSystemCall = new FileSystemCall();
 
-    static class FileSystemCall {
+    public static class FileSystemCall {
         /**
          * @description: 创建文件
          * @author: zach

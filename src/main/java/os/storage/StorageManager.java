@@ -9,6 +9,7 @@ import os.filesystem.FileSystem;
 import os.job.JCB;
 import os.process.PCB;
 import os.process.ProcessManager;
+import utils.Log;
 import utils.SysConst;
 
 import java.util.*;
@@ -161,14 +162,15 @@ public class StorageManager {
 
         List<List<PageGroup>> freeGroups = new LinkedList<List<PageGroup>>();
 
-        AllotManager(){
+        AllotManager() {
             initFreeGroupList();
         }
 
         // 初始化空闲链表
-        private void initFreeGroupList(){
+        private void initFreeGroupList() {
 
         }
+
         // 给pcb分配页表bit
         public void allotPCBPageTable(PCB pcb) {
             int count = 0, base;
@@ -338,112 +340,68 @@ public class StorageManager {
     }
 
     public class MemoryManager {
-        public LRUCache lruCache;
+        public List<Integer> lru = new ArrayList<>();
 
-        MemoryManager() {
-            lruCache = new LRUCache();
+        // LRU访问某一页
+        public void lruVisitPage(int frameNo) {
+            int index = lru.indexOf(frameNo);
+            if (index != -1)
+                lru.remove(index); // 从访问队列删除即将要访问的页号
+            lru.add(frameNo); // 将要访问的页号插入到队尾
         }
 
-        class LRUCache {
-            private int capacity;
-            private HashMap<Integer, ListNode> hashmap;
-            private ListNode head;
-            private ListNode tail;
-
-            private class ListNode {
-                int key;
-                Page val;
-                ListNode prev;
-                ListNode next;
-
-                public ListNode() {
-                }
-
-                public ListNode(int key, Page val) {
-                    this.key = key;
-                    this.val = val;
-                }
-            }
-
-            public LRUCache() {
-                this.capacity = Memory.PCB_ZONE_SIZE;
-                hashmap = new HashMap<>();
-                head = new ListNode();
-                tail = new ListNode();
-                head.next = tail;
-                tail.prev = head;
-            }
-
-            private void removeNode(ListNode node) {
-                node.prev.next = node.next;
-                node.next.prev = node.prev;
-            }
-
-            private void addNodeToLast(ListNode node) {
-                node.prev = tail.prev;
-                node.prev.next = node;
-                node.next = tail;
-                tail.prev = node;
-            }
-
-            private void moveNodeToLast(ListNode node) {
-                removeNode(node);
-                addNodeToLast(node);
-            }
-
-            public Page getPage(int key) {
-                if (hashmap.containsKey(key)) {
-                    ListNode node = hashmap.get(key);
-                    moveNodeToLast(node);
-                    return node.val;
-                } else {
-                    return null;
-                }
-            }
-
-            public void visitPage(int key, Page page) {
-                if (hashmap.containsKey(key)) {
-                    ListNode node = hashmap.get(key);
-                    node.val = page;
-                    moveNodeToLast(node);
-                    return;
-                }
-                if (hashmap.size() == capacity) {
-                    hashmap.remove(head.next.key);
-                    removeNode(head.next);
-                }
-                ListNode node = new ListNode(key, page);
-                hashmap.put(key, node);
-                addNodeToLast(node);
-            }
+        // LRU删除某一页
+        public void lruRemoveOnePage(int frameNo) {
+            int index = lru.indexOf(frameNo);
+            if (index != -1)
+                lru.remove(index); // 从访问队列删除即将要访问的页号
         }
 
-        // 读内存
+        // 获得应该调出的队头页号
+        public int lruGetHeadPageNum() {
+            return lru.get(0);      // 获得队头页号
+        }
+
+        // 获取指定的一页
+        public int LRUGetPage(int index) {
+            if (index < lru.size())
+                return lru.get(index);
+            return -1;
+        }
+
+        /**
+         * @description: LRU访问内存，当已满时，自动置换页
+         * @author: zach
+         **/
         public int visitMemory(int physicalAddr) {
             int frameNo = (physicalAddr >> 9) & 0X003F;
-            lruCache.visitPage(frameNo, Memory.memory.readPage(frameNo));
+            lruVisitPage(frameNo);
             return Memory.memory.readWordData((short) physicalAddr);
         }
 
-        // 处理缺页中断
+        /**
+         * @description: 缺页中断：进程挂起，查进程页表，查到外存物理块号，内存pcb数据区分配空闲页
+         * 将物理块的数据写入内存空闲区，唤醒进程，设置进程状态
+         * @author: zach
+         **/
         public void doPageFault(PCB pcb, int virtualPageNo) {
-            System.out.println("[PAGE FAULT] 开始处理缺页中断");
             // cpu 进行保护现场
             CPU.cpu.Protect();
             pcb.setStatus(PCB.TASK_SUSPEND);
-            ProcessManager.pm.queueManager.joinSuspendQueue(pcb);
             // 查页表得到外存磁盘号，进行调页
             int blockNo = pcb.searchPageTable(virtualPageNo);
             int pageFrameNo = allotManager.allotEmptyPCBDataPage();
             // 查看内存是否有空闲页框，分配一个
             if (pageFrameNo == NOT_ENOUGH) {
+                int frameNo = lruGetHeadPageNum();
                 //淘汰页面,如果没有则使用淘汰算法淘汰一个，将淘汰页写回磁盘
+                Log.Info("", String.format("当前内存无空闲页框，经过LRU算法，淘汰最久未使用的页框:%d", frameNo));
+                // 此进程将占用此页
+                pageFrameNo = frameNo;
             }
             // 将块号blockNo的数据写入pageFrameNo的页内
             // 根据块号查到物理块
             Block block = FileSystem.getCurrentBootDisk().getBlockInDisk(blockNo);
-            //todo 加内存缓冲区处理，不是直接从磁盘写到内存
-            // 转化为内存页
             Page page = Transfer.transfer.transferBlockToPage(block, virtualPageNo, pageFrameNo);
             // 将页写入内存指定位置
             Memory.memory.writePage(page);
@@ -455,7 +413,7 @@ public class StorageManager {
             CPU.cpu.Recovery(pcb);
             // 设置pcb运行态
             pcb.setStatus(PCB.TASK_RUNNING);
-            System.out.println("[PAGE FAULT SUCCESS]------已成功完成请求调页，结束缺页中断...");
+            Log.Info("缺页中断", "已成功完成请求调页，结束缺页中断");
         }
 
         public void writeDiskToBuffer(int blockNo, int logicalNo, int frameNo) {

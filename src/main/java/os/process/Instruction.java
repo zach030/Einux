@@ -16,14 +16,14 @@ public class Instruction {
     public static final HashMap<Integer, String> instructionsMap = new HashMap<>() {
         {
             // type                                       arg           data
-            put(0, "System call");        // 创建文件    文件路径           0
+            put(0, "System call");        // 打开文件    文件路径           0
             put(1, "write memory");       // 写内存      内存逻辑地址    数据
             put(2, "read memory");        // 读内存      内存逻辑地址       0
             put(3, "jump");               // 跳转        指令id            0
-            put(4, "input");              // 输入        申请DMA           0
-            put(5, "output");             // 输出        申请DMA           0
-            put(6, "request resource");   // 申请资源    资源类型：0，1，2  0
-            put(7, "release resource");   // 释放资源    资源类型；0，1，2  0
+            put(4, "input");              // 输入        申请keyboard      0
+            put(5, "output");             // 输出        申请screen        0
+            put(6, "request resource");   // 申请资源    申请other         0
+            put(7, "release resource");   // 释放资源    释放other         x
         }
     };
 
