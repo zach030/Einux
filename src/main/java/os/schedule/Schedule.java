@@ -10,12 +10,13 @@ import os.process.Interrupt;
 import os.process.PCB;
 import os.process.ProcessManager;
 import os.storage.StorageManager;
+import ui.PlatForm;
 import utils.Log;
 
 public class Schedule extends Thread {
     public static Schedule schedule = new Schedule();
 
-    public static final Object systemStatus = false;
+    public static boolean systemStatus = false;
     // 内存缺页警示值
     public static final int MEMORY_LACK_WARN = 8;
     //------------------日志常量------------------
@@ -116,7 +117,7 @@ public class Schedule extends Thread {
         // 就绪队列不为空
         PCB pcb = ProcessManager.pm.queueManager.getFromReadyQueue(); // 从就绪队列取一个进程
         CPU.cpu.Recovery(pcb); // 恢复CPU现场
-        CPU.cpu.getCurrent().setStatus(PCB.TASK_RUNNING); // 设为运行态
+        CPU.cpu.getCurrent().setStatus(PCB.Status.RUNNING); // 设为运行态
         CPU.cpu.mmu.initMMU(CPU.cpu.getCurrent().getInternPageTableBaseAddr(), CPU.cpu.getCurrent().getPageNums());// 将进程页表基地址装入MMU
         return true;
     }
@@ -125,7 +126,6 @@ public class Schedule extends Thread {
     public void RunProcess() {
         // 0.系统时间自增
         CPU.cpu.clock.systemTimeSelfAdd();
-        ProcessManager.pm.queueManager.DisplayAllPCBQueue();
         // 如果CPU空闲,需要低级调度
         if (!CPU.cpu.isRunning()) {
             Log.Info(schedulePeriod, "当前CPU空闲");
@@ -135,6 +135,7 @@ public class Schedule extends Thread {
             } else
                 return;
         }
+        PlatForm.platForm.refreshCurrentPCB();
         // 如果进程运行完毕，取消进程
         if (CPU.cpu.isCurrentPCBEnd()) {
             Log.Info(systemRun, "进程:" + CPU.cpu.getCurrent().getID() + ",运行结束");
@@ -171,6 +172,8 @@ public class Schedule extends Thread {
         int instructionData = StorageManager.sm.memoryManager.visitMemory(physicalAddress);
         Instruction instruction = ProcessManager.pm.processOperator.getInstructionByData(instructionData);
         Log.Info("访问内存取指令", String.format("从内存:%d，取出指令:%d", physicalAddress, instruction.getId()));
+        CPU.cpu.setInstruction(instruction);
+        PlatForm.platForm.refreshIRInfo();
         // 4.进程运行时间增加
         CPU.cpu.getCurrent().addRunTime(100);
         // 5. 进程时间片减少
@@ -180,7 +183,7 @@ public class Schedule extends Thread {
         Log.Info(systemRun, String.format("当前运行进程:%d, 运行时间:%d, 指令数:%d, 优先级:%d, 时间片余额:%d", CPU.cpu.getCurrent().getID(), CPU.cpu.getCurrent().getRunTimes(), CPU.cpu.getCurrent().getInstructionsNum(), CPU.cpu.getCurrent().getPriority(), CPU.cpu.getCurrent().getTimeSlice()));
         Log.Info(systemRun, String.format("当前执行第:%d条指令，指令类型是:%d, 指令的逻辑地址是:%d, 物理地址是:%d", instruction.getId(), instruction.getType(), instructionLogicalAddr, physicalAddress));
         Execute.execute.ExecuteInstruction(instruction);
-
+        PlatForm.platForm.refreshCurrentPC();
         // 如果cpu此时空闲，则需要重新调度（进程被阻塞了）
         if (!CPU.cpu.isRunning()) {
             Log.Debug(lowLevelSchedule, "当前进程被阻塞，需要重新调度");
@@ -197,6 +200,7 @@ public class Schedule extends Thread {
         }
     }
 
+
     // 调度线程开始
     public void init() {
         FileSystem.fs.start();
@@ -207,35 +211,79 @@ public class Schedule extends Thread {
         JobManage.jm.LoadJobFromFile(JobManage.jm.chooseFile);
     }
 
+    private final Object lock = new Object();
+    private boolean pause = false;
+
+    /**
+     * @description: 暂停线程
+     * @author: zach
+     **/
+    public void pauseThread() {
+        pause = true;
+    }
+
+    /**
+     * @description: 继续线程
+     * @author: zach
+     **/
+    public void resumeThread() {
+        pause = false;
+        synchronized (lock) {
+            lock.notify();
+        }
+    }
+
+    /**
+     * @description: 等待锁
+     * @author: zach
+     **/
+    void onPause() {
+        synchronized (lock) {
+            try {
+                lock.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * @description: 终止程序
+     * @author: zach
+     **/
+    public void Stop() {
+
+    }
+
     @Override
     public void run() {
         while (true) {
-            synchronized (systemStatus) {
-                try {
-                    systemStatus.wait();
-                    // 如果发生时钟中断，开启调度
-                    if (CPU.cpu.clock.GetIfInterrupt()) {
-                        // 高级调度
-                        if (needHighLevelScheduling) {
-                            // 由后备队列检测线程设置是否需要高级调度
-                            Log.Info(schedulePeriod, "正在进行高级调度");
-                            HighLevelScheduling();
-                            needHighLevelScheduling = false;
-                        }
-                        // 中级调度
-                        if (needMediumLevelScheduling) {
-                            Log.Info(schedulePeriod, "正在进行中级调度");
-                            MidLevelScheduling();
-                            needMediumLevelScheduling = false;
-                        }
-                        RunProcess(); // 运行进程
-                        CPU.cpu.clock.ResetIfInterrupt(); // 恢复中断
-                    }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+            while (pause) {
+                onPause();
             }
-
+            try {
+                sleep(1000);
+                // 如果发生时钟中断，开启调度
+                if (CPU.cpu.clock.GetIfInterrupt()) {
+                    // 高级调度
+                    if (needHighLevelScheduling) {
+                        // 由后备队列检测线程设置是否需要高级调度
+                        Log.Info(schedulePeriod, "正在进行高级调度");
+                        HighLevelScheduling();
+                        needHighLevelScheduling = false;
+                    }
+                    // 中级调度
+                    if (needMediumLevelScheduling) {
+                        Log.Info(schedulePeriod, "正在进行中级调度");
+                        MidLevelScheduling();
+                        needMediumLevelScheduling = false;
+                    }
+                    RunProcess(); // 运行进程
+                    CPU.cpu.clock.ResetIfInterrupt(); // 恢复中断
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 }

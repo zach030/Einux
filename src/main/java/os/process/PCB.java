@@ -6,6 +6,7 @@ import hardware.memory.Page;
 import hardware.memory.Memory;
 import os.job.JCB;
 import os.storage.StorageManager;
+import ui.PlatForm;
 import utils.Log;
 
 import java.util.ArrayList;
@@ -14,15 +15,16 @@ import java.util.Arrays;
 public class PCB {
     //----------进程基本信息--------------------------
     private int ID;         //进程ID
-    private int status;     //进程状态
+    private Status status;     //进程状态
     private int priority;   //进程优先级
     private int policy;     //进程的调度策略
-    private int IR;         //正在执行的指令编号
+    private int IR;         //正在执行的指令类型
     private int PC;         //下一条执行的指令编号
     private int instructionsNum;//指令数
     private int timeSlice;  //当前时间片
     private int InTimes, EndTimes, RunTimes, TurnTimes; // 进程创建时间,进程结束时间,进程运行时间,进程周转时间
     static final int TIME_SLICE = 200;            //时间片
+    private Instruction instruction;
 
     //---------------进程段信息-------------------------------
     private DataSeg dataSeg;                    //数据段
@@ -52,11 +54,10 @@ public class PCB {
     public static final int SCHED_RR = 2;     // 时间片轮转的调度算法
 
     //-------进程状态--------------------------------
-    public static final int TASK_READY = 0;   // 就绪态
-    public static final int TASK_RUNNING = 1; // 运行态
-    public static final int TASK_BLOCK = 2;   // 阻塞态
-    public static final int TASK_SUSPEND = 3; // 挂起态
-    public static final int TASK_END = 4;     // 结束态
+    public enum Status {
+        READY, RUNNING, BLOCK, SUSPEND, END
+    }
+
     static final int NOT_END = -1;     // 进程未运行完
     static final int NOT_RUN = 0;      // 未运行
 
@@ -86,7 +87,7 @@ public class PCB {
         this.setInTimes(Clock.clock.getCurrentTime());
         this.setEndTimes(NOT_END);
         this.setRunTimes(NOT_RUN);
-        this.setStatus(TASK_READY);
+        this.setStatus(Status.READY);
         this.setPolicy(SCHED_RR);
         this.setPC(0);
         this.setTimeSlice();
@@ -100,7 +101,7 @@ public class PCB {
 
     // 撤销进程
     public void cancelProcess() {
-        setStatus(PCB.TASK_END);
+        setStatus(Status.END);
         setEndTimes(CPU.cpu.clock.getCurrentTime());
         StorageManager.sm.releaseManager.releasePCBData(this);      // 释放此进程占用的数据区
         StorageManager.sm.releaseManager.releasePCBPageTable(this); // 释放进程页表
@@ -110,17 +111,17 @@ public class PCB {
 
     // 阻塞进程
     public void blockProcess() {
-        setStatus(PCB.TASK_BLOCK);
+        setStatus(Status.BLOCK);
     }
 
     // 唤醒进程
     public void wakeUpProcess() {
-        setStatus(PCB.TASK_READY);
+        setStatus(Status.READY);
     }
 
     // 挂起进程
     public void suspendProcess() {
-        setStatus(PCB.TASK_SUSPEND);
+        setStatus(Status.SUSPEND);
     }
 
     //----------------初始化进程各段------------------------
@@ -166,6 +167,7 @@ public class PCB {
         int pte = internalPageTable[virtualNo].pteDataToWord();
         // 将页表项写入内存
         Memory.memory.writeWordData((short) (internPageTableBaseAddr + virtualNo * Memory.PAGE_TABLE_ENTRY_SIZE), pte);
+        PlatForm.platForm.refreshPageTable();
     }
 
     // 查找页表
@@ -223,6 +225,22 @@ public class PCB {
             }
         }
         return -1;
+    }
+
+    public Instruction getInstruction() {
+        return instruction;
+    }
+
+    public void setInstruction(Instruction instruction) {
+        this.instruction = instruction;
+    }
+
+    public int[] getUserOpenFileTable() {
+        return userOpenFileTable;
+    }
+
+    public void setUserOpenFileTable(int[] userOpenFileTable) {
+        this.userOpenFileTable = userOpenFileTable;
     }
 
     public int getUserOpenFileTable(int fd) {
@@ -294,11 +312,11 @@ public class PCB {
         this.ID = ID;
     }
 
-    public int getStatus() {
+    public Status getStatus() {
         return status;
     }
 
-    public void setStatus(int status) {
+    public void setStatus(Status status) {
         this.status = status;
     }
 

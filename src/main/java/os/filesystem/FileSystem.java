@@ -23,7 +23,18 @@ public class FileSystem implements VFS {
     //--------------成员-------------------
     static disk.BootDisk currentBootDisk;
     HashMap<Integer, disk.BootDisk> bootDiskMap = new HashMap<>();
-    HashMap<Integer, String> allFileMap = new HashMap<>();
+
+    public static class FileTree {
+        int parent;
+        int son;
+
+        FileTree(int parent, int son) {
+            this.parent = parent;
+            this.son = son;
+        }
+    }
+
+    HashMap<FileTree, String> allFileMap = new HashMap<>();
     public BootDiskManager bootDiskManager;
     public InodeManager inodeManager;
     public SysOpenFileManager sysOpenFileManager;
@@ -209,6 +220,10 @@ public class FileSystem implements VFS {
             }
         }
 
+        public SysFile[] getSysOpenFileTable() {
+            return sysOpenFileTable;
+        }
+
         /**
          * @description: 分配系统打开文件表项
          * @author: zach
@@ -316,7 +331,7 @@ public class FileSystem implements VFS {
         root.setFileType(DiskInode.FileType.DIR);
         root.setAuthority(MemoryInode.Authority.READ, MemoryInode.Authority.WRITE, MemoryInode.Authority.EXEC);
         pwd = root;
-        allFileMap.put(ROOT_INODE_NO, "/");
+        allFileMap.put(new FileTree(-1, ROOT_INODE_NO), "/");
         initBaseDir();
     }
 
@@ -441,7 +456,7 @@ public class FileSystem implements VFS {
         // 加入子目录
         dir.addDirEntry(name, inodeNo);
         // 更新统计map
-        allFileMap.put(inodeNo, name);
+        allFileMap.put(new FileTree(dir.inodeNo, inodeNo), name);
         return memoryInode;
     }
 
@@ -499,6 +514,14 @@ public class FileSystem implements VFS {
     }
 
     //--------------文件系统存储API--------------------
+
+    public HashMap<FileTree, String> getAllFileMap() {
+        return allFileMap;
+    }
+
+    public void setAllFileMap(HashMap<FileTree, String> allFileMap) {
+        this.allFileMap = allFileMap;
+    }
 
     public static disk.BootDisk getCurrentBootDisk() {
         return currentBootDisk;

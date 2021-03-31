@@ -35,11 +35,11 @@ public class Instruction {
         this.size = INSTRUCTION_SIZE;
     }
 
-    public Instruction(int id){
+    public Instruction(int id) {
         this.id = id;
     }
 
-    public Instruction(){
+    public Instruction() {
 
     }
 
@@ -53,6 +53,27 @@ public class Instruction {
         return data;
     }
 
+    public String getIRType() {
+        switch (type) {
+            case 0:
+                return "系统调用-打开文件";
+            case 1:
+                return "写内存";
+            case 2:
+                return "读内存";
+            case 3:
+                return "跳转指令";
+            case 4:
+                return "请求输入";
+            case 5:
+                return "请求输出";
+            case 6:
+                return "申请资源";
+            case 7:
+                return "释放资源";
+        }
+        return "";
+    }
 
     public int getId() {
         return id;

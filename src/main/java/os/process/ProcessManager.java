@@ -62,110 +62,83 @@ public class ProcessManager {
         ArrayList<ArrayList<PCB>> resourceBlockQueue;//资源阻塞队列
 
         //--------------展示进程队列信息----------------------
-        public synchronized void DisplayAllPCBQueue() {
-            Log.Info("进程队列信息", "当前就绪队列:");
-            displayReadyQueue();
-            Log.Info("进程队列信息", "当前系统阻塞队列:");
-            displayBlockQueue();
-            Log.Info("进程队列信息", "当前资源阻塞队列:");
-            displayResourceBlockQueue();
-            Log.Info("进程队列信息", "当前缓冲区阻塞队列:");
-            displayBufferBlockQueue();
-            Log.Info("进程队列信息", "当前挂起队列:");
-            displaySuspendQueue();
-            Log.Info("进程队列信息", "当前完成队列:");
-            displayFinishQueue();
-        }
 
-        synchronized void displayReadyQueue() {
+        synchronized public String displayReadyQueue() {
+            StringBuilder content = new StringBuilder();
             if (!this.readyQueue.isEmpty()) {
-                StringBuilder content = new StringBuilder();
                 for (PCB pcb : readyQueue) {
-                    content.append("进程: ").append(pcb.getID()).append("\t");
+                    content.append("进程: ").append(pcb.getID()).append("\n");
                 }
                 Log.Info("就绪队列", content.toString());
             } else {
-                System.out.print("就绪队列为空");
+                content.append("就绪队列为空");
             }
-            System.out.println();
+            return content.toString();
         }
 
-        synchronized void displayBlockQueue() {
-            if (!this.blockQueue.isEmpty()) {
-                StringBuilder content = new StringBuilder();
-                for (PCB pcb : blockQueue) {
-                    content.append("进程: ").append(pcb.getID()).append("\t");
-                }
-                Log.Info("阻塞队列", content.toString());
-            } else {
-                System.out.print("阻塞队列为空");
-            }
-            System.out.println();
-        }
-
-        synchronized void displayResourceBlockQueue() {
+        synchronized public String displayResourceBlockQueue() {
+            StringBuilder content = new StringBuilder();
             if (!this.resourceBlockQueue.isEmpty()) {
-                StringBuilder content = new StringBuilder();
                 ArrayList<PCB> r1 = resourceBlockQueue.get(0);
                 content.append("资源类型0：");
                 for (PCB pcb : r1) {
                     content.append("进程: ").append(pcb.getID()).append("\t");
                 }
-                content.append("资源类型1：");
+                content.append("\n资源类型1：");
                 ArrayList<PCB> r2 = resourceBlockQueue.get(1);
                 for (PCB pcb : r2) {
                     content.append("进程: ").append(pcb.getID()).append("\t");
                 }
-                content.append("资源类型2：");
+                content.append("\n资源类型2：");
                 ArrayList<PCB> r3 = resourceBlockQueue.get(2);
                 for (PCB pcb : r3) {
                     content.append("进程: ").append(pcb.getID()).append("\t");
                 }
                 Log.Info("资源阻塞队列", content.toString());
             } else {
-                System.out.print("阻塞队列为空");
+                content.append("资源阻塞队列为空");
             }
-            System.out.println();
+            return content.toString();
         }
 
-        synchronized void displayBufferBlockQueue() {
+        synchronized public String displayBufferBlockQueue() {
+            StringBuilder content = new StringBuilder();
             if (!this.bufferBlockQueue.isEmpty()) {
                 ArrayList<PCB> current = bufferBlockQueue.get(0);
-                StringBuilder content = new StringBuilder();
                 for (PCB pcb : current) {
                     content.append("进程: ").append(pcb.getID()).append("\t");
                 }
                 Log.Info("缓冲区阻塞队列", content.toString());
             } else {
-                Log.Info("打印缓冲区阻塞队列", "当前阻塞队列为空");
+                content.append("缓冲区阻塞队列为空");
             }
-            System.out.println();
+            return content.toString();
         }
 
-        synchronized void displaySuspendQueue() {
+        synchronized public String displaySuspendQueue() {
+            StringBuilder content = new StringBuilder();
             if (!this.suspendQueue.isEmpty()) {
-                StringBuilder content = new StringBuilder();
                 for (PCB pcb : suspendQueue) {
-                    content.append("进程: ").append(pcb.getID()).append("\t");
+                    content.append("进程: ").append(pcb.getID()).append("\n");
                 }
                 Log.Info("挂起队列", content.toString());
             } else {
-                System.out.print("挂起队列为空");
+                content.append("挂起队列为空");
             }
-            System.out.println();
+            return content.toString();
         }
 
-        synchronized void displayFinishQueue() {
+        synchronized public String displayFinishQueue() {
+            StringBuilder content = new StringBuilder();
             if (!this.finishQueue.isEmpty()) {
-                StringBuilder content = new StringBuilder();
                 for (PCB pcb : finishQueue) {
-                    content.append("进程: ").append(pcb.getID()).append("\t");
+                    content.append("进程: ").append(pcb.getID()).append("\n");
                 }
-                Log.Info("完成队列", content.toString());
+                Log.Info("已完成队列", content.toString());
             } else {
-                System.out.print("已完成队列为空");
+                content.append("已完成队列为空");
             }
-            System.out.println();
+            return content.toString();
         }
 
         //-----------------------进程调度队列基本操作--------------

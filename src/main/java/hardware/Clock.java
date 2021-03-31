@@ -1,5 +1,7 @@
 package hardware;
 
+import ui.PlatForm;
+
 //TODO 提供时钟中断
 public class Clock extends Thread {
     public static Clock clock = new Clock();
@@ -13,6 +15,7 @@ public class Clock extends Thread {
             try {
                 sleep(SYSTEM_INTERVAL);        //睡眠一定时间
                 if_interrupt = true;           //CPU内时间自增
+                PlatForm.platForm.refreshSystemTime();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

@@ -43,7 +43,7 @@ public class Interrupt {
         int virtualPageNo = CPU.cpu.getCr2();
         // cpu 进行保护现场
         CPU.cpu.Protect();
-        pcb.setStatus(PCB.TASK_SUSPEND);
+        pcb.setStatus(PCB.Status.SUSPEND);
         // 查页表得到外存磁盘号，进行调页
         int blockNo = pcb.searchPageTable(virtualPageNo);
         int pageFrameNo = StorageManager.sm.allotManager.allotEmptyPCBDataPage();
@@ -64,11 +64,11 @@ public class Interrupt {
         // 设置进程页表
         pcb.writePageTableEntry(virtualPageNo, page);
         // pcb就绪态
-        pcb.setStatus(PCB.TASK_READY);
+        pcb.setStatus(PCB.Status.READY);
         // cpu恢复现场
         CPU.cpu.Recovery(pcb);
         // 设置pcb运行态
-        pcb.setStatus(PCB.TASK_RUNNING);
+        pcb.setStatus(PCB.Status.RUNNING);
         Log.Info("缺页中断", "已成功完成请求调页，结束缺页中断");
     }
 
@@ -81,17 +81,17 @@ public class Interrupt {
         // cpu 进行保护现场
         CPU.cpu.Protect();
         // 设置挂起
-        pcb.setStatus(PCB.TASK_SUSPEND);
+        pcb.setStatus(PCB.Status.SUSPEND);
         // 系统调用寄存器出栈
         String path = CPU.cpu.getSystemCallReg();
         // 执行系统调用
         int fd = SystemCall.systemCall.fileSystemCall.open(path, SystemCall.WRITE_ONLY);
         // pcb就绪态
-        pcb.setStatus(PCB.TASK_READY);
+        pcb.setStatus(PCB.Status.READY);
         // cpu恢复现场
         CPU.cpu.Recovery(pcb);
         // 设置pcb运行态
-        pcb.setStatus(PCB.TASK_RUNNING);
+        pcb.setStatus(PCB.Status.RUNNING);
         Log.Info("打开文件", String.format("进程:%d,执行打开文件系统调用,打开文件:%s,返回文件描述符为:%d",
                 pcb.getID(), path, fd));
     }

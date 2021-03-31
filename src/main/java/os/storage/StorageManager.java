@@ -49,6 +49,9 @@ public class StorageManager {
         BitMapManager() {
             Arrays.fill(sysPageTableBitMap, false);
             Arrays.fill(memoryAllPageBitmap, false);
+            // os zone
+            memoryAllPageBitmap[0] = true;
+            memoryAllPageBitmap[1] = true;
             Arrays.fill(memoryPCBPoolBitMap, false);
             Arrays.fill(memoryPCBDataBitMap, false);
             Arrays.fill(memoryBufferBitMap, false);
@@ -77,6 +80,7 @@ public class StorageManager {
         // 修改系统页表位示图
         synchronized public void modifySysPageTableBitMap(int logicalPageNo, boolean status) {
             this.sysPageTableBitMap[logicalPageNo] = status;
+            this.modifyMemoryPageBitMap(logicalPageNo + Memory.PAGE_TABLE_START, status);
         }
 
         // 修改内存页框位示图
@@ -110,6 +114,10 @@ public class StorageManager {
         // 修改JCB区位示图
         synchronized public void modifyJCBAreaBitMap(int blockNo, boolean status) {
             this.jcbZoneBitMap[blockNo] = status;
+        }
+
+        public boolean[] getMemoryAllPageBitmap() {
+            return memoryAllPageBitmap;
         }
     }
 

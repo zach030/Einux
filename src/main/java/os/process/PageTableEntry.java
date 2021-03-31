@@ -8,6 +8,11 @@ public class PageTableEntry {
     private boolean isValid;         //是否有效
     private boolean isModify;        //是否修改
 
+    public PageTableEntry() {
+        this.isValid = true;
+        this.isModify = false;
+    }
+
     public int pteDataToWord() {
         int data = 0;
         // 7 逻辑页号  6 物理页框号  15 物理块号  1 有效位   1 修改位   2 未用

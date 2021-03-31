@@ -2,6 +2,8 @@ package hardware.memory;
 
 import utils.SysConst;
 
+import java.util.Arrays;
+
 public class Page {
     private int logicalNo;      // 逻辑页号
     private int frameNo;        // 物理页框号
@@ -12,6 +14,7 @@ public class Page {
 
     public Page() {
         this.stay = true;
+        Arrays.fill(pageData, (byte) 0);
     }
 
     public Page(int logicalNo, int frameNo, int blockNo, boolean stay) {
@@ -21,7 +24,7 @@ public class Page {
         this.stay = stay;
     }
 
-    public Page(int frameNo){
+    public Page(int frameNo) {
         this.frameNo = frameNo;
     }
 

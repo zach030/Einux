@@ -5,9 +5,9 @@ import os.schedule.Schedule;
 
 class ScheduleTest {
     @Test
-    void run() {
-        //todo 就绪队列 debug
-        // 死锁检测--银行家算法
-        Schedule.schedule.init();
+    void test() {
+        byte[] data = new byte[]{1,2,3};
+        String num = Integer.toHexString((data[2] & 0x000000FF) | 0xFFFFFF00).substring(6).toUpperCase();
+        System.out.println(num);
     }
 }

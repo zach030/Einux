@@ -13,11 +13,20 @@ public class CPU {
     //------CPU模式----------
     static final int REAL_MODE = 0;     //实模式
     static final int PROTECT_MODE = 1;  //保护模式
+
     //-----CPU工作状态-------
+    public enum Status {
+        KERNAL_STATUS, USER_STATUS
+    }
+
+    public CPU() {
+        this.status = Status.KERNAL_STATUS;
+    }
+
     public static final int KERNAL_STATE = 0; //核心态
     public static final int USER_STATE = 1;   //用户态
     private int mode;    //cpu mode
-    private int state;   // 态
+    private Status status;   // 态
     private boolean running;  // 运行
     private PCB current;
     private int CS;  // code segment register
@@ -64,6 +73,14 @@ public class CPU {
         return PC / Instruction.ONE_PAGE_HAS_INSTRUCTION_NUM + current.getCode().getLogicalPageNo();
     }
 
+    public Instruction getInstruction() {
+        return current.getInstruction();
+    }
+
+    public void setInstruction(Instruction instruction) {
+        current.setInstruction(instruction);
+    }
+
     // 判断当前进程是否执行结束
     public boolean isCurrentPCBEnd() {
         return this.getPC() >= this.getCurrent().getInstructionsNum();
@@ -77,12 +94,12 @@ public class CPU {
         this.mode = mode;
     }
 
-    public int getState() {
-        return state;
+    public Status getStatus() {
+        return status;
     }
 
-    public void setState(int state) {
-        this.state = state;
+    public void setStatus(Status status) {
+        this.status = status;
     }
 
     public void autoAddPC() {

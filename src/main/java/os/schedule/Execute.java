@@ -6,9 +6,7 @@ import hardware.memory.Memory;
 import os.process.DeadLock;
 import os.process.Instruction;
 import os.process.Interrupt;
-import os.process.ProcessManager;
-import os.storage.StorageManager;
-import os.systemcall.SystemCall;
+import ui.PlatForm;
 import utils.Log;
 import utils.SysConst;
 
@@ -59,7 +57,7 @@ public class Execute {
         // 1. pc指针自增
         CPU.cpu.autoAddPC();
         // 2. cpu进入内核态
-        CPU.cpu.setState(CPU.KERNAL_STATE);
+        CPU.cpu.setStatus(CPU.Status.KERNAL_STATUS);
         // 分解出文件路径
         int fileName = instruction.getArg();
         String path = "/home/zach/" + fileName + ".txt";
@@ -69,6 +67,7 @@ public class Execute {
         CPU.cpu.setSystemCallReg(path);
         // 执行中断程序
         Interrupt.interrupt.doInterrupt();
+        PlatForm.platForm.refreshOpenFileTable();
     }
 
     // 写内存指令
@@ -76,7 +75,7 @@ public class Execute {
         // 1. pc指针自增
         CPU.cpu.autoAddPC();
         // 2. cpu用户态
-        CPU.cpu.setState(CPU.USER_STATE);
+        CPU.cpu.setStatus(CPU.Status.USER_STATUS);
         // 3. 获取写内存的逻辑地址
         int logicalAddr = instruction.getArg();
         // 4. 转换为物理地址
@@ -107,7 +106,7 @@ public class Execute {
         // 1. pc指针自增
         CPU.cpu.autoAddPC();
         // 2. cpu用户态
-        CPU.cpu.setState(CPU.USER_STATE);
+        CPU.cpu.setStatus(CPU.Status.USER_STATUS);
         // 3. 获取写内存的逻辑地址
         int logicalAddr = instruction.getArg();
         // 4. 转换为物理地址
@@ -133,7 +132,7 @@ public class Execute {
     // 跳转指令
     void execJumpInstruction(Instruction instruction) {
         // 1. cpu用户态
-        CPU.cpu.setState(CPU.USER_STATE);
+        CPU.cpu.setStatus(CPU.Status.USER_STATUS);
         // 2. 获取待跳转的指令id
         int targetInstructionID = instruction.getArg();
         // 2. 设置cpu的pc指针
@@ -147,7 +146,7 @@ public class Execute {
         // 1. pc指针自增
         CPU.cpu.autoAddPC();
         // 2. cpu用户态
-        CPU.cpu.setState(CPU.USER_STATE);
+        CPU.cpu.setStatus(CPU.Status.USER_STATUS);
         int resource = instruction.getArg();
         Log.Info("执行请求输入指令", String.format("进程:%d,执行指令:%d,请求资源:%s", CPU.cpu.getCurrent().getID(), instruction.getId(), DeadLock.ResourceType.values()[resource].name()));
         DeadLock.deadLock.applyResource(CPU.cpu.getCurrent(), DeadLock.ResourceType.values()[resource], 1);
@@ -158,7 +157,7 @@ public class Execute {
         // 1. pc指针自增
         CPU.cpu.autoAddPC();
         // 2. cpu核心态
-        CPU.cpu.setState(CPU.KERNAL_STATE);
+        CPU.cpu.setStatus(CPU.Status.KERNAL_STATUS);
         int resource = instruction.getArg();
         Log.Info("执行请求输出指令", String.format("进程:%d,执行指令:%d,请求资源:%s", CPU.cpu.getCurrent().getID(), instruction.getId(), DeadLock.ResourceType.values()[resource].name()));
         DeadLock.deadLock.applyResource(CPU.cpu.getCurrent(), DeadLock.ResourceType.values()[resource], 1);
@@ -169,7 +168,7 @@ public class Execute {
         // 1. pc指针自增
         CPU.cpu.autoAddPC();
         // 2. cpu核心态
-        CPU.cpu.setState(CPU.KERNAL_STATE);
+        CPU.cpu.setStatus(CPU.Status.KERNAL_STATUS);
         // 申请资源
         int resource = instruction.getArg();
         int num = instruction.getData();
@@ -182,7 +181,7 @@ public class Execute {
         // 1. pc指针自增
         CPU.cpu.autoAddPC();
         // 2. cpu核心态
-        CPU.cpu.setState(CPU.KERNAL_STATE);
+        CPU.cpu.setStatus(CPU.Status.KERNAL_STATUS);
         int resource = instruction.getArg();
         int num = instruction.getData();
         Log.Info("执行释放资源指令", String.format("进程:%d,执行指令:%d,请求资源:%d，个数:%d", CPU.cpu.getCurrent().getID(), instruction.getId(), resource, num));
