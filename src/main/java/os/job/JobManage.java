@@ -79,7 +79,7 @@ public class JobManage {
         this.chooseFile = chooseFile;
     }
 
-    void createNewJob() {
+    public void createNewJob() {
         // 当前jobId
         count++;
         JCB jcb = new JCB(count);
@@ -95,11 +95,11 @@ public class JobManage {
     void generateRandomInstruction(JCB jcb) {
         Random rand = new Random();
         int num = jcb.getJobInstructionNum();
+        boolean require = false;
         for (int i = 1; i <= num; i++) {
             // 产生指令类型随机数
             int type = rand.nextInt(8);
             Instruction instruction = new Instruction(i);
-            boolean[] requireResource = new boolean[]{false, false, false};
             switch (type) {
                 case 0:
                     // 创建文件，arg是文件名
@@ -114,7 +114,7 @@ public class JobManage {
                     createReadMemoryIns(instruction);
                     break;
                 case 3:
-                    // 跳转指令
+                    // 跳过指令
                     createJumpIns(instruction, num);
                     break;
                 case 4:
@@ -128,10 +128,11 @@ public class JobManage {
                 case 6:
                     // 申请资源指令
                     createRequireResourceIns(instruction);
+                    require = true;
                     break;
                 case 7:
                     // 释放资源指令
-                    createReleaseResourceIns(instruction, requireResource);
+                    createReleaseResourceIns(instruction, require);
                     break;
                 default:
                     return;
@@ -176,7 +177,14 @@ public class JobManage {
     public void createJumpIns(Instruction instruction, int num) {
         instruction.setType(3);
         // todo 访存地址
-        instruction.setArg((new Random().nextInt(num - instruction.getId()) + instruction.getId()));
+        if (instruction.getId() < num) {
+            instruction.setArg(instruction.getId() + 1);
+        } else {
+            // 设置为读内存
+            instruction.setType(2);
+            int addr = new Random().nextInt(511) + 512;
+            instruction.setArg(addr);
+        }
         instruction.setData((short) 0);
         instruction.setSize(Instruction.INSTRUCTION_SIZE);
     }
@@ -206,29 +214,19 @@ public class JobManage {
     }
 
     // 释放资源指令
-    public void createReleaseResourceIns(Instruction instruction, boolean[] requireSource) {
+    public void createReleaseResourceIns(Instruction instruction, boolean requireSource) {
         // 释放已被申请的资源
-        int source = 0;
         int type = 7;
-        for (int i = 0; i < requireSource.length; i++) {
-            // 只能释放已经申请的资源
-            if (!requireSource[i]) {
-                source = i;
-                requireSource[i] = true;
-                break;
-            }
-            // 如果没有申请资源，则将此指令变为跳转指令
-            type = 3;
-        }
-        if (type == 7) {
+        if (requireSource) {
             instruction.setType(type);
-            instruction.setArg((short) source);
+            instruction.setArg((short) 2);
         } else {
-            // todo 跳转指令，跳转到下一条，执行的时候如果跳转指令已超出上限，则跳过
-            instruction.setType(type);
-            instruction.setArg((short) instruction.getId() + 1);
+            // 设置为读内存
+            instruction.setType(2);
+            int addr = new Random().nextInt(511) + 512;
+            instruction.setArg(addr);
         }
-        instruction.setData((short) new Random().nextInt(5));
+        instruction.setData((short) new Random().nextInt(4));
         instruction.setSize(Instruction.INSTRUCTION_SIZE);
     }
 }

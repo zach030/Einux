@@ -133,12 +133,14 @@ public class Execute {
     void execJumpInstruction(Instruction instruction) {
         // 1. cpu用户态
         CPU.cpu.setStatus(CPU.Status.USER_STATUS);
+        // 1. pc指针自增
+        CPU.cpu.autoAddPC();
         // 2. 获取待跳转的指令id
-        int targetInstructionID = instruction.getArg();
+        //int targetInstructionID = instruction.getArg();
         // 2. 设置cpu的pc指针
-        CPU.cpu.setPC(targetInstructionID);
+        //CPU.cpu.setPC(targetInstructionID);
         Log.Info("执行跳转指令", String.format("进程:%d,执行指令:%d,跳转到指令:%d",
-                CPU.cpu.getCurrent().getID(), instruction.getId(), targetInstructionID));
+                CPU.cpu.getCurrent().getID(), instruction.getId(), instruction.getId() + 1));
     }
 
     // 请求输入
@@ -148,8 +150,8 @@ public class Execute {
         // 2. cpu用户态
         CPU.cpu.setStatus(CPU.Status.USER_STATUS);
         int resource = instruction.getArg();
-        Log.Info("执行请求输入指令", String.format("进程:%d,执行指令:%d,请求资源:%s", CPU.cpu.getCurrent().getID(), instruction.getId(), DeadLock.ResourceType.values()[resource].name()));
-        DeadLock.deadLock.applyResource(CPU.cpu.getCurrent(), DeadLock.ResourceType.values()[resource], 1);
+        Log.Info("执行请求输入指令", String.format("进程:%d,执行指令:%d,请求输入资源:%s", CPU.cpu.getCurrent().getID(), instruction.getId(), DeadLock.ResourceType.values()[resource].name()));
+        DeadLock.deadLock.applyResource(CPU.cpu.getCurrent(), DeadLock.ResourceType.KEYBOARD, 1);
     }
 
     // 请求输出
@@ -159,8 +161,8 @@ public class Execute {
         // 2. cpu核心态
         CPU.cpu.setStatus(CPU.Status.KERNAL_STATUS);
         int resource = instruction.getArg();
-        Log.Info("执行请求输出指令", String.format("进程:%d,执行指令:%d,请求资源:%s", CPU.cpu.getCurrent().getID(), instruction.getId(), DeadLock.ResourceType.values()[resource].name()));
-        DeadLock.deadLock.applyResource(CPU.cpu.getCurrent(), DeadLock.ResourceType.values()[resource], 1);
+        Log.Info("执行请求输出指令", String.format("进程:%d,执行指令:%d,请求输出资源:%s", CPU.cpu.getCurrent().getID(), instruction.getId(), DeadLock.ResourceType.values()[resource].name()));
+        DeadLock.deadLock.applyResource(CPU.cpu.getCurrent(), DeadLock.ResourceType.SCREEN, 1);
     }
 
     // 请求资源
@@ -173,7 +175,7 @@ public class Execute {
         int resource = instruction.getArg();
         int num = instruction.getData();
         Log.Info("执行请求资源指令", String.format("进程:%d,执行指令:%d,请求资源:%d，个数:%d", CPU.cpu.getCurrent().getID(), instruction.getId(), resource, num));
-        DeadLock.deadLock.applyResource(CPU.cpu.getCurrent(), DeadLock.ResourceType.values()[resource], num);
+        DeadLock.deadLock.applyResource(CPU.cpu.getCurrent(), DeadLock.ResourceType.OTHER, 1);
     }
 
     // 释放资源
@@ -184,7 +186,7 @@ public class Execute {
         CPU.cpu.setStatus(CPU.Status.KERNAL_STATUS);
         int resource = instruction.getArg();
         int num = instruction.getData();
-        Log.Info("执行释放资源指令", String.format("进程:%d,执行指令:%d,请求资源:%d，个数:%d", CPU.cpu.getCurrent().getID(), instruction.getId(), resource, num));
-        DeadLock.deadLock.releaseResource(CPU.cpu.getCurrent(), DeadLock.ResourceType.values()[resource], num);
+        Log.Info("执行释放资源指令", String.format("进程:%d,执行指令:%d,释放资源:%d，个数:%d", CPU.cpu.getCurrent().getID(), instruction.getId(), resource, num));
+        DeadLock.deadLock.releaseResource(CPU.cpu.getCurrent(), DeadLock.ResourceType.OTHER, 1);
     }
 }

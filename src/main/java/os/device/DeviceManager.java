@@ -5,9 +5,11 @@ import hardware.memory.Memory;
 import os.process.PCB;
 import os.process.ProcessManager;
 import os.storage.StorageManager;
+import ui.PlatForm;
 import utils.Log;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class DeviceManager {
     public static DeviceManager dm = new DeviceManager();
@@ -33,9 +35,32 @@ public class DeviceManager {
     }
 
     public static class BufferQueueManager {
-        ArrayList<BufferHead> freeQueue = new ArrayList<>();  //空闲缓冲区
+        public BufferQueueManager() {
+            init();
+        }
+
+        boolean[] freeBitMap = new boolean[Memory.BUFFER_SIZE];
+        ArrayList<BufferHead> freeQueue;  //空闲缓冲区
         // 一个设备对应一个list
-        ArrayList<ArrayList<BufferHead>> hashQueue = new ArrayList<>();  // 已分配缓冲区
+        ArrayList<ArrayList<BufferHead>> hashQueue;  // 已分配缓冲区
+
+        /**
+         * @description: 初始化
+         * @author: zach
+         **/
+        public void init() {
+            Arrays.fill(freeBitMap, false);
+            freeQueue = new ArrayList<>();
+            hashQueue = new ArrayList<>();
+        }
+
+        /**
+         * @description: 修改位示图
+         * @author: zach
+         **/
+        synchronized private void modifyFreeBitMap(int no, boolean status) {
+            this.freeBitMap[no] = status;
+        }
 
         /**
          * @description: 将缓冲区头部加入空闲队列
@@ -43,6 +68,7 @@ public class DeviceManager {
          **/
         synchronized public void joinFreeQueue(BufferHead bufferHead) {
             freeQueue.add(bufferHead);
+            modifyFreeBitMap(bufferHead.getBufferNo(), false);
         }
 
         synchronized boolean isFreeQueueEmpty() {
@@ -70,7 +96,17 @@ public class DeviceManager {
          * @author: zach
          **/
         synchronized public BufferHead getFreeBh() {
-            return freeQueue.remove(0);
+            BufferHead bh = freeQueue.remove(0);
+            modifyFreeBitMap(bh.getBufferNo(), true);
+            return bh;
+        }
+
+        public boolean[] getFreeBitMap() {
+            return freeBitMap;
+        }
+
+        public void setFreeBitMap(boolean[] freeBitMap) {
+            this.freeBitMap = freeBitMap;
         }
     }
 
@@ -142,6 +178,7 @@ public class DeviceManager {
                     // 若该bh正在被其他进程使用
                     if (bh.getFlag() == BH_BUSY) {
                         Log.Info(bufferOp, String.format("缓冲区:%d,正在被进程:%d使用", bh.getBufferNo(), CPU.cpu.getCurrent().getID()));
+                        PlatForm.platForm.refreshBufferLog(String.format("缓冲区:%d,正在被进程:%d使用\n", bh.getBufferNo(), CPU.cpu.getCurrent().getID()));
                         // 阻塞此进程
                         bh.blockPCBToThis(CPU.cpu.getCurrent());
                         ProcessManager.pm.processOperator.blockPCB(CPU.cpu.getCurrent(), devNo, bh.getBufferNo());
@@ -152,6 +189,7 @@ public class DeviceManager {
                     // 修改缓冲区位示图
                     modifyStorageBitMap(bh.getBufferNo(), true);
                     Log.Info(bufferOp, String.format("缓冲区散列队列中空闲区:%d,已获得申请，对应内存块号:%d,磁盘块号:%d", bh.getBufferNo(), bh.getFrameNo(), bh.getBlockNo()));
+                    PlatForm.platForm.refreshBufferLog(String.format("缓冲区散列队列中空闲区:%d,已获得申请，对应内存块号:%d,磁盘块号:%d\n", bh.getBufferNo(), bh.getFrameNo(), bh.getBlockNo()));
                     return bh;
                 }
             }
@@ -168,6 +206,7 @@ public class DeviceManager {
             if (bufferQueueManager.isFreeQueueEmpty()) {
                 // 0.1 因无空闲缓冲区而阻塞
                 Log.Error("申请缓冲区失败", String.format("为设备%d,物理块号:%d，申请缓冲区失败，当前内存已无空闲缓冲区", devNo, blockNo));
+                PlatForm.platForm.refreshBufferLog(String.format("为设备%d,物理块号:%d，申请缓冲区失败，当前内存已无空闲缓冲区\n", devNo, blockNo));
                 ProcessManager.pm.processOperator.blockPCB(CPU.cpu.getCurrent(), devNo, LACK_FREE_BUFFER);
                 return null;
             }
@@ -181,6 +220,7 @@ public class DeviceManager {
             modifyStorageBitMap(freeBh.getBufferNo(), true);
             bufferQueueManager.joinAllottedQueue(devNo, freeBh);
             Log.Info(bufferOp, String.format("从缓冲空闲队列中取出:%d,对应内存块号:%d,对应外存块号:%d", freeBh.getBufferNo(), freeBh.getFrameNo(), freeBh.getBlockNo()));
+            PlatForm.platForm.refreshBufferLog(String.format("从缓冲空闲队列中取出:%d,对应内存块号:%d,对应外存块号:%d\n", freeBh.getBufferNo(), freeBh.getFrameNo(), freeBh.getBlockNo()));
             return freeBh;
         }
 
@@ -189,6 +229,7 @@ public class DeviceManager {
          * @author: zach
          **/
         public void freeBuffer(BufferHead bh) {
+            bufferQueueManager.modifyFreeBitMap(bh.getBufferNo(), false);
             // 0. 清除bh的标志位
             bh.setFlag(BH_EMPTY);
             // 1. 从已释放的缓冲区中选出来，写入空闲队列
@@ -232,6 +273,7 @@ public class DeviceManager {
             // 将缓冲区数据写入设备
             if (bh.getFlag() == BH_UPDATE) {
                 Log.Info("缓冲区写入磁盘", String.format("磁盘块:%d,与缓冲区:%d,数据一致,无需写回", bh.getBlockNo(), bh.getFrameNo()));
+                freeBuffer(bh);
                 return;
             }
             StorageManager.sm.diskManager.writeBufferToDisk(bh.getBlockNo(), bh.getFrameNo());

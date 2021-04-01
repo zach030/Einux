@@ -191,8 +191,8 @@ public class FileSystem implements VFS {
                 Log.Info("写入内存缓冲区", String.format("正在将BufferHeader对应的磁盘号:%d,写入内存缓冲区页号:%d,物理页框号:%d内",
                         bh.getBlockNo(), bh.getBufferNo(), bh.getFrameNo()));
                 memoryInode.syncToMemory(bh);
+                memoryInode.bufferHeads.add(bh);
                 //todo 何时释放缓冲区？这里直接释放对吗？仿真文件数据被读取了
-                DeviceManager.dm.bufferOperator.freeBuffer(bh);
             }
         }
     }

@@ -23,7 +23,7 @@ public class DeadLock {
     public static final int PROCESS_NUM = 15;
     public static final int RESOURCE_NUM = 3;
 
-    class Banker {
+    public static class Banker {
         Banker() {
             initMaxMatrix();
             initAllocationMatrix();
@@ -96,6 +96,10 @@ public class DeadLock {
         int[] Work = new int[RESOURCE_NUM];    // 系统可提供给进程继续运行所需的各类资源数目
         int[] Rest = new int[PROCESS_NUM];
 
+        public int[] getAvailable() {
+            return Available;
+        }
+
         void display() {
             System.out.println("当前系统各类资源剩余: ");
             for (int i = 0; i < RESOURCE_NUM; i++) {
@@ -135,7 +139,6 @@ public class DeadLock {
         int requestNum = banker.Request[pcb.getID()][resource];
         int needNum = banker.Need[pcb.getID()][resource];
         if (requestNum > needNum) {
-            //todo 直接return or 阻塞？？
             Log.Error("死锁检测", String.format("当前进程:%d，对于资源:%d，的申请量:%d，已超过其所需值:%d", pcb.getID(), resource, requestNum, needNum));
             return;
         }
@@ -145,10 +148,10 @@ public class DeadLock {
             ProcessManager.pm.processOperator.blockPCB(pcb, resource);
             return;
         }
-        int[][] allotCopy = banker.Allocation;
-        int[] availableCopy = banker.Available;
-        int[][] needCopy = banker.Need;
-        int[][] requestCopy = banker.Request;
+        int[][] allotCopy = Arrays.copyOf(banker.Allocation, banker.Allocation.length);
+        int[] availableCopy = Arrays.copyOf(banker.Available, banker.Available.length);
+        int[][] needCopy = Arrays.copyOf(banker.Need, banker.Need.length);
+        int[][] requestCopy = Arrays.copyOf(banker.Request, banker.Request.length);
         if (attemptAllot(pcb.getID(), resource, availableCopy, requestCopy, allotCopy, needCopy)) {
             // 通过
             banker.Allocation = allotCopy;
@@ -159,8 +162,6 @@ public class DeadLock {
             banker.display();
             return;
         }
-        //todo 不通过分配
-        // 进程等待分配
         banker.display();
         Log.Error("银行家算法尝试分配", "此次尝试分配后不安全，放弃分配资源");
         ProcessManager.pm.processOperator.blockPCB(pcb, resource);
@@ -200,6 +201,7 @@ public class DeadLock {
     public void releaseResource(PCB pcb, ResourceType resourceType, int num) {
         banker.Available[resourceType.ordinal()] += num;
         banker.Allocation[pcb.getID()][resourceType.ordinal()] -= num;
+        notifyPCB(resourceType.ordinal());
     }
 
     // 释放pcb所占用资源
@@ -223,17 +225,32 @@ public class DeadLock {
         }
     }
 
+    // 释放当前资源
+    public void releaseSystemResource() {
+        for (int i = 0; i < RESOURCE_NUM; i++) {
+            for (int j = 0; j < PROCESS_NUM; j++) {
+                if (banker.Allocation[j][i] > 0) {
+                    int num = banker.Allocation[j][i];
+                    banker.Available[i] += num;
+                    banker.Allocation[j][i] = 0;
+                    Log.Info("死锁检测--全部释放资源", String.format("成功释放进程:%d，所占用的资源类型:%d，资源数目:%d", j, i, num));
+                    notifyPCB(i);
+                }
+            }
+        }
+    }
+
     // 唤醒被资源类型为rid所阻塞的进程
-    synchronized void notifyPCB(int rid) {
+    synchronized public void notifyPCB(int rid) {
         ArrayList<PCB> blockQueue = ProcessManager.pm.queueManager.resourceBlockQueue.get(rid);
         for (int i = 0; i < blockQueue.size(); i++) {
             // 从阻塞队列中移除
-            PCB p = blockQueue.get(0);
+            PCB p = blockQueue.get(i);
             if (ProcessManager.pm.queueManager.removeFromResourceBlockQueue(p, rid)) {
                 // 加入就绪队列
                 ProcessManager.pm.queueManager.joinReadQueue(p);
             }
         }
-        blockQueue.clear();
+        //blockQueue.clear();
     }
 }

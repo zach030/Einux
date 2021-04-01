@@ -15,9 +15,11 @@ import hardware.disk.SuperBlock;
 import hardware.memory.Memory;
 import hardware.memory.Page;
 import os.Controller;
+import os.device.DeviceManager;
 import os.filesystem.FileSystem;
 import os.filesystem.SysFile;
 import os.job.JobManage;
+import os.process.DeadLock;
 import os.process.Instruction;
 import os.process.PageTableEntry;
 import os.process.ProcessManager;
@@ -41,7 +43,6 @@ public class PlatForm extends JFrame {
 
     public static void main(String[] args) {
         platForm.setVisible(true);
-
     }
 
     public PlatForm() {
@@ -59,60 +60,15 @@ public class PlatForm extends JFrame {
         cNum.setText(String.valueOf(DevConfig.CYLINDER_NUM));
         hNum.setText(String.valueOf(DevConfig.TRACK_NUM));
         sNum.setText(String.valueOf(DevConfig.SECTOR_NUM));
-        // 设置文件树
-        DefaultMutableTreeNode root = new DefaultMutableTreeNode("/");
-        DefaultMutableTreeNode home = new DefaultMutableTreeNode("home");
-        DefaultMutableTreeNode dev = new DefaultMutableTreeNode("dev");
-        DefaultMutableTreeNode etc = new DefaultMutableTreeNode("etc");
-        DefaultMutableTreeNode block = new DefaultMutableTreeNode("block");
-        DefaultMutableTreeNode tty = new DefaultMutableTreeNode("tty");
-        DefaultMutableTreeNode ssh = new DefaultMutableTreeNode("ssh");
-        DefaultMutableTreeNode zach = new DefaultMutableTreeNode("zach");
-        DefaultTreeModel tm = new DefaultTreeModel(root);
-
-        tm.insertNodeInto(home, root, 0);
-        tm.insertNodeInto(dev, root, 1);
-        tm.insertNodeInto(etc, root, 2);
-        tm.insertNodeInto(zach, home, 0);
-        tm.insertNodeInto(block, dev, 0);
-        tm.insertNodeInto(tty, dev, 1);
-        tm.insertNodeInto(ssh, etc, 0);
-        nodeTree = new JTree(tm);
-        nodeTree.setVisible(true);
-    }
-
-    private void loadDiskActionPerformed(ActionEvent e) {
-        JFileChooser fc = new JFileChooser();
-        fc.setCurrentDirectory(new File("."));
-        fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        fc.setMultiSelectionEnabled(false);//是否允许多选
-        int result = fc.showOpenDialog(new JPanel());
-        if (result == JFileChooser.APPROVE_OPTION) {
-            File file = fc.getSelectedFile();
-            DiskHelper.setRootDir(file.getPath());
-        }
-        System.out.println(DiskHelper.rootDir);
-    }
-
-    private void loadJobActionPerformed(ActionEvent e) {
-        JFileChooser fc = new JFileChooser();
-        fc.setCurrentDirectory(new File("."));
-        fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-        fc.setMultiSelectionEnabled(false);//是否允许多选
-        int result = fc.showOpenDialog(new JPanel());
-        if (result == JFileChooser.APPROVE_OPTION) {
-            File file = fc.getSelectedFile();
-            JobManage.jm.setChooseFile(file);
+        // 设置空闲缓冲区
+        for (int i = 0; i < 16; i++) {
+            JLabel label = (JLabel) freeBh.getComponent(i);
+            label.setText(String.valueOf(i));
         }
     }
 
     private void startActionPerformed(ActionEvent e) {
-        if (JobManage.jm.getChooseFile() == null || DiskHelper.rootDir.equals("")) {
-            JOptionPane.showMessageDialog(null, "请先选择磁盘或后备作业");
-        }
-        Controller.controller.Start();
-        new UpdateConsole().start();
-        logAppender();
+        dialog1.setVisible(true);
     }
 
     private void pauseActionPerformed(ActionEvent e) {
@@ -141,16 +97,20 @@ public class PlatForm extends JFrame {
      * @author: zach
      **/
     synchronized public void refreshCurrentPCB() {
-        String text = "";
+        String text = "null";
         if (CPU.cpu.isRunning()) {
             text = String.valueOf(CPU.cpu.getCurrent().getID());
             refreshCPUInfo();
             refreshPCBInfo();
-        } else {
+        } else if (ProcessManager.pm.requesterManager.isAllFinished()){
             text = "null";
         }
         currentPCB.setText(text);
         currentPCB.setForeground(Color.RED);
+    }
+
+    public void showFinish(){
+        JOptionPane.showMessageDialog(null,"已全部运行结束!");
     }
 
     /**
@@ -223,6 +183,30 @@ public class PlatForm extends JFrame {
     }
 
     /**
+     * @description: 更新系统日志
+     * @author: zach
+     **/
+    synchronized public void refreshSystemLog(String info) {
+        interruptInfo2.append(info);
+    }
+
+    /**
+     * @description: 更新中断信息
+     * @author: zach
+     **/
+    synchronized public void refreshInterruptInfo(String info) {
+        interruptInfo.append(info);
+    }
+
+    /**
+     * @description: 更新缓冲区分配日志
+     * @author: zach
+     **/
+    synchronized public void refreshBufferLog(String info) {
+        devLog.append(info);
+    }
+
+    /**
      * @description: 刷新进程列表
      * @author: zach
      **/
@@ -240,10 +224,10 @@ public class PlatForm extends JFrame {
      **/
     synchronized public void refreshOpenFileTable() {
         int[] userOpen = CPU.cpu.getCurrent().getUserOpenFileTable();
-        Vector<Vector<Integer>> data = new Vector<>();
+        Vector<Vector> data = new Vector<>();
         DefaultTableModel dm = (DefaultTableModel) userOpenFile.getModel();
         for (int i = 0; i < userOpen.length; i++) {
-            Vector<Integer> row = new Vector<>();
+            Vector row = new Vector();
             for (int col = 0; col < 2; col++) {
                 row.add(i);
                 row.add(userOpen[i]);
@@ -258,10 +242,10 @@ public class PlatForm extends JFrame {
         userOpenFile.setModel(dm);
 
         SysFile[] sysOpen = FileSystem.fs.getSysOpenFileManager().getSysOpenFileTable();
-        Vector<Vector<Integer>> sysData = new Vector<>();
+        Vector<Vector> sysData = new Vector();
         DefaultTableModel dm1 = (DefaultTableModel) sysOpenFile.getModel();
         for (int i = 0; i < sysOpen.length; i++) {
-            Vector<Integer> row = new Vector<>();
+            Vector row = new Vector();
             for (int col = 0; col < 4; col++) {
                 row.add(i);
                 row.add(sysOpen[i].count);
@@ -271,11 +255,11 @@ public class PlatForm extends JFrame {
             sysData.add(row);
         }
         Vector<String> columnName1 = new Vector<>();
-        columnName.add("系统打开文件描述符");
-        columnName.add("文件引用数");
-        columnName.add("文件偏移");
-        columnName.add("文件inode号");
-        dm.setDataVector(data, columnName1);
+        columnName1.add("系统打开文件描述符");
+        columnName1.add("文件引用数");
+        columnName1.add("文件偏移");
+        columnName1.add("文件inode号");
+        dm1.setDataVector(sysData, columnName1);
         sysOpenFile.setPreferredSize(sysOpenFile.getSize());
         sysOpenFile.setModel(dm1);
     }
@@ -286,9 +270,25 @@ public class PlatForm extends JFrame {
      **/
     private void logAppender() {
         try {
-            new TextAreaLogAppender(systemLog, scrollPane5).start();
+            new TextAreaLogAppender(interruptInfo2, interrupt2).start();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "重定向错误");
+        }
+    }
+
+    /**
+     * @description: 刷新设备管理 缓冲区
+     * @author: zach
+     **/
+    synchronized private void refreshFreeBuf() {
+        boolean[] bitmap = DeviceManager.dm.bufferQueueManager.getFreeBitMap();
+        for (int i = 0; i < 16; i++) {
+            JLabel label = (JLabel) freeBh.getComponent(i);
+            if (!bitmap[i]) {
+                label.setBackground(Color.GREEN);
+            } else {
+                label.setBackground(Color.pink);
+            }
         }
     }
 
@@ -627,16 +627,77 @@ public class PlatForm extends JFrame {
         diskInfo.setText(content);
     }
 
-    private void nodeTreeTreeCollapsed(TreeExpansionEvent e) {
-        // TODO add your code here
+    /**
+     * @description: 刷新资源表
+     * @author: zach
+     **/
+    private void refreshResourceAvailable() {
+        int[] available = DeadLock.banker.getAvailable();
+
+        Vector data = new Vector();
+        DefaultTableModel defaultTableModel = (DefaultTableModel) resourceTable.getModel();
+        for (int i = 0; i < available.length; i++) {
+            Vector rowData = new Vector();
+            for (int col = 0; col < 2; col++) {
+                rowData.add(DeadLock.ResourceType.values()[i]);
+                rowData.add(available[i]);
+            }
+            data.add(rowData);
+        }
+        Vector<String> columnName = new Vector<>();
+        columnName.add("资源类型");
+        columnName.add("可用值");
+        defaultTableModel.setDataVector(data, columnName);
+        //重新setModel前设置一下table的size，不然会使用默认size
+        resourceTable.setPreferredSize(resourceTable.getSize());
+        resourceTable.setModel(defaultTableModel);
     }
 
-    private void nodeTreeValueChanged(TreeSelectionEvent e) {
-        // TODO add your code here
+    /**
+     * @description: 刷新资源阻塞队列
+     * @author: zach
+     **/
+    public void refreshResourceBlockQueue(String info1, String info2, String info3) {
+        keyBlock.setText(info1);
+        screenBlock.setText(info2);
+        otherBlock.setText(info3);
     }
 
-    private void nodeTreeTreeExpanded(TreeExpansionEvent e) {
-        // TODO add your code here
+    private void choosediskActionPerformed(ActionEvent e) {
+        JFileChooser fc = new JFileChooser();
+        fc.setCurrentDirectory(new File("."));
+        fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        fc.setMultiSelectionEnabled(false);//是否允许多选
+        int result = fc.showOpenDialog(new JPanel());
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File file = fc.getSelectedFile();
+            DiskHelper.setRootDir(file.getPath());
+        }
+        System.out.println(DiskHelper.rootDir);
+    }
+
+    private void choosejobActionPerformed(ActionEvent e) {
+        JFileChooser fc = new JFileChooser();
+        fc.setCurrentDirectory(new File("."));
+        fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+        fc.setMultiSelectionEnabled(false);//是否允许多选
+        int result = fc.showOpenDialog(new JPanel());
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File file = fc.getSelectedFile();
+            JobManage.jm.setChooseFile(file);
+        }
+    }
+
+    private void button2ActionPerformed(ActionEvent e) {
+        wait.setText("正在加载磁盘，请等待.....");
+        Controller.controller.Start();
+        new UpdateConsole().start();
+        //logAppender();
+        dialog1.setVisible(false);
+    }
+
+    private void button1ActionPerformed(ActionEvent e) {
+        JobManage.jm.createNewJob();
     }
 
     class UpdateConsole extends Thread {
@@ -644,9 +705,11 @@ public class PlatForm extends JFrame {
             while (true) {
                 try {
                     refreshMemoryBitMap();
+                    refreshFreeBuf();
                     refreshDiskInfo();
                     sleep(1000);
                     refreshProcessQueue();
+                    refreshResourceAvailable();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -662,9 +725,8 @@ public class PlatForm extends JFrame {
         pageTablePanel = new JScrollPane();
         pageTable = new JTable();
         consoletoolBar1 = new JToolBar();
-        loadDisk = new JButton();
-        loadJob = new JButton();
         start = new JButton();
+        button1 = new JButton();
         pause = new JButton();
         resume = new JButton();
         stop = new JButton();
@@ -684,8 +746,10 @@ public class PlatForm extends JFrame {
         panel8 = new JPanel();
         scrollPane4 = new JScrollPane();
         instructionInfo = new JTextArea();
-        scrollPane5 = new JScrollPane();
-        systemLog = new JTextArea();
+        interrupt = new JScrollPane();
+        interruptInfo = new JTextArea();
+        interrupt2 = new JScrollPane();
+        interruptInfo2 = new JTextArea();
         memory = new JPanel();
         bitmap = new JPanel();
         m0 = new JButton();
@@ -783,6 +847,40 @@ public class PlatForm extends JFrame {
         userOpenFile = new JTable();
         scrollPane10 = new JScrollPane();
         sysOpenFile = new JTable();
+        device = new JPanel();
+        label520 = new JLabel();
+        freeBh = new JPanel();
+        label521 = new JLabel();
+        label522 = new JLabel();
+        label523 = new JLabel();
+        label524 = new JLabel();
+        label525 = new JLabel();
+        label526 = new JLabel();
+        label527 = new JLabel();
+        label528 = new JLabel();
+        label529 = new JLabel();
+        label530 = new JLabel();
+        label531 = new JLabel();
+        label532 = new JLabel();
+        label533 = new JLabel();
+        label534 = new JLabel();
+        label535 = new JLabel();
+        label536 = new JLabel();
+        devPane = new JScrollPane();
+        devLog = new JTextArea();
+        resource = new JPanel();
+        scrollPane1 = new JScrollPane();
+        resourceTable = new JTable();
+        label537 = new JLabel();
+        scrollPane5 = new JScrollPane();
+        keyBlock = new JTextArea();
+        label538 = new JLabel();
+        scrollPane11 = new JScrollPane();
+        screenBlock = new JTextArea();
+        label539 = new JLabel();
+        scrollPane12 = new JScrollPane();
+        otherBlock = new JTextArea();
+        label540 = new JLabel();
         memoryView = new JFrame();
         panel1 = new JPanel();
         label8 = new JLabel();
@@ -1297,6 +1395,11 @@ public class PlatForm extends JFrame {
         label517 = new JLabel();
         label518 = new JLabel();
         label519 = new JLabel();
+        dialog1 = new JDialog();
+        choosedisk = new JButton();
+        choosejob = new JButton();
+        button2 = new JButton();
+        progressBar1 = new JProgressBar();
 
         //======== this ========
         setTitle("Einux");
@@ -1310,19 +1413,12 @@ public class PlatForm extends JFrame {
 
             //======== console ========
             {
-                console.setBorder(new javax.swing.border.CompoundBorder(new javax.swing.border.TitledBorder(new
-                        javax.swing.border.EmptyBorder(0, 0, 0, 0), "JFor\u006dDesi\u0067ner \u0045valu\u0061tion", javax
-                        .swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.BOTTOM, new java
-                        .awt.Font("Dia\u006cog", java.awt.Font.BOLD, 12), java.awt
-                        .Color.red), console.getBorder()));
-                console.addPropertyChangeListener(new java.beans.
-                        PropertyChangeListener() {
-                    @Override
-                    public void propertyChange(java.beans.PropertyChangeEvent e) {
-                        if ("bord\u0065r".
-                                equals(e.getPropertyName())) throw new RuntimeException();
-                    }
-                });
+                console.setBorder(new javax.swing.border.CompoundBorder(new javax.swing.border.TitledBorder(new javax.swing.
+                border.EmptyBorder(0,0,0,0), "JF\u006frmDesi\u0067ner Ev\u0061luatio\u006e",javax.swing.border.TitledBorder.CENTER
+                ,javax.swing.border.TitledBorder.BOTTOM,new java.awt.Font("Dialo\u0067",java.awt.Font
+                .BOLD,12),java.awt.Color.red),console. getBorder()));console. addPropertyChangeListener(
+                new java.beans.PropertyChangeListener(){@Override public void propertyChange(java.beans.PropertyChangeEvent e){if("borde\u0072"
+                .equals(e.getPropertyName()))throw new RuntimeException();}});
                 console.setLayout(null);
 
                 //======== pageTablePanel ========
@@ -1330,21 +1426,21 @@ public class PlatForm extends JFrame {
 
                     //---- pageTable ----
                     pageTable.setModel(new DefaultTableModel(
-                            new Object[][]{
-                                    {null, null, null, null, null},
-                                    {null, null, null, null, null},
-                                    {null, null, null, null, null},
-                                    {"", "", "", "", ""},
-                                    {null, null, null, null, null},
-                                    {null, null, null, null, null},
-                                    {null, null, null, null, null},
-                                    {null, null, null, null, null},
-                                    {null, null, null, null, null},
-                                    {null, null, null, null, null},
-                            },
-                            new String[]{
-                                    "\u903b\u8f91\u9875\u53f7", "\u9875\u6846\u53f7", "\u5916\u5b58\u5757\u53f7", "\u4fee\u6539\u4f4d", "\u6709\u6548\u4f4d"
-                            }
+                        new Object[][] {
+                            {null, null, null, null, null},
+                            {null, null, null, null, null},
+                            {null, null, null, null, null},
+                            {"", "", "", "", ""},
+                            {null, null, null, null, null},
+                            {null, null, null, null, null},
+                            {null, null, null, null, null},
+                            {null, null, null, null, null},
+                            {null, null, null, null, null},
+                            {null, null, null, null, null},
+                        },
+                        new String[] {
+                            "\u903b\u8f91\u9875\u53f7", "\u9875\u6846\u53f7", "\u5916\u5b58\u5757\u53f7", "\u4fee\u6539\u4f4d", "\u6709\u6548\u4f4d"
+                        }
                     ));
                     pageTable.setPreferredScrollableViewportSize(new Dimension(400, 400));
                     pageTable.setFont(new Font("\u9ed1\u4f53", Font.BOLD, 16));
@@ -1356,23 +1452,17 @@ public class PlatForm extends JFrame {
                 //======== consoletoolBar1 ========
                 {
 
-                    //---- loadDisk ----
-                    loadDisk.setText("\u52a0\u8f7d\u78c1\u76d8");
-                    loadDisk.setFont(new Font("\u9ed1\u4f53", Font.BOLD, 16));
-                    loadDisk.addActionListener(e -> loadDiskActionPerformed(e));
-                    consoletoolBar1.add(loadDisk);
-
-                    //---- loadJob ----
-                    loadJob.setText("\u8f7d\u5165\u4f5c\u4e1a");
-                    loadJob.setFont(new Font("\u9ed1\u4f53", Font.BOLD, 16));
-                    loadJob.addActionListener(e -> loadJobActionPerformed(e));
-                    consoletoolBar1.add(loadJob);
-
                     //---- start ----
                     start.setText("\u5f00\u673a");
                     start.setFont(new Font("\u9ed1\u4f53", Font.BOLD, 16));
                     start.addActionListener(e -> startActionPerformed(e));
                     consoletoolBar1.add(start);
+
+                    //---- button1 ----
+                    button1.setText("\u65b0\u4f5c\u4e1a");
+                    button1.setFont(new Font("\u9ed1\u4f53", Font.BOLD, 16));
+                    button1.addActionListener(e -> button1ActionPerformed(e));
+                    consoletoolBar1.add(button1);
 
                     //---- pause ----
                     pause.setText("\u6682\u505c");
@@ -1400,39 +1490,39 @@ public class PlatForm extends JFrame {
                 systemTime.setEditable(false);
                 systemTime.setHorizontalAlignment(SwingConstants.CENTER);
                 console.add(systemTime);
-                systemTime.setBounds(new Rectangle(new Point(115, 60), systemTime.getPreferredSize()));
+                systemTime.setBounds(new Rectangle(new Point(100, 60), systemTime.getPreferredSize()));
 
                 //---- label1 ----
                 label1.setText("\u7cfb\u7edf\u65f6\u95f4");
                 label1.setFont(new Font("\u9ed1\u4f53", Font.BOLD, 16));
                 console.add(label1);
-                label1.setBounds(40, 60, 70, 30);
+                label1.setBounds(25, 60, 70, 30);
 
                 //---- label2 ----
                 label2.setText("\u5f53\u524d\u8fdb\u7a0b");
                 label2.setFont(new Font("\u9ed1\u4f53", Font.BOLD, 16));
                 console.add(label2);
-                label2.setBounds(new Rectangle(new Point(40, 115), label2.getPreferredSize()));
+                label2.setBounds(new Rectangle(new Point(25, 115), label2.getPreferredSize()));
 
                 //---- currentPCB ----
                 currentPCB.setPreferredSize(new Dimension(100, 38));
                 currentPCB.setEditable(false);
                 currentPCB.setHorizontalAlignment(SwingConstants.CENTER);
                 console.add(currentPCB);
-                currentPCB.setBounds(new Rectangle(new Point(115, 110), currentPCB.getPreferredSize()));
+                currentPCB.setBounds(new Rectangle(new Point(100, 110), currentPCB.getPreferredSize()));
 
                 //---- label3 ----
                 label3.setText("\u5f53\u524d\u6307\u4ee4");
                 label3.setFont(new Font("\u9ed1\u4f53", Font.BOLD, 16));
                 console.add(label3);
-                label3.setBounds(new Rectangle(new Point(40, 165), label3.getPreferredSize()));
+                label3.setBounds(new Rectangle(new Point(25, 165), label3.getPreferredSize()));
 
                 //---- currentPC ----
                 currentPC.setPreferredSize(new Dimension(100, 38));
                 currentPC.setEditable(false);
                 currentPC.setHorizontalAlignment(SwingConstants.CENTER);
                 console.add(currentPC);
-                currentPC.setBounds(new Rectangle(new Point(115, 160), currentPC.getPreferredSize()));
+                currentPC.setBounds(new Rectangle(new Point(100, 160), currentPC.getPreferredSize()));
 
                 //======== baseTabPanel ========
                 {
@@ -1450,12 +1540,12 @@ public class PlatForm extends JFrame {
                             scrollPane2.setViewportView(cpuRegInfo);
                         }
                         panel6.add(scrollPane2);
-                        scrollPane2.setBounds(0, 0, 310, 90);
+                        scrollPane2.setBounds(0, 0, 330, 90);
 
                         {
                             // compute preferred size
                             Dimension preferredSize = new Dimension();
-                            for (int i = 0; i < panel6.getComponentCount(); i++) {
+                            for(int i = 0; i < panel6.getComponentCount(); i++) {
                                 Rectangle bounds = panel6.getComponent(i).getBounds();
                                 preferredSize.width = Math.max(bounds.x + bounds.width, preferredSize.width);
                                 preferredSize.height = Math.max(bounds.y + bounds.height, preferredSize.height);
@@ -1481,12 +1571,12 @@ public class PlatForm extends JFrame {
                             scrollPane3.setViewportView(pcbRegInfo);
                         }
                         panel7.add(scrollPane3);
-                        scrollPane3.setBounds(0, 0, 310, 90);
+                        scrollPane3.setBounds(0, 0, 330, 90);
 
                         {
                             // compute preferred size
                             Dimension preferredSize = new Dimension();
-                            for (int i = 0; i < panel7.getComponentCount(); i++) {
+                            for(int i = 0; i < panel7.getComponentCount(); i++) {
                                 Rectangle bounds = panel7.getComponent(i).getBounds();
                                 preferredSize.width = Math.max(bounds.x + bounds.width, preferredSize.width);
                                 preferredSize.height = Math.max(bounds.y + bounds.height, preferredSize.height);
@@ -1512,12 +1602,12 @@ public class PlatForm extends JFrame {
                             scrollPane4.setViewportView(instructionInfo);
                         }
                         panel8.add(scrollPane4);
-                        scrollPane4.setBounds(0, 0, 310, 90);
+                        scrollPane4.setBounds(0, 0, 330, 90);
 
                         {
                             // compute preferred size
                             Dimension preferredSize = new Dimension();
-                            for (int i = 0; i < panel8.getComponentCount(); i++) {
+                            for(int i = 0; i < panel8.getComponentCount(); i++) {
                                 Rectangle bounds = panel8.getComponent(i).getBounds();
                                 preferredSize.width = Math.max(bounds.x + bounds.width, preferredSize.width);
                                 preferredSize.height = Math.max(bounds.y + bounds.height, preferredSize.height);
@@ -1532,29 +1622,40 @@ public class PlatForm extends JFrame {
                     baseTabPanel.addTab("\u6307\u4ee4\u4fe1\u606f", panel8);
                 }
                 console.add(baseTabPanel);
-                baseTabPanel.setBounds(315, 65, 310, 130);
+                baseTabPanel.setBounds(215, 65, 330, 130);
 
-                //======== scrollPane5 ========
+                //======== interrupt ========
                 {
-                    scrollPane5.setFocusable(false);
-                    scrollPane5.setInheritsPopupMenu(true);
-                    scrollPane5.setMaximumSize(new Dimension(32767, 200));
-                    scrollPane5.setFont(new Font("\u9ed1\u4f53", Font.BOLD, 16));
+                    interrupt.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
+                    interrupt.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 
-                    //---- systemLog ----
-                    systemLog.setPreferredSize(new Dimension(100, 22));
-                    systemLog.setEditable(false);
-                    systemLog.setFont(new Font("\u9ed1\u4f53", Font.BOLD, 16));
-                    systemLog.setMaximumSize(new Dimension(2147483647, 200));
-                    scrollPane5.setViewportView(systemLog);
+                    //---- interruptInfo ----
+                    interruptInfo.setFont(new Font("\u9ed1\u4f53", Font.PLAIN, 14));
+                    interruptInfo.setForeground(Color.red);
+                    interruptInfo.setEditable(false);
+                    interrupt.setViewportView(interruptInfo);
                 }
-                console.add(scrollPane5);
-                scrollPane5.setBounds(400, 230, 585, 195);
+                console.add(interrupt);
+                interrupt.setBounds(560, 65, 405, 130);
+
+                //======== interrupt2 ========
+                {
+                    interrupt2.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
+                    interrupt2.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+
+                    //---- interruptInfo2 ----
+                    interruptInfo2.setFont(new Font("\u9ed1\u4f53", Font.PLAIN, 14));
+                    interruptInfo2.setForeground(Color.black);
+                    interruptInfo2.setEditable(false);
+                    interrupt2.setViewportView(interruptInfo2);
+                }
+                console.add(interrupt2);
+                interrupt2.setBounds(450, 230, 515, 185);
 
                 {
                     // compute preferred size
                     Dimension preferredSize = new Dimension();
-                    for (int i = 0; i < console.getComponentCount(); i++) {
+                    for(int i = 0; i < console.getComponentCount(); i++) {
                         Rectangle bounds = console.getComponent(i).getBounds();
                         preferredSize.width = Math.max(bounds.x + bounds.width, preferredSize.width);
                         preferredSize.height = Math.max(bounds.y + bounds.height, preferredSize.height);
@@ -1579,9 +1680,9 @@ public class PlatForm extends JFrame {
                     //---- m0 ----
                     m0.setText("0");
                     m0.addActionListener(e -> {
-                        m0ActionPerformed(e);
-                        m0ActionPerformed(e);
-                    });
+			m0ActionPerformed(e);
+			m0ActionPerformed(e);
+		});
                     bitmap.add(m0);
 
                     //---- m1 ----
@@ -1929,7 +2030,7 @@ public class PlatForm extends JFrame {
                         {
                             // compute preferred size
                             Dimension preferredSize = new Dimension();
-                            for (int i = 0; i < readyQ.getComponentCount(); i++) {
+                            for(int i = 0; i < readyQ.getComponentCount(); i++) {
                                 Rectangle bounds = readyQ.getComponent(i).getBounds();
                                 preferredSize.width = Math.max(bounds.x + bounds.width, preferredSize.width);
                                 preferredSize.height = Math.max(bounds.y + bounds.height, preferredSize.height);
@@ -1956,7 +2057,7 @@ public class PlatForm extends JFrame {
                         {
                             // compute preferred size
                             Dimension preferredSize = new Dimension();
-                            for (int i = 0; i < resourceBQ.getComponentCount(); i++) {
+                            for(int i = 0; i < resourceBQ.getComponentCount(); i++) {
                                 Rectangle bounds = resourceBQ.getComponent(i).getBounds();
                                 preferredSize.width = Math.max(bounds.x + bounds.width, preferredSize.width);
                                 preferredSize.height = Math.max(bounds.y + bounds.height, preferredSize.height);
@@ -1983,7 +2084,7 @@ public class PlatForm extends JFrame {
                         {
                             // compute preferred size
                             Dimension preferredSize = new Dimension();
-                            for (int i = 0; i < bufferBQ.getComponentCount(); i++) {
+                            for(int i = 0; i < bufferBQ.getComponentCount(); i++) {
                                 Rectangle bounds = bufferBQ.getComponent(i).getBounds();
                                 preferredSize.width = Math.max(bounds.x + bounds.width, preferredSize.width);
                                 preferredSize.height = Math.max(bounds.y + bounds.height, preferredSize.height);
@@ -2010,7 +2111,7 @@ public class PlatForm extends JFrame {
                         {
                             // compute preferred size
                             Dimension preferredSize = new Dimension();
-                            for (int i = 0; i < suspendBQ.getComponentCount(); i++) {
+                            for(int i = 0; i < suspendBQ.getComponentCount(); i++) {
                                 Rectangle bounds = suspendBQ.getComponent(i).getBounds();
                                 preferredSize.width = Math.max(bounds.x + bounds.width, preferredSize.width);
                                 preferredSize.height = Math.max(bounds.y + bounds.height, preferredSize.height);
@@ -2037,7 +2138,7 @@ public class PlatForm extends JFrame {
                         {
                             // compute preferred size
                             Dimension preferredSize = new Dimension();
-                            for (int i = 0; i < finifshQ.getComponentCount(); i++) {
+                            for(int i = 0; i < finifshQ.getComponentCount(); i++) {
                                 Rectangle bounds = finifshQ.getComponent(i).getBounds();
                                 preferredSize.width = Math.max(bounds.x + bounds.width, preferredSize.width);
                                 preferredSize.height = Math.max(bounds.y + bounds.height, preferredSize.height);
@@ -2057,7 +2158,7 @@ public class PlatForm extends JFrame {
                 {
                     // compute preferred size
                     Dimension preferredSize = new Dimension();
-                    for (int i = 0; i < process.getComponentCount(); i++) {
+                    for(int i = 0; i < process.getComponentCount(); i++) {
                         Rectangle bounds = process.getComponent(i).getBounds();
                         preferredSize.width = Math.max(bounds.x + bounds.width, preferredSize.width);
                         preferredSize.height = Math.max(bounds.y + bounds.height, preferredSize.height);
@@ -2142,7 +2243,7 @@ public class PlatForm extends JFrame {
                 {
                     // compute preferred size
                     Dimension preferredSize = new Dimension();
-                    for (int i = 0; i < disk.getComponentCount(); i++) {
+                    for(int i = 0; i < disk.getComponentCount(); i++) {
                         Rectangle bounds = disk.getComponent(i).getBounds();
                         preferredSize.width = Math.max(bounds.x + bounds.width, preferredSize.width);
                         preferredSize.height = Math.max(bounds.y + bounds.height, preferredSize.height);
@@ -2164,21 +2265,22 @@ public class PlatForm extends JFrame {
                 {
 
                     //---- nodeTree ----
-                    nodeTree.addTreeExpansionListener(new TreeExpansionListener() {
-                        @Override
-                        public void treeCollapsed(TreeExpansionEvent e) {
-                            nodeTreeTreeCollapsed(e);
-                        }
-
-                        @Override
-                        public void treeExpanded(TreeExpansionEvent e) {
-                            nodeTreeTreeExpanded(e);
-                        }
-                    });
-                    nodeTree.addTreeSelectionListener(e -> {
-                        nodeTreeValueChanged(e);
-                        nodeTreeValueChanged(e);
-                    });
+                    nodeTree.setModel(new DefaultTreeModel(
+                        new DefaultMutableTreeNode("root") {
+                            {
+                                DefaultMutableTreeNode node1 = new DefaultMutableTreeNode("home");
+                                    node1.add(new DefaultMutableTreeNode("zach"));
+                                add(node1);
+                                node1 = new DefaultMutableTreeNode("dev");
+                                    node1.add(new DefaultMutableTreeNode("block"));
+                                    node1.add(new DefaultMutableTreeNode("tty"));
+                                add(node1);
+                                node1 = new DefaultMutableTreeNode("etc");
+                                    node1.add(new DefaultMutableTreeNode("ssh"));
+                                add(node1);
+                            }
+                        }));
+                    nodeTree.setEditable(true);
                     scrollPane8.setViewportView(nodeTree);
                 }
                 filesystem.add(scrollPane8);
@@ -2188,26 +2290,63 @@ public class PlatForm extends JFrame {
                 {
 
                     //---- userOpenFile ----
+                    userOpenFile.setModel(new DefaultTableModel(
+                        new Object[][] {
+                            {null, null},
+                            {null, null},
+                            {null, null},
+                            {"", ""},
+                            {null, null},
+                            {null, null},
+                            {null, null},
+                            {null, null},
+                            {null, null},
+                            {null, null},
+                        },
+                        new String[] {
+                            "\u7528\u6237\u6253\u5f00\u6587\u4ef6\u63cf\u8ff0\u7b26", "\u7cfb\u7edf\u6253\u5f00\u6587\u4ef6\u63cf\u8ff0\u7b26"
+                        }
+                    ));
+                    userOpenFile.setPreferredScrollableViewportSize(new Dimension(300, 400));
                     userOpenFile.setFont(new Font("\u9ed1\u4f53", Font.BOLD, 16));
+                    userOpenFile.setPreferredSize(new Dimension(100, 250));
                     scrollPane9.setViewportView(userOpenFile);
                 }
                 filesystem.add(scrollPane9);
-                scrollPane9.setBounds(220, 0, 370, 425);
+                scrollPane9.setBounds(220, 0, 305, 425);
 
                 //======== scrollPane10 ========
                 {
 
                     //---- sysOpenFile ----
+                    sysOpenFile.setModel(new DefaultTableModel(
+                        new Object[][] {
+                            {null, null, null, null},
+                            {null, null, null, null},
+                            {null, null, null, null},
+                            {"", "", "", ""},
+                            {null, null, null, null},
+                            {null, null, null, null},
+                            {null, null, null, null},
+                            {null, null, null, null},
+                            {null, null, null, null},
+                            {null, null, null, null},
+                        },
+                        new String[] {
+                            "\u7cfb\u7edf\u6253\u5f00\u6587\u4ef6\u63cf\u8ff0\u7b26", "\u6587\u4ef6\u5f15\u7528\u6570", "\u6587\u4ef6\u504f\u79fb", "inode\u53f7"
+                        }
+                    ));
+                    sysOpenFile.setPreferredScrollableViewportSize(new Dimension(400, 400));
                     sysOpenFile.setFont(new Font("\u9ed1\u4f53", Font.BOLD, 16));
                     scrollPane10.setViewportView(sysOpenFile);
                 }
                 filesystem.add(scrollPane10);
-                scrollPane10.setBounds(590, 0, 395, 425);
+                scrollPane10.setBounds(525, 0, 460, 425);
 
                 {
                     // compute preferred size
                     Dimension preferredSize = new Dimension();
-                    for (int i = 0; i < filesystem.getComponentCount(); i++) {
+                    for(int i = 0; i < filesystem.getComponentCount(); i++) {
                         Rectangle bounds = filesystem.getComponent(i).getBounds();
                         preferredSize.width = Math.max(bounds.x + bounds.width, preferredSize.width);
                         preferredSize.height = Math.max(bounds.y + bounds.height, preferredSize.height);
@@ -2220,6 +2359,268 @@ public class PlatForm extends JFrame {
                 }
             }
             mainTabPanel.addTab("\u6587\u4ef6\u7cfb\u7edf", filesystem);
+
+            //======== device ========
+            {
+                device.setLayout(null);
+
+                //---- label520 ----
+                label520.setText("\u7a7a\u95f2\u7f13\u51b2\u533a\u961f\u5217");
+                label520.setFont(new Font("\u9ed1\u4f53", Font.BOLD, 16));
+                device.add(label520);
+                label520.setBounds(new Rectangle(new Point(65, 65), label520.getPreferredSize()));
+
+                //======== freeBh ========
+                {
+                    freeBh.setFont(new Font("\u9ed1\u4f53", Font.PLAIN, 14));
+                    freeBh.setPreferredSize(new Dimension(100, 100));
+                    freeBh.setLayout(new GridLayout(1, 16));
+
+                    //---- label521 ----
+                    label521.setText("text");
+                    label521.setBorder(new LineBorder(Color.black, 1, true));
+                    label521.setHorizontalAlignment(SwingConstants.CENTER);
+                    label521.setOpaque(true);
+                    freeBh.add(label521);
+
+                    //---- label522 ----
+                    label522.setText("text");
+                    label522.setBorder(new LineBorder(Color.black, 1, true));
+                    label522.setHorizontalAlignment(SwingConstants.CENTER);
+                    label522.setOpaque(true);
+                    freeBh.add(label522);
+
+                    //---- label523 ----
+                    label523.setText("text");
+                    label523.setBorder(new LineBorder(Color.black, 1, true));
+                    label523.setHorizontalAlignment(SwingConstants.CENTER);
+                    label523.setOpaque(true);
+                    freeBh.add(label523);
+
+                    //---- label524 ----
+                    label524.setText("text");
+                    label524.setBorder(new LineBorder(Color.black, 1, true));
+                    label524.setHorizontalAlignment(SwingConstants.CENTER);
+                    label524.setOpaque(true);
+                    freeBh.add(label524);
+
+                    //---- label525 ----
+                    label525.setText("text");
+                    label525.setBorder(new LineBorder(Color.black, 1, true));
+                    label525.setHorizontalAlignment(SwingConstants.CENTER);
+                    label525.setOpaque(true);
+                    freeBh.add(label525);
+
+                    //---- label526 ----
+                    label526.setText("text");
+                    label526.setBorder(new LineBorder(Color.black, 1, true));
+                    label526.setHorizontalAlignment(SwingConstants.CENTER);
+                    label526.setOpaque(true);
+                    freeBh.add(label526);
+
+                    //---- label527 ----
+                    label527.setText("text");
+                    label527.setBorder(new LineBorder(Color.black, 1, true));
+                    label527.setHorizontalAlignment(SwingConstants.CENTER);
+                    label527.setOpaque(true);
+                    freeBh.add(label527);
+
+                    //---- label528 ----
+                    label528.setText("text");
+                    label528.setBorder(new LineBorder(Color.black, 1, true));
+                    label528.setHorizontalAlignment(SwingConstants.CENTER);
+                    label528.setOpaque(true);
+                    freeBh.add(label528);
+
+                    //---- label529 ----
+                    label529.setText("text");
+                    label529.setBorder(new LineBorder(Color.black, 1, true));
+                    label529.setHorizontalAlignment(SwingConstants.CENTER);
+                    label529.setOpaque(true);
+                    freeBh.add(label529);
+
+                    //---- label530 ----
+                    label530.setText("text");
+                    label530.setBorder(new LineBorder(Color.black, 1, true));
+                    label530.setHorizontalAlignment(SwingConstants.CENTER);
+                    label530.setOpaque(true);
+                    freeBh.add(label530);
+
+                    //---- label531 ----
+                    label531.setText("text");
+                    label531.setBorder(new LineBorder(Color.black, 1, true));
+                    label531.setHorizontalAlignment(SwingConstants.CENTER);
+                    label531.setOpaque(true);
+                    freeBh.add(label531);
+
+                    //---- label532 ----
+                    label532.setText("text");
+                    label532.setBorder(new LineBorder(Color.black, 1, true));
+                    label532.setHorizontalAlignment(SwingConstants.CENTER);
+                    label532.setOpaque(true);
+                    freeBh.add(label532);
+
+                    //---- label533 ----
+                    label533.setText("text");
+                    label533.setBorder(new LineBorder(Color.black, 1, true));
+                    label533.setHorizontalAlignment(SwingConstants.CENTER);
+                    label533.setOpaque(true);
+                    freeBh.add(label533);
+
+                    //---- label534 ----
+                    label534.setText("text");
+                    label534.setBorder(new LineBorder(Color.black, 1, true));
+                    label534.setHorizontalAlignment(SwingConstants.CENTER);
+                    label534.setOpaque(true);
+                    freeBh.add(label534);
+
+                    //---- label535 ----
+                    label535.setText("text");
+                    label535.setBorder(new LineBorder(Color.black, 1, true));
+                    label535.setHorizontalAlignment(SwingConstants.CENTER);
+                    label535.setOpaque(true);
+                    freeBh.add(label535);
+
+                    //---- label536 ----
+                    label536.setText("text");
+                    label536.setBorder(new LineBorder(Color.black, 1, true));
+                    label536.setHorizontalAlignment(SwingConstants.CENTER);
+                    label536.setOpaque(true);
+                    freeBh.add(label536);
+                }
+                device.add(freeBh);
+                freeBh.setBounds(205, 50, 675, 55);
+
+                //======== devPane ========
+                {
+                    devPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
+                    devPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+
+                    //---- devLog ----
+                    devLog.setFont(new Font("\u9ed1\u4f53", Font.PLAIN, 14));
+                    devLog.setForeground(Color.black);
+                    devLog.setEditable(false);
+                    devPane.setViewportView(devLog);
+                }
+                device.add(devPane);
+                devPane.setBounds(70, 140, 810, 225);
+
+                {
+                    // compute preferred size
+                    Dimension preferredSize = new Dimension();
+                    for(int i = 0; i < device.getComponentCount(); i++) {
+                        Rectangle bounds = device.getComponent(i).getBounds();
+                        preferredSize.width = Math.max(bounds.x + bounds.width, preferredSize.width);
+                        preferredSize.height = Math.max(bounds.y + bounds.height, preferredSize.height);
+                    }
+                    Insets insets = device.getInsets();
+                    preferredSize.width += insets.right;
+                    preferredSize.height += insets.bottom;
+                    device.setMinimumSize(preferredSize);
+                    device.setPreferredSize(preferredSize);
+                }
+            }
+            mainTabPanel.addTab("\u8bbe\u5907\u7ba1\u7406", device);
+
+            //======== resource ========
+            {
+                resource.setLayout(null);
+
+                //======== scrollPane1 ========
+                {
+
+                    //---- resourceTable ----
+                    resourceTable.setModel(new DefaultTableModel(
+                        new Object[][] {
+                            {null, null},
+                            {null, null},
+                            {null, null},
+                        },
+                        new String[] {
+                            "\u8d44\u6e90\u7c7b\u578b", "\u53ef\u7528\u503c"
+                        }
+                    ));
+                    scrollPane1.setViewportView(resourceTable);
+                }
+                resource.add(scrollPane1);
+                scrollPane1.setBounds(0, 0, scrollPane1.getPreferredSize().width, 425);
+
+                //---- label537 ----
+                label537.setText("KEYBOARD");
+                label537.setHorizontalAlignment(SwingConstants.CENTER);
+                label537.setFont(new Font("\u9ed1\u4f53", Font.BOLD, 16));
+                resource.add(label537);
+                label537.setBounds(500, 85, 90, 35);
+
+                //======== scrollPane5 ========
+                {
+
+                    //---- keyBlock ----
+                    keyBlock.setFont(new Font("\u9ed1\u4f53", Font.BOLD, 14));
+                    keyBlock.setEditable(false);
+                    scrollPane5.setViewportView(keyBlock);
+                }
+                resource.add(scrollPane5);
+                scrollPane5.setBounds(505, 125, 85, 240);
+
+                //---- label538 ----
+                label538.setText("SCREEN");
+                label538.setFont(new Font("\u9ed1\u4f53", Font.BOLD, 16));
+                label538.setHorizontalAlignment(SwingConstants.CENTER);
+                resource.add(label538);
+                label538.setBounds(660, 90, 80, 20);
+
+                //======== scrollPane11 ========
+                {
+
+                    //---- screenBlock ----
+                    screenBlock.setFont(new Font("\u9ed1\u4f53", Font.BOLD, 14));
+                    screenBlock.setEditable(false);
+                    scrollPane11.setViewportView(screenBlock);
+                }
+                resource.add(scrollPane11);
+                scrollPane11.setBounds(665, 125, 75, 240);
+
+                //---- label539 ----
+                label539.setText("OTHER");
+                label539.setFont(new Font("\u9ed1\u4f53", Font.BOLD, 16));
+                resource.add(label539);
+                label539.setBounds(new Rectangle(new Point(820, 90), label539.getPreferredSize()));
+
+                //======== scrollPane12 ========
+                {
+
+                    //---- otherBlock ----
+                    otherBlock.setFont(new Font("\u9ed1\u4f53", Font.ITALIC, 14));
+                    otherBlock.setEditable(false);
+                    scrollPane12.setViewportView(otherBlock);
+                }
+                resource.add(scrollPane12);
+                scrollPane12.setBounds(805, 125, 80, 240);
+
+                //---- label540 ----
+                label540.setText("\u8d44\u6e90\u963b\u585e\u961f\u5217");
+                label540.setFont(new Font("\u9ed1\u4f53", Font.BOLD, 18));
+                label540.setHorizontalAlignment(SwingConstants.CENTER);
+                resource.add(label540);
+                label540.setBounds(610, 25, 185, 25);
+
+                {
+                    // compute preferred size
+                    Dimension preferredSize = new Dimension();
+                    for(int i = 0; i < resource.getComponentCount(); i++) {
+                        Rectangle bounds = resource.getComponent(i).getBounds();
+                        preferredSize.width = Math.max(bounds.x + bounds.width, preferredSize.width);
+                        preferredSize.height = Math.max(bounds.y + bounds.height, preferredSize.height);
+                    }
+                    Insets insets = resource.getInsets();
+                    preferredSize.width += insets.right;
+                    preferredSize.height += insets.bottom;
+                    resource.setMinimumSize(preferredSize);
+                    resource.setPreferredSize(preferredSize);
+                }
+            }
+            mainTabPanel.addTab("\u8d44\u6e90\u7ba1\u7406", resource);
         }
         contentPane.add(mainTabPanel);
         mainTabPanel.setBounds(0, 0, 985, 465);
@@ -2227,7 +2628,7 @@ public class PlatForm extends JFrame {
         {
             // compute preferred size
             Dimension preferredSize = new Dimension();
-            for (int i = 0; i < contentPane.getComponentCount(); i++) {
+            for(int i = 0; i < contentPane.getComponentCount(); i++) {
                 Rectangle bounds = contentPane.getComponent(i).getBounds();
                 preferredSize.width = Math.max(bounds.x + bounds.width, preferredSize.width);
                 preferredSize.height = Math.max(bounds.y + bounds.height, preferredSize.height);
@@ -2238,7 +2639,7 @@ public class PlatForm extends JFrame {
             contentPane.setMinimumSize(preferredSize);
             contentPane.setPreferredSize(preferredSize);
         }
-        setSize(985, 480);
+        setSize(1020, 515);
         setLocationRelativeTo(null);
 
         //======== memoryView ========
@@ -2253,17 +2654,13 @@ public class PlatForm extends JFrame {
                 panel1.setBorder(new LineBorder(Color.black, 1, true));
                 panel1.setFont(new Font("Consolas", Font.BOLD, 16));
                 panel1.setPreferredSize(new Dimension(802, 500));
-                panel1.setBorder(new javax.swing.border.CompoundBorder(new javax.swing.border.TitledBorder(new javax.swing.border.
-                        EmptyBorder(0, 0, 0, 0), "JFor\u006dDesi\u0067ner \u0045valu\u0061tion", javax.swing.border.TitledBorder.CENTER, javax.swing
-                        .border.TitledBorder.BOTTOM, new java.awt.Font("Dia\u006cog", java.awt.Font.BOLD, 12),
-                        java.awt.Color.red), panel1.getBorder()));
-                panel1.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
-                    @Override
-                    public void propertyChange(java.beans.PropertyChangeEvent e) {
-                        if ("bord\u0065r".equals(e.getPropertyName()))
-                            throw new RuntimeException();
-                    }
-                });
+                panel1.setBorder ( new javax . swing. border .CompoundBorder ( new javax . swing. border .TitledBorder ( new javax .
+                swing. border .EmptyBorder ( 0, 0 ,0 , 0) ,  "JF\u006frmDes\u0069gner \u0045valua\u0074ion" , javax. swing .border
+                . TitledBorder. CENTER ,javax . swing. border .TitledBorder . BOTTOM, new java. awt .Font ( "D\u0069alog"
+                , java .awt . Font. BOLD ,12 ) ,java . awt. Color .red ) ,panel1. getBorder
+                () ) ); panel1. addPropertyChangeListener( new java. beans .PropertyChangeListener ( ){ @Override public void propertyChange (java
+                . beans. PropertyChangeEvent e) { if( "\u0062order" .equals ( e. getPropertyName () ) )throw new RuntimeException
+                ( ) ;} } );
                 panel1.setLayout(new GridLayout(16, 32));
 
                 //---- label8 ----
@@ -4321,7 +4718,7 @@ public class PlatForm extends JFrame {
             {
                 // compute preferred size
                 Dimension preferredSize = new Dimension();
-                for (int i = 0; i < memoryViewContentPane.getComponentCount(); i++) {
+                for(int i = 0; i < memoryViewContentPane.getComponentCount(); i++) {
                     Rectangle bounds = memoryViewContentPane.getComponent(i).getBounds();
                     preferredSize.width = Math.max(bounds.x + bounds.width, preferredSize.width);
                     preferredSize.height = Math.max(bounds.y + bounds.height, preferredSize.height);
@@ -4335,6 +4732,33 @@ public class PlatForm extends JFrame {
             memoryView.setSize(480, 410);
             memoryView.setLocationRelativeTo(null);
         }
+
+        //======== dialog1 ========
+        {
+            Container dialog1ContentPane = dialog1.getContentPane();
+            dialog1ContentPane.setLayout(new BorderLayout());
+
+            //---- choosedisk ----
+            choosedisk.setText("\u52a0\u8f7d\u78c1\u76d8");
+            choosedisk.addActionListener(e -> choosediskActionPerformed(e));
+            dialog1ContentPane.add(choosedisk, BorderLayout.WEST);
+
+            //---- choosejob ----
+            choosejob.setText("\u8f7d\u5165\u4f5c\u4e1a");
+            choosejob.addActionListener(e -> choosejobActionPerformed(e));
+            dialog1ContentPane.add(choosejob, BorderLayout.EAST);
+
+            //---- button2 ----
+            button2.setText("\u786e\u5b9a");
+            button2.addActionListener(e -> {
+			button2ActionPerformed(e);
+			button2ActionPerformed(e);
+			button2ActionPerformed(e);
+		});
+            dialog1ContentPane.add(button2, BorderLayout.SOUTH);
+            dialog1.pack();
+            dialog1.setLocationRelativeTo(dialog1.getOwner());
+        }
         // JFormDesigner - End of component initialization  //GEN-END:initComponents
     }
 
@@ -4345,9 +4769,8 @@ public class PlatForm extends JFrame {
     private JScrollPane pageTablePanel;
     private JTable pageTable;
     private JToolBar consoletoolBar1;
-    private JButton loadDisk;
-    private JButton loadJob;
     private JButton start;
+    private JButton button1;
     private JButton pause;
     private JButton resume;
     private JButton stop;
@@ -4367,8 +4790,10 @@ public class PlatForm extends JFrame {
     private JPanel panel8;
     private JScrollPane scrollPane4;
     private JTextArea instructionInfo;
-    private JScrollPane scrollPane5;
-    private JTextArea systemLog;
+    private JScrollPane interrupt;
+    private JTextArea interruptInfo;
+    private JScrollPane interrupt2;
+    private JTextArea interruptInfo2;
     private JPanel memory;
     private JPanel bitmap;
     private JButton m0;
@@ -4466,6 +4891,40 @@ public class PlatForm extends JFrame {
     private JTable userOpenFile;
     private JScrollPane scrollPane10;
     private JTable sysOpenFile;
+    private JPanel device;
+    private JLabel label520;
+    private JPanel freeBh;
+    private JLabel label521;
+    private JLabel label522;
+    private JLabel label523;
+    private JLabel label524;
+    private JLabel label525;
+    private JLabel label526;
+    private JLabel label527;
+    private JLabel label528;
+    private JLabel label529;
+    private JLabel label530;
+    private JLabel label531;
+    private JLabel label532;
+    private JLabel label533;
+    private JLabel label534;
+    private JLabel label535;
+    private JLabel label536;
+    private JScrollPane devPane;
+    private JTextArea devLog;
+    private JPanel resource;
+    private JScrollPane scrollPane1;
+    private JTable resourceTable;
+    private JLabel label537;
+    private JScrollPane scrollPane5;
+    private JTextArea keyBlock;
+    private JLabel label538;
+    private JScrollPane scrollPane11;
+    private JTextArea screenBlock;
+    private JLabel label539;
+    private JScrollPane scrollPane12;
+    private JTextArea otherBlock;
+    private JLabel label540;
     private JFrame memoryView;
     private JPanel panel1;
     private JLabel label8;
@@ -4980,5 +5439,10 @@ public class PlatForm extends JFrame {
     private JLabel label517;
     private JLabel label518;
     private JLabel label519;
+    private JDialog dialog1;
+    private JButton choosedisk;
+    private JButton choosejob;
+    private JButton button2;
+    private JProgressBar progressBar1;
     // JFormDesigner - End of variables declaration  //GEN-END:variables
 }

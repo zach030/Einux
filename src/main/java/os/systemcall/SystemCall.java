@@ -1,6 +1,8 @@
 package os.systemcall;
 
 import hardware.CPU;
+import os.device.BufferHead;
+import os.device.DeviceManager;
 import os.filesystem.DiskInode;
 import os.filesystem.FileSystem;
 import os.filesystem.MemoryInode;
@@ -68,6 +70,9 @@ public class SystemCall {
             }
             int sysFd = FileSystem.fs.getSysOpenFileManager().getSysFdByInodeNo(inode.inodeNo);
             Log.Info("打开文件", String.format("系统打开文件表下标为:%d", sysFd));
+            for (BufferHead bh : inode.bufferHeads) {
+                DeviceManager.dm.bufferOperator.writeBufferToDev(bh);
+            }
             return CPU.cpu.getCurrent().addUserOpenFileTable(sysFd);
         }
 

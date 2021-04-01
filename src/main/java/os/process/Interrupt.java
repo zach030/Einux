@@ -8,6 +8,7 @@ import os.filesystem.FileSystem;
 import os.storage.StorageManager;
 import os.storage.Transfer;
 import os.systemcall.SystemCall;
+import ui.PlatForm;
 import utils.Log;
 
 public class Interrupt {
@@ -38,6 +39,7 @@ public class Interrupt {
      * @author: zach
      **/
     public void doPageFault() {
+        PlatForm.platForm.refreshInterruptInfo(String.format("检测到当前中断向量值:%d,执行缺页中断\n", PAGE_FAULT));
         //当前运行进程，当前指令逻辑地址
         PCB pcb = CPU.cpu.getCurrent();
         int virtualPageNo = CPU.cpu.getCr2();
@@ -51,10 +53,11 @@ public class Interrupt {
         if (pageFrameNo == StorageManager.NOT_ENOUGH) {
             int frameNo = StorageManager.sm.memoryManager.lruGetHeadPageNum();
             //淘汰页面,如果没有则使用淘汰算法淘汰一个，将淘汰页写回磁盘
-            Log.Info("", String.format("当前内存无空闲页框，经过LRU算法，淘汰最久未使用的页框:%d", frameNo));
+            Log.Info("缺页中断", String.format("当前内存无空闲页框，经过LRU算法，淘汰最久未使用的页框:%d", frameNo));
             // 此进程将占用此页
             pageFrameNo = frameNo;
         }
+        PlatForm.platForm.refreshInterruptInfo(String.format("进程:%d,进行缺页中断, 将物理块号:%d, 数据调入内存页框号:%d, 进程逻辑页号: %d\n", pcb.getID(), blockNo, pageFrameNo, virtualPageNo));
         // 将块号blockNo的数据写入pageFrameNo的页内
         // 根据块号查到物理块
         Block block = FileSystem.getCurrentBootDisk().getBlockInDisk(blockNo);
@@ -77,6 +80,7 @@ public class Interrupt {
      * @author: zach
      **/
     public void doOpenFileSystemCall() {
+        PlatForm.platForm.refreshInterruptInfo(String.format("检测到中断向量值:%d, 执行系统调用\n", SYSTEM_CALL_OPEN));
         PCB pcb = CPU.cpu.getCurrent();
         // cpu 进行保护现场
         CPU.cpu.Protect();
@@ -92,6 +96,8 @@ public class Interrupt {
         CPU.cpu.Recovery(pcb);
         // 设置pcb运行态
         pcb.setStatus(PCB.Status.RUNNING);
+        PlatForm.platForm.refreshInterruptInfo(String.format("进程:%d,执行打开文件系统调用,打开文件:%s,返回用户文件描述符为:%d\n",
+                pcb.getID(), path, fd));
         Log.Info("打开文件", String.format("进程:%d,执行打开文件系统调用,打开文件:%s,返回文件描述符为:%d",
                 pcb.getID(), path, fd));
     }

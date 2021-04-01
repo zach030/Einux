@@ -8,6 +8,7 @@ import os.filesystem.FileSystem;
 import os.job.JCB;
 import os.storage.StorageManager;
 import os.storage.Transfer;
+import ui.PlatForm;
 import utils.Log;
 
 import java.util.ArrayList;
@@ -69,7 +70,6 @@ public class ProcessManager {
                 for (PCB pcb : readyQueue) {
                     content.append("进程: ").append(pcb.getID()).append("\n");
                 }
-                Log.Info("就绪队列", content.toString());
             } else {
                 content.append("就绪队列为空");
             }
@@ -79,22 +79,25 @@ public class ProcessManager {
         synchronized public String displayResourceBlockQueue() {
             StringBuilder content = new StringBuilder();
             if (!this.resourceBlockQueue.isEmpty()) {
+                StringBuilder c1 = new StringBuilder();
                 ArrayList<PCB> r1 = resourceBlockQueue.get(0);
-                content.append("资源类型0：");
                 for (PCB pcb : r1) {
-                    content.append("进程: ").append(pcb.getID()).append("\t");
+                    c1.append("进程: ").append(pcb.getID()).append("\n");
                 }
-                content.append("\n资源类型1：");
+                content.append(c1);
+                StringBuilder c2 = new StringBuilder();
                 ArrayList<PCB> r2 = resourceBlockQueue.get(1);
                 for (PCB pcb : r2) {
-                    content.append("进程: ").append(pcb.getID()).append("\t");
+                    c2.append("进程: ").append(pcb.getID()).append("\n");
                 }
-                content.append("\n资源类型2：");
+                content.append(c2);
+                StringBuilder c3 = new StringBuilder();
                 ArrayList<PCB> r3 = resourceBlockQueue.get(2);
                 for (PCB pcb : r3) {
-                    content.append("进程: ").append(pcb.getID()).append("\t");
+                    c3.append("进程: ").append(pcb.getID()).append("\n");
                 }
-                Log.Info("资源阻塞队列", content.toString());
+                content.append(c3);
+                PlatForm.platForm.refreshResourceBlockQueue(c1.toString(), c2.toString(), c3.toString());
             } else {
                 content.append("资源阻塞队列为空");
             }
@@ -108,7 +111,6 @@ public class ProcessManager {
                 for (PCB pcb : current) {
                     content.append("进程: ").append(pcb.getID()).append("\t");
                 }
-                Log.Info("缓冲区阻塞队列", content.toString());
             } else {
                 content.append("缓冲区阻塞队列为空");
             }
@@ -121,7 +123,6 @@ public class ProcessManager {
                 for (PCB pcb : suspendQueue) {
                     content.append("进程: ").append(pcb.getID()).append("\n");
                 }
-                Log.Info("挂起队列", content.toString());
             } else {
                 content.append("挂起队列为空");
             }
@@ -134,7 +135,6 @@ public class ProcessManager {
                 for (PCB pcb : finishQueue) {
                     content.append("进程: ").append(pcb.getID()).append("\n");
                 }
-                Log.Info("已完成队列", content.toString());
             } else {
                 content.append("已完成队列为空");
             }
@@ -170,6 +170,35 @@ public class ProcessManager {
         // 加入资源阻塞队列
         synchronized public void joinResourceBlockQueue(PCB pcb, int resource) {
             this.resourceBlockQueue.get(resource).add(pcb);
+        }
+
+        // 就绪队列是否为空
+        synchronized public boolean isReadyQueueEmpty() {
+            return this.readyQueue.isEmpty();
+        }
+
+        // 资源阻塞队列是否为空
+        synchronized public boolean isPCBBlockByResource() {
+            return !resourceBlockQueue.get(0).isEmpty() || !resourceBlockQueue.get(1).isEmpty() || !resourceBlockQueue.get(2).isEmpty();
+        }
+
+        /**
+         * @description: 唤醒被资源阻塞的进程
+         * @author: zach
+         **/
+        synchronized public void wakeResourceBlockPCB() {
+            for (int i = 0; i < resourceBlockQueue.get(0).size(); i++) {
+                PCB pcb = resourceBlockQueue.get(0).get(i);
+                ProcessManager.pm.processOperator.wakePCB(pcb);
+            }
+            for (int i = 0; i < resourceBlockQueue.get(1).size(); i++) {
+                PCB pcb = resourceBlockQueue.get(0).get(i);
+                ProcessManager.pm.processOperator.wakePCB(pcb);
+            }
+            for (int i = 0; i < resourceBlockQueue.get(1).size(); i++) {
+                PCB pcb = resourceBlockQueue.get(0).get(i);
+                ProcessManager.pm.processOperator.wakePCB(pcb);
+            }
         }
 
         // 移出资源阻塞队列
@@ -249,7 +278,7 @@ public class ProcessManager {
 
         // 判断进程调度是否已结束
         public boolean isAllFinished() {
-            return queueManager.allPCB.size() == queueManager.finishQueue.size() && isReadyQueueEmpty() && isBlockQueueEmpty() && isSuspendQueueEmpty();
+            return isReadyQueueEmpty() && isBlockQueueEmpty() && isSuspendQueueEmpty() && queueManager.allPCB.size() == queueManager.finishQueue.size() && queueManager.finishQueue.size() != 0;
         }
     }
 

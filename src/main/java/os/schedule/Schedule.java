@@ -126,6 +126,14 @@ public class Schedule extends Thread {
     public void RunProcess() {
         // 0.系统时间自增
         CPU.cpu.clock.systemTimeSelfAdd();
+        // 如果所有进程运行完毕
+        if (ProcessManager.pm.requesterManager.isAllFinished()) {
+            CPU.cpu.setCurrent(null);
+            PlatForm.platForm.refreshCurrentPC();
+            PlatForm.platForm.refreshCurrentPCB();
+            Log.Info(schedulePeriod, "当前进程已全部运行结束");
+            return;
+        }
         // 如果CPU空闲,需要低级调度
         if (!CPU.cpu.isRunning()) {
             Log.Info(schedulePeriod, "当前CPU空闲");
@@ -143,12 +151,6 @@ public class Schedule extends Thread {
             ProcessManager.pm.processOperator.cancelPCB(CPU.cpu.getCurrent()); // 撤销进程;
             return;
         }
-        // 如果所有进程运行完毕
-        if (ProcessManager.pm.requesterManager.isAllFinished()) {
-            Log.Info(schedulePeriod, "当前进程已全部运行结束");
-            return;
-        }
-
         Log.Info(systemRun, "正在运行进程:" + CPU.cpu.getCurrent().getID());
         // 1.获取当前指令的逻辑地址
         int instructionLogicalAddr = CPU.cpu.getCurrentIRAddr();
@@ -189,7 +191,6 @@ public class Schedule extends Thread {
             Log.Debug(lowLevelSchedule, "当前进程被阻塞，需要重新调度");
             return;
         }
-
         // 7. 判断进程时间片是否用完
         if (CPU.cpu.getCurrent().isRunOutOfTimeSlice()) {
             Log.Info(systemRun, String.format("当前进程:%d, 时间片已用完", CPU.cpu.getCurrent().getID()));
@@ -200,16 +201,6 @@ public class Schedule extends Thread {
         }
     }
 
-
-    // 调度线程开始
-    public void init() {
-        FileSystem.fs.start();
-        // 0.开启系统计时器
-        CPU.cpu.clock.start();
-        // 1.开启高级、中级调度检测线程
-        Detector.detector.StartDetector();
-        JobManage.jm.LoadJobFromFile(JobManage.jm.chooseFile);
-    }
 
     private final Object lock = new Object();
     private boolean pause = false;
@@ -247,22 +238,20 @@ public class Schedule extends Thread {
         }
     }
 
-    /**
-     * @description: 终止程序
-     * @author: zach
-     **/
-    public void Stop() {
-
-    }
-
     @Override
     public void run() {
+        // 0.开启系统计时器
+        CPU.cpu.clock.start();
+        FileSystem.fs.start();
+        // 1.开启高级、中级调度检测线程
+        Detector.detector.StartDetector();
+        JobManage.jm.LoadJobFromFile(JobManage.jm.chooseFile);
         while (true) {
             while (pause) {
                 onPause();
             }
             try {
-                sleep(1000);
+                sleep(100);
                 // 如果发生时钟中断，开启调度
                 if (CPU.cpu.clock.GetIfInterrupt()) {
                     // 高级调度
